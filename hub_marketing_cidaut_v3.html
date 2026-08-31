@@ -1,0 +1,2619 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hub de Marketing — CIDAUT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{
+    --teal-950:#0a2a30;
+    --teal-800:#123f46;
+    --teal-700:#175058;
+    --teal-500:#1bb8a6;
+    --teal-100:#e3f6f3;
+    --orange-500:#f2762e;
+    --orange-100:#fdeadd;
+    --canvas:#f6f7f6;
+    --surface:#ffffff;
+    --ink-900:#16262a;
+    --ink-700:#33454a;
+    --ink-500:#5b6b6e;
+    --ink-300:#8fa0a2;
+    --line:#e1e6e5;
+    --line-strong:#cbd4d3;
+    --danger:#c0392b;
+    --radius:8px;
+    --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Montserrat', system-ui, sans-serif;
+    background:var(--canvas);
+    color:var(--ink-900);
+    font-size:14px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{font-family:'Montserrat', system-ui, sans-serif;margin:0;font-weight:700;color:var(--ink-900);}
+  p{margin:0;}
+  button{font-family:inherit;}
+  input,select,textarea{font-family:inherit;font-size:14px;color:var(--ink-900);}
+  a{color:var(--teal-700);}
+  ::selection{background:var(--teal-100);}
+
+  /* ---------- App shell ---------- */
+  .app-shell{display:flex;min-height:100vh;}
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width:252px;
+    flex-shrink:0;
+    background:var(--teal-950);
+    color:#e9f3f2;
+    display:flex;
+    flex-direction:column;
+    position:fixed;
+    top:0;left:0;bottom:0;
+    overflow-y:auto;
+    z-index:20;
+  }
+  .sidebar-brand{
+    padding:26px 22px 18px 22px;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+  }
+  .sidebar-brand .org{
+    font-weight:800;
+    font-size:17px;
+    letter-spacing:0.2px;
+    color:#ffffff;
+  }
+  .sidebar-brand .sub{
+    margin-top:3px;
+    font-size:12.5px;
+    color:#9fc2bf;
+    font-weight:500;
+  }
+  .sidebar-nav{padding:14px 10px;flex:1;}
+  .sidebar-group-label{
+    font-size:11px;
+    font-weight:600;
+    color:#6f9794;
+    padding:14px 12px 6px 12px;
+    text-transform:none;
+  }
+  .nav-item{
+    display:flex;
+    align-items:center;
+    gap:11px;
+    padding:10px 12px;
+    margin:2px 0;
+    border-radius:6px;
+    border-left:3px solid transparent;
+    color:#cfe4e2;
+    cursor:pointer;
+    font-size:13.5px;
+    font-weight:500;
+    transition:background 0.14s ease, color 0.14s ease;
+  }
+  .nav-item i{width:18px;text-align:center;font-size:14px;color:#82aeaa;}
+  .nav-item:hover{background:rgba(255,255,255,0.06);color:#ffffff;}
+  .nav-item.active{
+    background:rgba(27,184,166,0.14);
+    border-left-color:var(--teal-500);
+    color:#ffffff;
+  }
+  .nav-item.active i{color:var(--teal-500);}
+  .nav-item .num{
+    font-size:10.5px;
+    color:#5c8683;
+    font-weight:600;
+    margin-right:1px;
+  }
+  .nav-item.active .num{color:var(--teal-500);}
+  .sidebar-foot{
+    padding:16px 22px 20px 22px;
+    border-top:1px solid rgba(255,255,255,0.08);
+    font-size:11.5px;
+    color:#5c8683;
+  }
+
+  /* ---------- Main content ---------- */
+  .main{
+    margin-left:252px;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    min-width:0;
+  }
+  .topbar{
+    padding:22px 34px;
+    background:var(--surface);
+    border-bottom:1px solid var(--line);
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:20px;
+  }
+  .topbar h1{font-size:21px;}
+  .topbar .desc{margin-top:5px;font-size:13px;color:var(--ink-500);max-width:640px;}
+  .topbar-mobile-toggle{display:none;}
+  .content{padding:28px 34px 60px 34px;max-width:1180px;}
+
+  .module-view{display:none;}
+  .module-view.active{display:block;}
+
+  /* ---------- Tabs ---------- */
+  .tabbar{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:22px;}
+  .tab-btn{
+    padding:10px 4px;
+    margin-right:22px;
+    background:none;
+    border:none;
+    border-bottom:2px solid transparent;
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--ink-500);
+    cursor:pointer;
+  }
+  .tab-btn:hover{color:var(--ink-900);}
+  .tab-btn.active{color:var(--teal-700);border-bottom-color:var(--teal-500);}
+  .tab-pane{display:none;}
+  .tab-pane.active{display:block;}
+
+  /* ---------- Panels / cards ---------- */
+  .panel{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:22px;
+    margin-bottom:20px;
+  }
+  .panel-accent{border-left:3px solid var(--teal-500);}
+  .panel-title{font-size:14.5px;font-weight:700;margin-bottom:4px;}
+  .panel-subtitle{font-size:12.5px;color:var(--ink-500);margin-bottom:18px;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  @media (max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr;}}
+
+  /* ---------- Form elements ---------- */
+  .field{margin-bottom:15px;}
+  .field label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-700);margin-bottom:6px;}
+  .field .hint{font-size:11.5px;color:var(--ink-300);margin-top:4px;}
+  .field input[type=text],
+  .field input[type=email],
+  .field input[type=date],
+  .field input[type=url],
+  .field select,
+  .field textarea{
+    width:100%;
+    padding:9px 11px;
+    border:1px solid var(--line-strong);
+    border-radius:6px;
+    background:#fff;
+    outline:none;
+  }
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--teal-500);box-shadow:0 0 0 3px var(--teal-100);}
+  .field textarea{resize:vertical;min-height:80px;}
+  .field-row{display:flex;gap:14px;}
+  .field-row .field{flex:1;}
+  .file-drop{
+    border:1.5px dashed var(--line-strong);
+    border-radius:6px;
+    padding:16px;
+    text-align:center;
+    font-size:12.5px;
+    color:var(--ink-500);
+    cursor:pointer;
+    background:#fbfcfc;
+  }
+  .file-drop:hover{border-color:var(--teal-500);}
+  .file-drop input{display:none;}
+  .thumb-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+  .thumb-row img{width:52px;height:52px;object-fit:cover;border-radius:5px;border:1px solid var(--line);}
+
+  /* ---------- Buttons ---------- */
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:9px 16px;
+    border-radius:6px;
+    border:1px solid transparent;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    background:var(--teal-950);
+    color:#fff;
+  }
+  .btn:hover{background:var(--teal-800);}
+  .btn-secondary{background:#fff;color:var(--ink-700);border-color:var(--line-strong);}
+  .btn-secondary:hover{border-color:var(--teal-500);color:var(--teal-700);background:var(--teal-100);}
+  .btn-orange{background:var(--orange-500);}
+  .btn-orange:hover{background:#d9631f;}
+  .btn-ghost{background:none;border:none;color:var(--teal-700);padding:6px 4px;font-weight:600;}
+  .btn-ghost:hover{text-decoration:underline;}
+  .btn-danger{background:#fff;border-color:var(--line-strong);color:var(--danger);}
+  .btn-danger:hover{background:#fdecea;border-color:var(--danger);}
+  .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;}
+  .btn[disabled]{opacity:0.45;cursor:not-allowed;}
+
+  /* ---------- Tables ---------- */
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{
+    text-align:left;
+    font-size:11.5px;
+    font-weight:600;
+    color:var(--ink-500);
+    padding:8px 10px;
+    border-bottom:1px solid var(--line-strong);
+  }
+  td{padding:9px 10px;border-bottom:1px solid var(--line);color:var(--ink-700);vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  .table-wrap{overflow-x:auto;}
+  .empty-row td{color:var(--ink-300);text-align:center;padding:26px 10px;font-style:normal;}
+
+  /* ---------- Tags ---------- */
+  .tag{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;}
+  .tag-teal{background:var(--teal-100);color:var(--teal-700);}
+  .tag-orange{background:var(--orange-100);color:#b1521a;}
+  .tag-grey{background:#eef0f0;color:var(--ink-500);}
+
+  /* ---------- Stat blocks ---------- */
+  .stat-block{padding:4px 0;}
+  .stat-num{font-size:32px;font-weight:800;color:var(--ink-900);line-height:1;}
+  .stat-label{font-size:12.5px;color:var(--ink-500);margin-top:6px;}
+  .stat-block.accent .stat-num{color:var(--teal-700);}
+
+  /* ---------- Toast ---------- */
+  #toast{
+    position:fixed;bottom:24px;right:24px;
+    background:var(--teal-950);color:#fff;
+    padding:12px 18px;border-radius:6px;
+    font-size:13px;font-weight:600;
+    box-shadow:0 6px 18px rgba(0,0,0,0.18);
+    display:none;
+    z-index:100;
+    align-items:center;gap:9px;
+  }
+  #toast i{color:var(--teal-500);}
+
+  /* ---------- Code / snippet blocks ---------- */
+  .snippet-code{
+    background:var(--teal-950);
+    color:#d7ece9;
+    font-family:var(--mono);
+    font-size:12px;
+    line-height:1.6;
+    padding:16px;
+    border-radius:6px;
+    overflow-x:auto;
+    white-space:pre;
+    margin:12px 0 0 0;
+  }
+  .snippet-card{margin-bottom:16px;}
+  .snippet-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;}
+  .snippet-head h4{font-size:13.5px;}
+  .snippet-desc{font-size:12.5px;color:var(--ink-500);margin-top:3px;}
+
+  /* ---------- Checklist ---------- */
+  .check-item{
+    display:flex;align-items:flex-start;gap:10px;
+    padding:9px 0;border-bottom:1px solid var(--line);
+  }
+  .check-item:last-child{border-bottom:none;}
+  .check-item input[type=checkbox]{margin-top:2px;width:16px;height:16px;accent-color:var(--teal-500);flex-shrink:0;}
+  .check-item .ctext{flex:1;font-size:13px;}
+  .check-item.done .ctext{color:var(--ink-300);text-decoration:line-through;}
+  .check-item .cmeta{font-size:11px;color:var(--ink-300);margin-top:2px;}
+  .progress-bar{height:6px;background:var(--line);border-radius:4px;overflow:hidden;margin:8px 0 18px 0;}
+  .progress-bar-fill{height:100%;background:var(--teal-500);border-radius:4px;transition:width 0.25s ease;}
+
+  /* ---------- Calendar ---------- */
+  .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+  .cal-head h3{font-size:15px;}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden;}
+  .cal-dow{background:#fafbfb;padding:7px;font-size:11px;font-weight:600;color:var(--ink-500);text-align:center;}
+  .cal-day{background:#fff;min-height:88px;padding:6px;font-size:11.5px;position:relative;}
+  .cal-day.other-month{background:#fbfcfc;color:var(--ink-300);}
+  .cal-day .dnum{font-weight:600;font-size:11.5px;color:var(--ink-500);margin-bottom:4px;}
+  .cal-day .entry{
+    background:var(--teal-100);color:var(--teal-700);
+    font-size:10px;font-weight:600;padding:2px 5px;border-radius:4px;
+    margin-bottom:3px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .cal-day .entry.proyecto{background:var(--orange-100);color:#b1521a;}
+  .cal-day .add-btn{position:absolute;top:5px;right:5px;font-size:11px;color:var(--ink-300);cursor:pointer;opacity:0;}
+  .cal-day:hover .add-btn{opacity:1;}
+
+  /* ---------- Modal ---------- */
+  .modal-overlay{
+    display:none;position:fixed;inset:0;background:rgba(10,32,35,0.5);
+    align-items:center;justify-content:center;z-index:60;padding:20px;
+  }
+  .modal-overlay.active{display:flex;}
+  .modal-box{background:#fff;border-radius:10px;padding:24px;width:100%;max-width:420px;max-height:88vh;overflow-y:auto;}
+  .modal-box h3{font-size:15.5px;margin-bottom:16px;}
+  .modal-close{float:right;cursor:pointer;color:var(--ink-300);font-size:15px;}
+
+  /* ---------- Post preview mockups ---------- */
+  .platform-tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+  .platform-tab{
+    display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:20px;
+    border:1px solid var(--line-strong);background:#fff;font-size:12.5px;font-weight:600;
+    color:var(--ink-500);cursor:pointer;
+  }
+  .platform-tab.active{background:var(--teal-950);color:#fff;border-color:var(--teal-950);}
+  .mock-card{
+    max-width:400px;border:1px solid var(--line-strong);border-radius:10px;overflow:hidden;background:#fff;
+  }
+  .mock-head{display:flex;align-items:center;gap:10px;padding:12px 14px;}
+  .mock-avatar{
+    width:38px;height:38px;border-radius:50%;background:var(--teal-500);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;
+  }
+  .mock-name{font-size:12.5px;font-weight:700;color:var(--ink-900);}
+  .mock-meta{font-size:11px;color:var(--ink-500);}
+  .mock-body{padding:0 14px 12px 14px;font-size:12.5px;color:var(--ink-900);white-space:pre-wrap;}
+  .mock-img{width:100%;display:block;background:#eef0f0;object-fit:cover;max-height:220px;}
+  .mock-actions{display:flex;gap:18px;padding:10px 14px;border-top:1px solid var(--line);font-size:11.5px;color:var(--ink-500);}
+  .mock-yt-thumb{position:relative;background:#eef0f0;}
+  .mock-yt-thumb img{width:100%;display:block;max-height:220px;object-fit:cover;}
+  .mock-yt-title{padding:10px 14px 2px 14px;font-size:13px;font-weight:700;}
+
+  /* ---------- Email preview ---------- */
+  .email-toolbar{display:flex;gap:8px;margin-bottom:12px;}
+  .device-btn{padding:7px 14px;border-radius:6px;border:1px solid var(--line-strong);background:#fff;font-size:12px;font-weight:600;color:var(--ink-500);cursor:pointer;}
+  .device-btn.active{background:var(--teal-950);color:#fff;border-color:var(--teal-950);}
+  .email-frame-wrap{border:1px solid var(--line-strong);border-radius:8px;background:#eef0f0;padding:20px;display:flex;justify-content:center;}
+  #emailPreviewFrame{background:#fff;border:none;height:520px;transition:width 0.2s ease;}
+
+  /* ---------- Misc ---------- */
+  .section-gap{margin-top:30px;}
+  .divider{height:1px;background:var(--line);margin:24px 0;}
+  .muted{color:var(--ink-500);}
+  .small{font-size:12px;}
+  .flex-between{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+  .filter-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:18px;}
+  .filter-row .field{margin-bottom:0;min-width:160px;}
+
+  @media print{
+    body *{visibility:hidden;}
+    #printArea, #printArea *{visibility:visible;}
+    #printArea{position:absolute;top:0;left:0;width:100%;padding:20px;}
+  }
+
+  @media (max-width:960px){
+    .sidebar{transform:translateX(-100%);transition:transform 0.2s ease;box-shadow:0 0 0 rgba(0,0,0,0);}
+    .sidebar.open{transform:translateX(0);box-shadow:8px 0 24px rgba(0,0,0,0.2);}
+    .main{margin-left:0;}
+    .topbar{padding:16px 18px;}
+    .content{padding:20px 18px 50px 18px;}
+    .topbar-mobile-toggle{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:6px;border:1px solid var(--line-strong);background:#fff;cursor:pointer;flex-shrink:0;}
+    .grid-2,.grid-3{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ============ SIDEBAR ============ -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="org">CIDAUT</div>
+      <div class="sub">Hub de Marketing</div>
+    </div>
+    <div class="sidebar-nav" id="sidebarNav">
+      <div class="nav-item" data-view="tareas"><span class="num">0</span><i class="fa-solid fa-list-check"></i> Gestor de tareas</div>
+      <div class="nav-item" data-view="inicio"><i class="fa-solid fa-house"></i> Inicio</div>
+
+      <div class="sidebar-group-label">Módulos</div>
+      <div class="nav-item" data-view="eventos"><span class="num">1</span><i class="fa-solid fa-calendar-check"></i> Eventos y memoria anual</div>
+      <div class="nav-item" data-view="webs"><span class="num">2</span><i class="fa-solid fa-code"></i> Gestor de webs de proyectos</div>
+      <div class="nav-item" data-view="email"><span class="num">3</span><i class="fa-solid fa-envelope-open-text"></i> Email marketing y CRM</div>
+      <div class="nav-item" data-view="redes"><span class="num">4</span><i class="fa-solid fa-share-nodes"></i> Redes sociales</div>
+      <div class="nav-item" data-view="propios"><span class="num">5</span><i class="fa-solid fa-clipboard-list"></i> Organizador de eventos propios</div>
+    </div>
+    <div class="sidebar-foot">Uso interno — Comunicación y Marketing</div>
+  </nav>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <h1 id="topbarTitle">Inicio</h1>
+        <div class="desc" id="topbarDesc">Resumen general de la actividad de marketing registrada en el hub.</div>
+      </div>
+      <div class="topbar-mobile-toggle" id="mobileToggle"><i class="fa-solid fa-bars"></i></div>
+    </div>
+
+    <div class="content" id="appContent">
+      <!-- ============ TAREAS ============ -->
+      <section class="module-view" id="view-tareas">
+        <div class="tabbar">
+          <button class="tab-btn active" data-tab="lista" onclick="switchTab('tareas','lista')">Lista</button>
+          <button class="tab-btn" data-tab="kanban" onclick="switchTab('tareas','kanban')">Kanban</button>
+          <button class="tab-btn" data-tab="calendario" onclick="switchTab('tareas','calendario')">Calendario</button>
+          <button class="tab-btn" data-tab="gantt" onclick="switchTab('tareas','gantt')">Gantt</button>
+        </div>
+
+        <!-- LISTA -->
+        <div class="tab-pane active" id="tareas-lista">
+          <div class="grid-2">
+            <div class="panel">
+              <div class="panel-title">Nueva tarea</div>
+              <div class="panel-subtitle">Añade una tarea con estado, prioridad y fechas.</div>
+              <div class="field">
+                <label for="tareaTitulo">Título</label>
+                <input type="text" id="tareaTitulo" placeholder="Ej. Revisar copy de la newsletter">
+              </div>
+              <div class="field">
+                <label for="tareaDesc">Descripción</label>
+                <textarea id="tareaDesc" placeholder="Detalles de la tarea..."></textarea>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="tareaEstado">Estado</label>
+                  <select id="tareaEstado">
+                    <option value="pendiente">Pendiente</option>
+                    <option value="progreso">En progreso</option>
+                    <option value="revision">En revisión</option>
+                    <option value="completada">Completada</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="tareaPrioridad">Prioridad</label>
+                  <select id="tareaPrioridad">
+                    <option value="baja">Baja</option>
+                    <option value="media" selected>Media</option>
+                    <option value="alta">Alta</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="tareaFechaInicio">Fecha inicio</label>
+                  <input type="date" id="tareaFechaInicio">
+                </div>
+                <div class="field">
+                  <label for="tareaFechaFin">Fecha fin (opcional)</label>
+                  <input type="date" id="tareaFechaFin">
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="tareaResponsable">Responsable</label>
+                  <input type="text" id="tareaResponsable" placeholder="Nombre del responsable">
+                </div>
+                <div class="field">
+                  <label for="tareaEtiqueta">Etiqueta / Proyecto</label>
+                  <input type="text" id="tareaEtiqueta" placeholder="Ej. RESILIENT, General...">
+                </div>
+              </div>
+              <div class="btn-row">
+                <button class="btn" onclick="guardarTarea()"><i class="fa-solid fa-floppy-disk"></i> Guardar tarea</button>
+                <button class="btn btn-secondary" onclick="limpiarFormularioTarea()">Limpiar</button>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-title">Resumen</div>
+              <div class="grid-3" style="margin-top:8px;">
+                <div class="stat-block accent">
+                  <div class="stat-num" id="statTareasPendientes" style="font-size:24px;">0</div>
+                  <div class="stat-label">Pendientes</div>
+                </div>
+                <div class="stat-block accent">
+                  <div class="stat-num" id="statTareasProgreso" style="font-size:24px;">0</div>
+                  <div class="stat-label">En progreso</div>
+                </div>
+                <div class="stat-block accent">
+                  <div class="stat-num" id="statTareasCompletadas" style="font-size:24px;">0</div>
+                  <div class="stat-label">Completadas</div>
+                </div>
+              </div>
+              <div class="divider"></div>
+              <div class="panel-title" style="font-size:13px;">Tareas por prioridad</div>
+              <canvas id="chartTareasPrioridad" height="140"></canvas>
+            </div>
+          </div>
+
+          <div class="panel section-gap">
+            <div class="flex-between">
+              <div>
+                <div class="panel-title">Listado de tareas</div>
+                <div class="panel-subtitle" style="margin-bottom:0;">Filtra y gestiona el estado de cada tarea.</div>
+              </div>
+              <div class="field" style="min-width:220px;margin-bottom:0;">
+                <input type="text" id="tareaSearch" placeholder="Buscar tarea..." oninput="filtrarTareasLista()">
+              </div>
+            </div>
+            <div class="filter-row" style="margin-top:14px;">
+              <div class="field" style="margin-bottom:0;">
+                <label style="font-size:11px;">Estado</label>
+                <select id="filtroTareaEstado" onchange="filtrarTareasLista()">
+                  <option value="">Todos</option>
+                  <option value="pendiente">Pendiente</option>
+                  <option value="progreso">En progreso</option>
+                  <option value="revision">En revisión</option>
+                  <option value="completada">Completada</option>
+                </select>
+              </div>
+              <div class="field" style="margin-bottom:0;">
+                <label style="font-size:11px;">Prioridad</label>
+                <select id="filtroTareaPrioridad" onchange="filtrarTareasLista()">
+                  <option value="">Todas</option>
+                  <option value="alta">Alta</option>
+                  <option value="media">Media</option>
+                  <option value="baja">Baja</option>
+                </select>
+              </div>
+              <div class="field" style="margin-bottom:0;">
+                <label style="font-size:11px;">Etiqueta</label>
+                <input type="text" id="filtroTareaEtiqueta" placeholder="Filtrar por etiqueta..." oninput="filtrarTareasLista()">
+              </div>
+            </div>
+            <div class="table-wrap" style="margin-top:14px;">
+              <table id="tablaTareas">
+                <thead><tr><th>Título</th><th>Estado</th><th>Prioridad</th><th>Inicio</th><th>Fin</th><th>Responsable</th><th>Etiqueta</th><th></th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- KANBAN -->
+        <div class="tab-pane" id="tareas-kanban">
+          <div class="panel">
+            <div class="panel-title">Tablero Kanban</div>
+            <div class="panel-subtitle">Mueve las tareas entre columnas cambiando su estado.</div>
+            <div id="kanbanBoard" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:18px;">
+              <!-- Se genera por JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- CALENDARIO DE TAREAS -->
+        <div class="tab-pane" id="tareas-calendario">
+          <div class="panel">
+            <div class="cal-head">
+              <button class="btn btn-secondary" onclick="cambiarMesTareas(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+              <h3 id="calMesLabelTareas"></h3>
+              <button class="btn btn-secondary" onclick="cambiarMesTareas(1)"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+            <div style="margin-bottom:14px;">
+              <span class="tag tag-teal">Inicio</span>
+              <span class="tag tag-orange" style="margin-left:6px;">Fin</span>
+            </div>
+            <div class="cal-grid" id="calGridTareas"></div>
+          </div>
+        </div>
+
+        <!-- GANTT -->
+        <div class="tab-pane" id="tareas-gantt">
+          <div class="panel">
+            <div class="panel-title">Vista Gantt</div>
+            <div class="panel-subtitle">Línea temporal de las tareas con sus duraciones.</div>
+            <div id="ganttWrap" style="margin-top:18px;overflow-x:auto;">
+              <!-- Se genera por JS -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ INICIO ============ -->
+      <section class="module-view active" id="view-inicio">
+        <div class="grid-3">
+          <div class="panel panel-accent">
+            <div class="stat-block accent">
+              <div class="stat-num" id="statEventos">0</div>
+              <div class="stat-label">Registros de eventos este año</div>
+            </div>
+          </div>
+          <div class="panel panel-accent">
+            <div class="stat-block accent">
+              <div class="stat-num" id="statMantenimiento">0</div>
+              <div class="stat-label">Tareas de mantenimiento pendientes</div>
+            </div>
+          </div>
+          <div class="panel panel-accent">
+            <div class="stat-block accent">
+              <div class="stat-num" id="statInscritos">0</div>
+              <div class="stat-label">Inscritos totales en eventos propios</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel section-gap">
+          <div class="panel-title">Accesos directos</div>
+          <div class="panel-subtitle">Ir directamente a una tarea habitual.</div>
+          <div class="btn-row">
+            <button class="btn btn-secondary" onclick="goTo('eventos','registro')"><i class="fa-solid fa-plus"></i> Registrar asistencia a un evento</button>
+            <button class="btn btn-secondary" onclick="goTo('webs','snippets')"><i class="fa-solid fa-code"></i> Copiar un snippet de web</button>
+            <button class="btn btn-secondary" onclick="goTo('webs','estructura')"><i class="fa-solid fa-sitemap"></i> Definir estructura de una web de proyecto</button>
+            <button class="btn btn-secondary" onclick="goTo('email','utm')"><i class="fa-solid fa-link"></i> Generar un enlace UTM</button>
+            <button class="btn btn-secondary" onclick="goTo('email','seguimiento')"><i class="fa-solid fa-paper-plane"></i> Registrar un envío de email</button>
+            <button class="btn btn-secondary" onclick="goTo('redes','calendario')"><i class="fa-solid fa-calendar-days"></i> Abrir calendario editorial</button>
+            <button class="btn btn-secondary" onclick="goTo('tareas','lista')"><i class="fa-solid fa-list-check"></i> Ver tareas del equipo</button>
+          </div>
+        </div>
+
+        <div class="panel section-gap">
+          <div class="panel-title">Sobre este hub</div>
+          <div class="panel-subtitle" style="margin-bottom:0;">Esta herramienta centraliza cinco áreas de trabajo del equipo de Comunicación y Marketing: memoria anual de eventos, gestión de las webs de proyecto, email marketing, planificación de redes sociales y organización de eventos propios. Los datos introducidos se guardan en este mismo navegador.</div>
+        </div>
+      </section>
+
+      <!-- ============ MÓDULO 1: EVENTOS Y MEMORIA ANUAL ============ -->
+      <section class="module-view" id="view-eventos">
+        <div class="tabbar">
+          <button class="tab-btn active" data-tab="registro" onclick="switchTab('eventos','registro')">Portal del empleado</button>
+          <button class="tab-btn" data-tab="memoria" onclick="switchTab('eventos','memoria')">Generador de memoria</button>
+        </div>
+
+        <!-- Portal del empleado -->
+        <div class="tab-pane active" id="eventos-registro">
+          <div class="grid-2">
+            <div class="panel">
+              <div class="panel-title">Registrar asistencia a un evento</div>
+              <div class="panel-subtitle">Rellena estos datos justo después del evento. Se tarda menos de un minuto.</div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="evNombre">Nombre del empleado</label>
+                  <input type="text" id="evNombre" placeholder="Nombre y apellidos">
+                </div>
+                <div class="field">
+                  <label for="evDepartamento">Departamento</label>
+                  <select id="evDepartamento">
+                    <option value="">Selecciona...</option>
+                    <option>Energía</option>
+                    <option>Materiales</option>
+                    <option>Movilidad</option>
+                    <option>OTRI</option>
+                    <option>TIC</option>
+                    <option value="__otro">Otro (especificar)</option>
+                  </select>
+                  <input type="text" id="evDepartamentoOtro" placeholder="Especifica el departamento" style="margin-top:8px;display:none;">
+                </div>
+              </div>
+              <div class="field">
+                <label for="evEvento">Conferencia o evento</label>
+                <input type="text" id="evEvento" placeholder="Nombre del congreso, jornada o feria">
+              </div>
+              <div class="field">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:0;">
+                  <input type="checkbox" id="evVariosDias" onchange="toggleEvVariosDias()" style="width:auto;margin:0;accent-color:var(--teal-500);">
+                  <span>El evento dura varios días</span>
+                </label>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="evFecha" id="evFechaLabel">Fecha</label>
+                  <input type="date" id="evFecha">
+                </div>
+                <div class="field" id="evFechaFinField" style="display:none;">
+                  <label for="evFechaFin">Fecha de fin</label>
+                  <input type="date" id="evFechaFin">
+                </div>
+                <div class="field">
+                  <label for="evRol">Qué presentaste</label>
+                  <input type="text" id="evRol" placeholder="Póster, ponencia, stand, asistencia...">
+                </div>
+              </div>
+              <div class="field">
+                <label for="evDescripcion">Resumen breve (opcional)</label>
+                <textarea id="evDescripcion" placeholder="Una o dos frases para la memoria anual"></textarea>
+              </div>
+              <div class="field">
+                <label for="evGastos">Nota de gastos</label>
+                <textarea id="evGastos" placeholder="Indica aquí el importe o concepto de los gastos asociados a este evento"></textarea>
+              </div>
+              <div class="field">
+                <label>Fotos del evento</label>
+                <div class="file-drop" onclick="document.getElementById('evFotos').click()">
+                  <i class="fa-solid fa-image"></i> Haz clic para adjuntar fotos
+                  <input type="file" id="evFotos" accept="image/*" multiple>
+                </div>
+                <div class="thumb-row" id="evFotosPreview"></div>
+              </div>
+              <div class="btn-row">
+                <button class="btn" onclick="guardarRegistroEvento()"><i class="fa-solid fa-floppy-disk"></i> Guardar registro</button>
+                <button class="btn btn-secondary" onclick="limpiarFormularioEvento()">Limpiar formulario</button>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-title">Registros recientes</div>
+              <div class="panel-subtitle">Últimas asistencias registradas por el equipo.</div>
+              <div class="table-wrap">
+                <table id="tablaRegistrosRecientes">
+                  <thead><tr><th>Empleado</th><th>Departamento</th><th>Evento</th><th>Fecha</th><th>Gastos</th><th></th></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Generador de memoria -->
+        <div class="tab-pane" id="eventos-memoria">
+          <div class="panel">
+            <div class="panel-title">Generador de memoria anual</div>
+            <div class="panel-subtitle">Filtra los registros y exporta el resumen consolidado.</div>
+            <div class="filter-row">
+              <div class="field">
+                <label for="memAnio">Año</label>
+                <select id="memAnio" onchange="renderMemoria()"></select>
+              </div>
+              <div class="field">
+                <label for="memDepto">Departamento</label>
+                <select id="memDepto" onchange="renderMemoria()">
+                  <option value="">Todos</option>
+                </select>
+              </div>
+              <div class="btn-row" style="margin-top:0;">
+                <button class="btn btn-orange" onclick="exportarExcel()"><i class="fa-solid fa-file-excel"></i> Exportar a CSV</button>
+                <button class="btn btn-secondary" onclick="exportarPDF()"><i class="fa-solid fa-file-pdf"></i> Exportar a PDF</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table id="tablaMemoria">
+                <thead><tr><th>Empleado</th><th>Departamento</th><th>Evento</th><th>Fecha</th><th>Qué presentó</th><th>Nota de gastos</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ MÓDULO 2: GESTOR DE WEBS DE PROYECTOS ============ -->
+      <section class="module-view" id="view-webs">
+        <div class="tabbar">
+          <button class="tab-btn active" data-tab="snippets" onclick="switchTab('webs','snippets')">Biblioteca de snippets</button>
+          <button class="tab-btn" data-tab="estructura" onclick="switchTab('webs','estructura')">Estructura de páginas</button>
+          <button class="tab-btn" data-tab="mantenimiento" onclick="switchTab('webs','mantenimiento')">Verificador de enlaces y mantenimiento</button>
+        </div>
+
+        <!-- Snippets -->
+        <div class="tab-pane active" id="webs-snippets">
+          <div class="panel">
+            <div class="panel-title">Añadir snippet</div>
+            <div class="panel-subtitle">Guarda tus propios bloques de código HTML para reutilizarlos en las webs de proyecto.</div>
+            <div class="field">
+              <label for="snippetTitulo">Título</label>
+              <input type="text" id="snippetTitulo" placeholder="Ej. Banner de financiación FEDER">
+            </div>
+            <div class="field">
+              <label for="snippetDescripcion">Descripción</label>
+              <input type="text" id="snippetDescripcion" placeholder="Breve descripción de para qué sirve este snippet">
+            </div>
+            <div class="field">
+              <label for="snippetCodigo">Código HTML</label>
+              <textarea id="snippetCodigo" style="min-height:140px;font-family:var(--mono);font-size:12px;" placeholder="Pega aquí el código HTML/CSS del snippet..."></textarea>
+            </div>
+            <button class="btn" onclick="guardarSnippet()"><i class="fa-solid fa-floppy-disk"></i> Guardar snippet</button>
+          </div>
+
+          <div class="panel">
+            <div class="flex-between">
+              <div>
+                <div class="panel-title">Biblioteca de snippets HTML</div>
+                <div class="panel-subtitle" style="margin-bottom:0;">Tus bloques guardados, listos para copiar y pegar en las webs de proyecto.</div>
+              </div>
+              <div class="field" style="min-width:220px;margin-bottom:0;">
+                <input type="text" id="snippetSearch" placeholder="Buscar snippet..." oninput="filtrarSnippets()">
+              </div>
+            </div>
+          </div>
+          <div id="snippetList"></div>
+        </div>
+
+        <!-- Estructura de páginas de proyecto -->
+        <div class="tab-pane" id="webs-estructura">
+          <div class="panel">
+            <div class="field-row" style="align-items:flex-end;">
+              <div class="field" style="flex:2;">
+                <label for="proyectoWebActivo">Proyecto</label>
+                <select id="proyectoWebActivo" onchange="renderEstructuraWeb()"></select>
+              </div>
+              <div class="field" style="flex:2;">
+                <label for="nuevoProyectoWebNombre">Crear nuevo proyecto</label>
+                <input type="text" id="nuevoProyectoWebNombre" placeholder="Nombre del proyecto / web">
+              </div>
+              <button class="btn" style="margin-bottom:15px;" onclick="crearProyectoWeb()"><i class="fa-solid fa-plus"></i> Crear</button>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="panel">
+              <div class="panel-title">Añadir apartado</div>
+              <div class="panel-subtitle">Define la estructura de la web del proyecto seleccionado: el slug y el contenido de cada apartado.</div>
+              <div class="field">
+                <label for="apartadoSlug">Slug</label>
+                <input type="text" id="apartadoSlug" placeholder="Ej. sobre-el-proyecto">
+              </div>
+              <div class="field">
+                <label for="apartadoContenido">Contenido</label>
+                <textarea id="apartadoContenido" style="min-height:140px;" placeholder="Contenido o texto de este apartado..."></textarea>
+              </div>
+              <button class="btn" onclick="añadirApartadoWeb()"><i class="fa-solid fa-plus"></i> Añadir apartado</button>
+            </div>
+
+            <div class="panel">
+              <div class="panel-title">Apartados de la web</div>
+              <div class="panel-subtitle">Estructura guardada para el proyecto seleccionado.</div>
+              <div id="listaApartadosWeb"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mantenimiento -->
+        <div class="tab-pane" id="webs-mantenimiento">
+          <div class="grid-2">
+            <div class="panel">
+              <div class="panel-title">Añadir tarea de mantenimiento</div>
+              <div class="field">
+                <label for="mSitio">Web</label>
+                <select id="mSitio">
+                  <option>Web principal CIDAUT</option>
+                  <option>Web de proyecto</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="mTarea">Tarea</label>
+                <input type="text" id="mTarea" placeholder="Ej. Revisar enlaces rotos del menú principal">
+              </div>
+              <div class="field">
+                <label for="mPeriodo">Periodicidad</label>
+                <select id="mPeriodo">
+                  <option>Semanal</option>
+                  <option>Mensual</option>
+                  <option>Trimestral</option>
+                </select>
+              </div>
+              <button class="btn" onclick="añadirTareaMantenimiento()"><i class="fa-solid fa-plus"></i> Añadir tarea</button>
+
+              <div class="divider"></div>
+              <div class="panel-title" style="font-size:13px;">Sugerencias habituales</div>
+              <div class="panel-subtitle">Añade cualquiera de estas con un clic.</div>
+              <div class="btn-row" id="sugerenciasMantenimiento"></div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-title">Checklist de mantenimiento</div>
+              <div class="panel-subtitle">Marca cada tarea cuando quede verificada.</div>
+              <div id="listaMantenimiento"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ MÓDULO 3: EMAIL MARKETING Y CRM ============ -->
+      <section class="module-view" id="view-email">
+        <div class="tabbar">
+          <button class="tab-btn active" data-tab="preview" onclick="switchTab('email','preview')">Previsualizador de HTML de email</button>
+          <button class="tab-btn" data-tab="utm" onclick="switchTab('email','utm')">Generador de enlaces UTM</button>
+          <button class="tab-btn" data-tab="seguimiento" onclick="switchTab('email','seguimiento')">Seguimiento de envíos</button>
+        </div>
+
+        <!-- Previsualizador -->
+        <div class="tab-pane active" id="email-preview">
+          <div class="panel">
+            <div class="panel-title">Previsualizador de HTML de email</div>
+            <div class="panel-subtitle">Pega el código de tu newsletter y comprueba cómo se verá antes de subirlo al CRM.</div>
+            <div class="grid-2">
+              <div>
+                <textarea id="emailHtmlInput" style="width:100%;min-height:420px;font-family:var(--mono);font-size:12px;" placeholder="&lt;html&gt;...pega aquí el HTML de tu email...&lt;/html&gt;" oninput="actualizarPreviewEmail()"></textarea>
+              </div>
+              <div>
+                <div class="email-toolbar">
+                  <button class="device-btn active" id="btnDesktop" onclick="setEmailDevice('desktop')"><i class="fa-solid fa-desktop"></i> Escritorio</button>
+                  <button class="device-btn" id="btnMovil" onclick="setEmailDevice('movil')"><i class="fa-solid fa-mobile-screen"></i> Móvil</button>
+                </div>
+                <div class="email-frame-wrap">
+                  <iframe id="emailPreviewFrame" style="width:600px;"></iframe>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- UTM -->
+        <div class="tab-pane" id="email-utm">
+          <div class="grid-2">
+            <div class="panel">
+              <div class="panel-title">Generador de enlaces UTM</div>
+              <div class="panel-subtitle">Añade parámetros de seguimiento antes de compartir un enlace.</div>
+              <div class="field">
+                <label for="utmUrl">URL de destino</label>
+                <input type="url" id="utmUrl" placeholder="https://www.cidaut.es/proyecto..." oninput="generarUTM()">
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="utmSource">Origen (utm_source)</label>
+                  <input type="text" id="utmSource" placeholder="linkedin, newsletter..." oninput="generarUTM()">
+                </div>
+                <div class="field">
+                  <label for="utmMedium">Medio (utm_medium)</label>
+                  <input type="text" id="utmMedium" placeholder="social, email, cpc..." oninput="generarUTM()">
+                </div>
+              </div>
+              <div class="field">
+                <label for="utmCampaign">Campaña (utm_campaign)</label>
+                <input type="text" id="utmCampaign" placeholder="lanzamiento_proyecto_x" oninput="generarUTM()">
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="utmTerm">Término (opcional)</label>
+                  <input type="text" id="utmTerm" oninput="generarUTM()">
+                </div>
+                <div class="field">
+                  <label for="utmContent">Contenido (opcional)</label>
+                  <input type="text" id="utmContent" oninput="generarUTM()">
+                </div>
+              </div>
+              <div class="field">
+                <label>Enlace generado</label>
+                <textarea id="utmResult" readonly style="min-height:64px;background:#fafbfb;"></textarea>
+              </div>
+              <div class="btn-row">
+                <button class="btn" onclick="copiarUTM()"><i class="fa-solid fa-copy"></i> Copiar enlace</button>
+                <button class="btn btn-secondary" onclick="guardarUTM()"><i class="fa-solid fa-floppy-disk"></i> Guardar en el historial</button>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-title">Historial de enlaces</div>
+              <div class="panel-subtitle">Últimos enlaces UTM generados por el equipo.</div>
+              <div class="table-wrap">
+                <table id="tablaUTM">
+                  <thead><tr><th>Campaña</th><th>Origen / medio</th><th>Enlace</th><th></th></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Seguimiento de envíos -->
+        <div class="tab-pane" id="email-seguimiento">
+          <div class="grid-2">
+            <div class="panel">
+              <div class="panel-title">Registrar envío</div>
+              <div class="panel-subtitle">Anota cada email o campaña que mandéis para llevar un histórico de lo enviado.</div>
+              <div class="field">
+                <label for="envioNombre">Nombre del email / campaña</label>
+                <input type="text" id="envioNombre" placeholder="Ej. Newsletter jornada viticultura - octubre">
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="envioFecha">Fecha de envío</label>
+                  <input type="date" id="envioFecha">
+                </div>
+                <div class="field">
+                  <label for="envioDestinatarios">Público / lista</label>
+                  <input type="text" id="envioDestinatarios" placeholder="Ej. Base general, socios proyecto X...">
+                </div>
+              </div>
+              <div class="field">
+                <label for="envioNotas">Notas (opcional)</label>
+                <textarea id="envioNotas" placeholder="Asunto utilizado, resultados, incidencias..."></textarea>
+              </div>
+              <button class="btn" onclick="añadirEnvioEmail()"><i class="fa-solid fa-plus"></i> Registrar envío</button>
+            </div>
+
+            <div class="panel">
+              <div class="panel-title">Histórico de envíos</div>
+              <div class="panel-subtitle">Emails y campañas que ya se han mandado.</div>
+              <div class="table-wrap">
+                <table id="tablaEnviosEmail">
+                  <thead><tr><th>Campaña</th><th>Fecha</th><th>Público</th><th>Notas</th><th></th></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ MÓDULO 4: REDES SOCIALES ============ -->
+      <section class="module-view" id="view-redes">
+        <div class="tabbar">
+          <button class="tab-btn active" data-tab="preview" onclick="switchTab('redes','preview')">Previsualizador de posts</button>
+          <button class="tab-btn" data-tab="calendario" onclick="switchTab('redes','calendario')">Calendario editorial</button>
+        </div>
+
+        <!-- Previsualizador -->
+        <div class="tab-pane active" id="redes-preview">
+          <div class="grid-2">
+            <div class="panel">
+              <div class="panel-title">Contenido del post</div>
+              <div class="platform-tabs" id="platformTabs">
+                <div class="platform-tab active" data-platform="linkedin" onclick="setPlatform('linkedin')"><i class="fa-brands fa-linkedin"></i> LinkedIn</div>
+                <div class="platform-tab" data-platform="x" onclick="setPlatform('x')"><i class="fa-brands fa-x-twitter"></i> X</div>
+                <div class="platform-tab" data-platform="instagram" onclick="setPlatform('instagram')"><i class="fa-brands fa-instagram"></i> Instagram</div>
+                <div class="platform-tab" data-platform="youtube" onclick="setPlatform('youtube')"><i class="fa-brands fa-youtube"></i> YouTube</div>
+              </div>
+              <div class="field">
+                <label for="postAutor">Nombre de la cuenta</label>
+                <input type="text" id="postAutor" value="CIDAUT" oninput="renderPostPreview()">
+              </div>
+              <div class="field">
+                <label for="postTexto">Texto del post</label>
+                <textarea id="postTexto" style="min-height:120px;" placeholder="Escribe el contenido del post..." oninput="renderPostPreview()"></textarea>
+              </div>
+              <div class="field">
+                <label>Imagen (opcional)</label>
+                <div class="file-drop" onclick="document.getElementById('postImagen').click()">
+                  <i class="fa-solid fa-image"></i> Haz clic para adjuntar una imagen
+                  <input type="file" id="postImagen" accept="image/*">
+                </div>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-title">Previsualización</div>
+              <div class="panel-subtitle" id="postPreviewLabel">Así se verá en LinkedIn.</div>
+              <div id="postPreviewMock"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Calendario -->
+        <div class="tab-pane" id="redes-calendario">
+          <div class="panel">
+            <div class="cal-head">
+              <button class="btn btn-secondary" onclick="cambiarMes(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+              <h3 id="calMesLabel"></h3>
+              <button class="btn btn-secondary" onclick="cambiarMes(1)"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+            <div style="margin-bottom:14px;">
+              <span class="tag tag-teal">CIDAUT</span>
+              <span class="tag tag-orange" style="margin-left:6px;">Proyecto coordinado</span>
+            </div>
+            <div class="cal-grid" id="calGrid"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ MÓDULO 5: ORGANIZADOR DE EVENTOS PROPIOS ============ -->
+      <section class="module-view" id="view-propios">
+        <div class="tabbar">
+          <button class="tab-btn active" data-tab="logistica" onclick="switchTab('propios','logistica')">Checklist de logística</button>
+          <button class="tab-btn" data-tab="inscritos" onclick="switchTab('propios','inscritos')">Control de inscritos</button>
+        </div>
+
+        <!-- Logística -->
+        <div class="tab-pane active" id="propios-logistica">
+          <div class="panel">
+            <div class="field-row" style="align-items:flex-end;">
+              <div class="field" style="flex:2;">
+                <label for="eventoActivo">Evento</label>
+                <select id="eventoActivo" onchange="renderLogistica()"></select>
+              </div>
+              <div class="field" style="flex:2;">
+                <label for="nuevoEventoNombre">Crear nuevo evento propio</label>
+                <input type="text" id="nuevoEventoNombre" placeholder="Nombre del evento">
+              </div>
+              <button class="btn" style="margin-bottom:15px;" onclick="crearEventoPropio()"><i class="fa-solid fa-plus"></i> Crear</button>
+            </div>
+          </div>
+
+          <div class="grid-3" id="logisticaFases"></div>
+        </div>
+
+        <!-- Inscritos -->
+        <div class="tab-pane" id="propios-inscritos">
+          <div class="panel">
+            <div class="field" style="max-width:320px;">
+              <label for="eventoInscritosSelect">Evento</label>
+              <select id="eventoInscritosSelect" onchange="renderInscritos()"></select>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="panel">
+              <div class="panel-title">Añadir inscrito</div>
+              <div class="field">
+                <label for="insNombre">Nombre</label>
+                <input type="text" id="insNombre">
+              </div>
+              <div class="field">
+                <label for="insEmail">Email</label>
+                <input type="email" id="insEmail">
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="insFecha">Fecha de inscripción</label>
+                  <input type="date" id="insFecha">
+                </div>
+                <div class="field">
+                  <label for="insLanding">Landing de origen</label>
+                  <input type="text" id="insLanding" placeholder="Ej. landing-jornada-viticultura">
+                </div>
+              </div>
+              <button class="btn" onclick="añadirInscrito()"><i class="fa-solid fa-plus"></i> Añadir inscrito</button>
+
+              <div class="divider"></div>
+              <div class="panel-title" style="font-size:13px;">Evolución de inscritos</div>
+              <canvas id="chartInscritos" height="160"></canvas>
+            </div>
+
+            <div class="panel">
+              <div class="panel-title">Listado de inscritos</div>
+              <div class="table-wrap">
+                <table id="tablaInscritos">
+                  <thead><tr><th>Nombre</th><th>Email</th><th>Fecha</th><th>Landing</th><th></th></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Modal de edición de tareas -->
+      <div class="modal-overlay" id="taskEditModal" onclick="if(event.target===this) cerrarModalTarea()">
+        <div class="modal-box">
+          <span class="modal-close" onclick="cerrarModalTarea()"><i class="fa-solid fa-xmark"></i></span>
+          <h3>Editar tarea</h3>
+          <input type="hidden" id="editTareaId">
+          <div class="field"><label for="editTareaTitulo">Título</label><input type="text" id="editTareaTitulo"></div>
+          <div class="field"><label for="editTareaDesc">Descripción</label><textarea id="editTareaDesc"></textarea></div>
+          <div class="field-row">
+            <div class="field"><label for="editTareaEstado">Estado</label><select id="editTareaEstado"><option value="pendiente">Pendiente</option><option value="progreso">En progreso</option><option value="revision">En revisión</option><option value="completada">Completada</option></select></div>
+            <div class="field"><label for="editTareaPrioridad">Prioridad</label><select id="editTareaPrioridad"><option value="baja">Baja</option><option value="media">Media</option><option value="alta">Alta</option></select></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label for="editTareaFechaInicio">Fecha inicio</label><input type="date" id="editTareaFechaInicio"></div>
+            <div class="field"><label for="editTareaFechaFin">Fecha fin</label><input type="date" id="editTareaFechaFin"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label for="editTareaResponsable">Responsable</label><input type="text" id="editTareaResponsable"></div>
+            <div class="field"><label for="editTareaEtiqueta">Etiqueta / Proyecto</label><input type="text" id="editTareaEtiqueta"></div>
+          </div>
+          <div class="btn-row"><button class="btn" onclick="guardarEdicionTarea()"><i class="fa-solid fa-floppy-disk"></i> Guardar cambios</button><button class="btn btn-secondary" onclick="cerrarModalTarea()">Cancelar</button></div>
+        </div>
+      </div>
+
+      <!-- ============ MODALS ============ -->
+      <div class="modal-overlay" id="calModal">
+        <div class="modal-box">
+          <span class="modal-close" onclick="cerrarModalCal()"><i class="fa-solid fa-xmark"></i></span>
+          <h3>Añadir entrada al calendario</h3>
+          <div class="field">
+            <label for="calFecha">Fecha</label>
+            <input type="date" id="calFecha">
+          </div>
+          <div class="field">
+            <label for="calTitulo">Contenido</label>
+            <input type="text" id="calTitulo" placeholder="Breve descripción del post">
+          </div>
+          <div class="field">
+            <label for="calEtiqueta">Etiqueta</label>
+            <select id="calEtiqueta">
+              <option value="cidaut">CIDAUT</option>
+              <option value="proyecto">Proyecto coordinado</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="calProyectoNombre">Nombre del proyecto (si aplica)</label>
+            <input type="text" id="calProyectoNombre" placeholder="Ej. RESILIENT">
+          </div>
+          <div class="field">
+            <label for="calPlataforma">Plataforma</label>
+            <select id="calPlataforma">
+              <option>LinkedIn</option>
+              <option>X</option>
+              <option>Instagram</option>
+              <option>YouTube</option>
+            </select>
+          </div>
+          <div class="btn-row">
+            <button class="btn" onclick="guardarEntradaCalendario()"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+            <button class="btn btn-danger" id="calDeleteBtn" style="display:none;" onclick="borrarEntradaCalendario()">Eliminar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hidden print area for PDF export -->
+      <div id="printArea" style="display:none;"></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"><i class="fa-solid fa-circle-check"></i><span id="toastMsg">Guardado.</span></div>
+
+<script>
+/* =======================================================================
+   HUB DE MARKETING — CIDAUT
+   Almacenamiento: localStorage (prototipo front-end, sin backend)
+   ======================================================================= */
+
+const LS = {
+  eventos: 'cidautHub_eventos',
+  mantenimiento: 'cidautHub_mantenimiento',
+  utm: 'cidautHub_utm',
+  calendario: 'cidautHub_calendario',
+  logistica: 'cidautHub_logistica',
+  inscritos: 'cidautHub_inscritos',
+  eventosPropios: 'cidautHub_eventosPropios',
+  snippets: 'cidautHub_snippets',
+  proyectosWeb: 'cidautHub_proyectosWeb',
+  estructuraWebs: 'cidautHub_estructuraWebs',
+  emailsEnviados: 'cidautHub_emailsEnviados',
+  tareas: 'cidautHub_tareas'
+};
+
+function getLS(key){ try{ return JSON.parse(localStorage.getItem(key)) || []; }catch(e){ return []; } }
+function setLS(key,val){ localStorage.setItem(key, JSON.stringify(val)); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function esc(str){ const d=document.createElement('div'); d.textContent = str==null?'':String(str); return d.innerHTML; }
+function fmtFecha(iso){ if(!iso) return '—'; const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; }
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.style.display='flex';
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(()=>{ t.style.display='none'; }, 2600);
+}
+
+function resizeImage(file, maxDim, quality, cb){
+  const reader = new FileReader();
+  reader.onload = e=>{
+    const img = new Image();
+    img.onload = ()=>{
+      let w = img.width, h = img.height;
+      if (w > h && w > maxDim){ h = h*(maxDim/w); w = maxDim; }
+      else if (h > maxDim){ w = w*(maxDim/h); h = maxDim; }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      cb(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ---------------------------------------------------------------------
+   NAVEGACIÓN
+   --------------------------------------------------------------------- */
+const TOPBAR_TEXT = {
+  tareas:   ['Gestor de tareas', 'Planifica, organiza y da seguimiento a las tareas del equipo de marketing con vistas de lista, kanban, calendario y gantt.'],
+  inicio:   ['Inicio', 'Resumen general de la actividad de marketing registrada en el hub.'],
+  eventos:  ['Eventos y memoria anual', 'Registra la asistencia del personal a congresos y jornadas, y genera el resumen para la memoria anual.'],
+  webs:     ['Gestor de webs de proyectos', 'Snippets reutilizables, estructura de apartados de cada web de proyecto y checklist de mantenimiento periódico.'],
+  email:    ['Email marketing y CRM', 'Previsualiza el HTML de tus newsletters, genera enlaces UTM y lleva el seguimiento de los envíos realizados.'],
+  redes:    ['Redes sociales', 'Simula cómo se verán tus publicaciones y planifica el calendario editorial del equipo.'],
+  propios:  ['Organizador de eventos propios', 'Checklist de logística por fases y control de inscritos para los eventos organizados por CIDAUT.']
+};
+
+function setActiveNav(view){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.view===view));
+  document.querySelectorAll('.module-view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  document.getElementById('topbarTitle').textContent = TOPBAR_TEXT[view][0];
+  document.getElementById('topbarDesc').textContent = TOPBAR_TEXT[view][1];
+  document.getElementById('sidebar').classList.remove('open');
+  window.scrollTo(0,0);
+}
+
+function switchTab(module, tabName){
+  const view = document.getElementById('view-'+module);
+  view.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tabName));
+  view.querySelectorAll('.tab-pane').forEach(p=>p.classList.toggle('active', p.id === module+'-'+tabName));
+}
+
+function goTo(view, tab){
+  setActiveNav(view);
+  if (tab) switchTab(view, tab);
+}
+
+document.querySelectorAll('.nav-item[data-view]').forEach(n=>{
+  n.addEventListener('click', ()=> setActiveNav(n.dataset.view));
+});
+document.getElementById('mobileToggle').addEventListener('click', ()=>{
+  document.getElementById('sidebar').classList.toggle('open');
+});
+
+/* =======================================================================
+   MÓDULO 1 — EVENTOS Y MEMORIA ANUAL
+   ======================================================================= */
+let evFotosData = [];
+
+document.getElementById('evDepartamento').addEventListener('change', function(){
+  document.getElementById('evDepartamentoOtro').style.display = this.value==='__otro' ? 'block' : 'none';
+});
+
+document.getElementById('evFotos').addEventListener('change', function(){
+  const files = Array.from(this.files).slice(0,6);
+  const preview = document.getElementById('evFotosPreview');
+  preview.innerHTML = '';
+  evFotosData = [];
+  files.forEach(f=>{
+    resizeImage(f, 160, 0.6, dataUrl=>{
+      evFotosData.push(dataUrl);
+      const img = document.createElement('img');
+      img.src = dataUrl;
+      preview.appendChild(img);
+    });
+  });
+});
+
+function toggleEvVariosDias(){
+  const varios = document.getElementById('evVariosDias').checked;
+  document.getElementById('evFechaFinField').style.display = varios ? 'block' : 'none';
+  document.getElementById('evFechaLabel').textContent = varios ? 'Fecha de inicio' : 'Fecha';
+  if (!varios) document.getElementById('evFechaFin').value = '';
+}
+
+function fmtRangoFecha(r){
+  if (!r.fecha) return '—';
+  if (r.fechaFin && r.fechaFin !== r.fecha) return `${fmtFecha(r.fecha)} – ${fmtFecha(r.fechaFin)}`;
+  return fmtFecha(r.fecha);
+}
+
+function guardarRegistroEvento(){
+  const nombre = document.getElementById('evNombre').value.trim();
+  let depto = document.getElementById('evDepartamento').value;
+  if (depto==='__otro') depto = document.getElementById('evDepartamentoOtro').value.trim() || 'Otro';
+  const evento = document.getElementById('evEvento').value.trim();
+  const variosDias = document.getElementById('evVariosDias').checked;
+  const fecha = document.getElementById('evFecha').value;
+  const fechaFin = variosDias ? document.getElementById('evFechaFin').value : '';
+  const rol = document.getElementById('evRol').value.trim();
+  const descripcion = document.getElementById('evDescripcion').value.trim();
+  const gastos = document.getElementById('evGastos').value.trim();
+
+  if (!nombre || !depto || !evento || !fecha){
+    showToast('Rellena al menos nombre, departamento, evento y fecha.');
+    return;
+  }
+  if (variosDias && fechaFin && fechaFin < fecha){
+    showToast('La fecha de fin no puede ser anterior a la fecha de inicio.');
+    return;
+  }
+  const registros = getLS(LS.eventos);
+  registros.unshift({ id: uid(), nombre, depto, evento, fecha, fechaFin: fechaFin || '', rol, descripcion, gastos, fotos: evFotosData });
+  setLS(LS.eventos, registros);
+  limpiarFormularioEvento();
+  renderRegistrosRecientes();
+  populateMemoriaFilters();
+  renderMemoria();
+  updateDashboardStats();
+  showToast('Registro guardado correctamente.');
+}
+
+function limpiarFormularioEvento(){
+  ['evNombre','evEvento','evFecha','evFechaFin','evRol','evDescripcion','evGastos'].forEach(id=> document.getElementById(id).value='');
+  document.getElementById('evDepartamento').value='';
+  document.getElementById('evDepartamentoOtro').style.display='none';
+  document.getElementById('evDepartamentoOtro').value='';
+  document.getElementById('evVariosDias').checked=false;
+  document.getElementById('evFechaFinField').style.display='none';
+  document.getElementById('evFechaLabel').textContent='Fecha';
+  document.getElementById('evFotos').value='';
+  document.getElementById('evFotosPreview').innerHTML='';
+  evFotosData = [];
+}
+
+function eliminarRegistroEvento(id){
+  setLS(LS.eventos, getLS(LS.eventos).filter(r=>r.id!==id));
+  renderRegistrosRecientes();
+  populateMemoriaFilters();
+  renderMemoria();
+  updateDashboardStats();
+}
+
+function renderRegistrosRecientes(){
+  const registros = getLS(LS.eventos).slice(0,6);
+  const tbody = document.querySelector('#tablaRegistrosRecientes tbody');
+  if (!registros.length){
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Todavía no hay registros. Añade el primero con el formulario.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = registros.map(r=>`
+    <tr>
+      <td>${esc(r.nombre)}</td>
+      <td>${esc(r.depto)}</td>
+      <td>${esc(r.evento)}</td>
+      <td>${fmtRangoFecha(r)}</td>
+      <td>${esc(r.gastos)||'—'}</td>
+      <td><span class="btn-ghost" onclick="eliminarRegistroEvento('${r.id}')">Eliminar</span></td>
+    </tr>`).join('');
+}
+
+function populateMemoriaFilters(){
+  const registros = getLS(LS.eventos);
+  const anios = [...new Set(registros.map(r=> r.fecha ? r.fecha.slice(0,4) : null).filter(Boolean))].sort().reverse();
+  const anioActual = String(new Date().getFullYear());
+  if (!anios.includes(anioActual)) anios.unshift(anioActual);
+  const selAnio = document.getElementById('memAnio');
+  const prevAnio = selAnio.value;
+  selAnio.innerHTML = anios.map(a=>`<option value="${a}">${a}</option>`).join('');
+  if (anios.includes(prevAnio)) selAnio.value = prevAnio;
+
+  const deptos = [...new Set(registros.map(r=>r.depto).filter(Boolean))].sort();
+  const selDepto = document.getElementById('memDepto');
+  const prevDepto = selDepto.value;
+  selDepto.innerHTML = '<option value="">Todos</option>' + deptos.map(d=>`<option value="${esc(d)}">${esc(d)}</option>`).join('');
+  selDepto.value = deptos.includes(prevDepto) ? prevDepto : '';
+}
+
+function renderMemoria(){
+  const anio = document.getElementById('memAnio').value;
+  const depto = document.getElementById('memDepto').value;
+  const registros = getLS(LS.eventos).filter(r=>{
+    const okAnio = !anio || (r.fecha && r.fecha.slice(0,4)===anio);
+    const okDepto = !depto || r.depto===depto;
+    return okAnio && okDepto;
+  }).sort((a,b)=> (a.fecha||'').localeCompare(b.fecha||''));
+
+  const tbody = document.querySelector('#tablaMemoria tbody');
+  if (!registros.length){
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="6">No hay registros para este filtro.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = registros.map(r=>`
+    <tr>
+      <td>${esc(r.nombre)}</td>
+      <td>${esc(r.depto)}</td>
+      <td>${esc(r.evento)}</td>
+      <td>${fmtRangoFecha(r)}</td>
+      <td>${esc(r.rol)}</td>
+      <td>${esc(r.gastos)||'—'}</td>
+    </tr>`).join('');
+}
+
+function exportarExcel(){
+  const anio = document.getElementById('memAnio').value;
+  const depto = document.getElementById('memDepto').value;
+  const registros = getLS(LS.eventos).filter(r=>{
+    const okAnio = !anio || (r.fecha && r.fecha.slice(0,4)===anio);
+    const okDepto = !depto || r.depto===depto;
+    return okAnio && okDepto;
+  });
+  if (!registros.length){ showToast('No hay registros que exportar con este filtro.'); return; }
+
+  const headers = ['Empleado','Departamento','Evento','Fecha','Qué presentó','Resumen','Nota de gastos'];
+  const rows = registros.map(r=>[r.nombre, r.depto, r.evento, fmtRangoFecha(r), r.rol, r.descripcion, r.gastos]);
+  const csv = [headers, ...rows].map(row=>
+    row.map(cell=>{
+      const val = (cell==null?'':String(cell)).replace(/"/g,'""');
+      return /[;"\n]/.test(val) ? `"${val}"` : val;
+    }).join(';')
+  ).join('\r\n');
+
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `memoria_eventos_${anio||'todos'}${depto?'_'+depto.replace(/\s+/g,'_'):''}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('CSV exportado correctamente.');
+}
+
+function exportarPDF(){
+  const anio = document.getElementById('memAnio').value;
+  const depto = document.getElementById('memDepto').value;
+  const registros = getLS(LS.eventos).filter(r=>{
+    const okAnio = !anio || (r.fecha && r.fecha.slice(0,4)===anio);
+    const okDepto = !depto || r.depto===depto;
+    return okAnio && okDepto;
+  });
+  if (!registros.length){ showToast('No hay registros que exportar con este filtro.'); return; }
+
+  const rows = registros.map(r=>`
+    <tr>
+      <td style="padding:6px 8px;border-bottom:1px solid #ddd;">${esc(r.nombre)}</td>
+      <td style="padding:6px 8px;border-bottom:1px solid #ddd;">${esc(r.depto)}</td>
+      <td style="padding:6px 8px;border-bottom:1px solid #ddd;">${esc(r.evento)}</td>
+      <td style="padding:6px 8px;border-bottom:1px solid #ddd;">${fmtRangoFecha(r)}</td>
+      <td style="padding:6px 8px;border-bottom:1px solid #ddd;">${esc(r.rol)}</td>
+      <td style="padding:6px 8px;border-bottom:1px solid #ddd;">${esc(r.gastos)||'—'}</td>
+    </tr>`).join('');
+
+  document.getElementById('printArea').innerHTML = `
+    <div style="font-family:'Montserrat',sans-serif;">
+      <h2 style="margin:0 0 4px 0;">Memoria de eventos — CIDAUT</h2>
+      <p style="margin:0 0 18px 0;color:#555;">Año: ${anio||'Todos'} · Departamento: ${depto||'Todos'}</p>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead><tr>
+          <th style="text-align:left;padding:6px 8px;border-bottom:2px solid #333;">Empleado</th>
+          <th style="text-align:left;padding:6px 8px;border-bottom:2px solid #333;">Departamento</th>
+          <th style="text-align:left;padding:6px 8px;border-bottom:2px solid #333;">Evento</th>
+          <th style="text-align:left;padding:6px 8px;border-bottom:2px solid #333;">Fecha</th>
+          <th style="text-align:left;padding:6px 8px;border-bottom:2px solid #333;">Qué presentó</th>
+          <th style="text-align:left;padding:6px 8px;border-bottom:2px solid #333;">Nota de gastos</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+  window.print();
+}
+
+/* =======================================================================
+   MÓDULO 2 — GESTOR DE WEBS DE PROYECTOS
+   ======================================================================= */
+function guardarSnippet(){
+  const title = document.getElementById('snippetTitulo').value.trim();
+  const desc = document.getElementById('snippetDescripcion').value.trim();
+  const code = document.getElementById('snippetCodigo').value;
+  if (!title || !code.trim()){ showToast('Indica al menos un título y el código del snippet.'); return; }
+  const snippets = getLS(LS.snippets);
+  snippets.unshift({ id: uid(), title, desc, code });
+  setLS(LS.snippets, snippets);
+  ['snippetTitulo','snippetDescripcion','snippetCodigo'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('snippetSearch').value='';
+  renderSnippets(snippets);
+  showToast('Snippet guardado en la biblioteca.');
+}
+
+function renderSnippets(list){
+  const wrap = document.getElementById('snippetList');
+  if (!list.length){
+    wrap.innerHTML = '<div class="panel"><p class="muted">Todavía no has añadido ningún snippet. Guarda el primero con el formulario de arriba.</p></div>';
+    return;
+  }
+  wrap.innerHTML = list.map(s=>`
+    <div class="panel snippet-card">
+      <div class="snippet-head">
+        <div>
+          <h4>${esc(s.title)}</h4>
+          <div class="snippet-desc">${esc(s.desc)}</div>
+        </div>
+        <div class="btn-row" style="margin-top:0;">
+          <button class="btn btn-secondary" onclick="copiarSnippet('${s.id}')"><i class="fa-solid fa-copy"></i> Copiar código</button>
+          <span class="btn-ghost" onclick="eliminarSnippet('${s.id}')"><i class="fa-solid fa-trash"></i></span>
+        </div>
+      </div>
+      <pre class="snippet-code">${esc(s.code)}</pre>
+    </div>`).join('');
+}
+
+function filtrarSnippets(){
+  const q = document.getElementById('snippetSearch').value.trim().toLowerCase();
+  const all = getLS(LS.snippets);
+  const filtered = all.filter(s => !q || s.title.toLowerCase().includes(q) || (s.desc||'').toLowerCase().includes(q));
+  renderSnippets(filtered);
+}
+
+function copiarSnippet(id){
+  const s = getLS(LS.snippets).find(x=>x.id===id);
+  if (!s) return;
+  navigator.clipboard.writeText(s.code).then(()=> showToast('Snippet copiado al portapapeles.'));
+}
+
+function eliminarSnippet(id){
+  setLS(LS.snippets, getLS(LS.snippets).filter(x=>x.id!==id));
+  filtrarSnippets();
+  showToast('Snippet eliminado.');
+}
+
+/* --- Estructura de páginas de proyecto --- */
+function getProyectosWeb(){ return getLS(LS.proyectosWeb); }
+
+function crearProyectoWeb(){
+  const nombre = document.getElementById('nuevoProyectoWebNombre').value.trim();
+  if (!nombre){ showToast('Escribe un nombre para el nuevo proyecto.'); return; }
+  const proyectos = getProyectosWeb();
+  if (proyectos.includes(nombre)){ showToast('Ya existe un proyecto con ese nombre.'); return; }
+  proyectos.push(nombre);
+  setLS(LS.proyectosWeb, proyectos);
+  document.getElementById('nuevoProyectoWebNombre').value = '';
+  populateProyectoWebSelect();
+  document.getElementById('proyectoWebActivo').value = nombre;
+  renderEstructuraWeb();
+  showToast('Proyecto creado.');
+}
+
+function getEstructuraWebObj(){
+  const raw = localStorage.getItem(LS.estructuraWebs);
+  if (!raw) return {};
+  try{ const parsed = JSON.parse(raw); return Array.isArray(parsed) ? {} : parsed; }catch(e){ return {}; }
+}
+
+function populateProyectoWebSelect(){
+  const proyectos = getProyectosWeb();
+  const opciones = proyectos.length ? proyectos.map(p=>`<option>${esc(p)}</option>`).join('') : '<option value="">Crea un proyecto primero</option>';
+  const sel = document.getElementById('proyectoWebActivo');
+  const prev = sel.value;
+  sel.innerHTML = opciones;
+  if (proyectos.includes(prev)) sel.value = prev;
+}
+
+function añadirApartadoWeb(){
+  const proyecto = document.getElementById('proyectoWebActivo').value;
+  if (!proyecto){ showToast('Crea o selecciona primero un proyecto.'); return; }
+  const slug = document.getElementById('apartadoSlug').value.trim();
+  const contenido = document.getElementById('apartadoContenido').value.trim();
+  if (!slug){ showToast('Indica el slug del apartado.'); return; }
+  const estructura = getEstructuraWebObj();
+  if (!estructura[proyecto]) estructura[proyecto] = [];
+  estructura[proyecto].push({ id: uid(), slug, contenido });
+  localStorage.setItem(LS.estructuraWebs, JSON.stringify(estructura));
+  document.getElementById('apartadoSlug').value='';
+  document.getElementById('apartadoContenido').value='';
+  renderEstructuraWeb();
+  showToast('Apartado añadido.');
+}
+
+function eliminarApartadoWeb(id){
+  const proyecto = document.getElementById('proyectoWebActivo').value;
+  const estructura = getEstructuraWebObj();
+  if (!estructura[proyecto]) return;
+  estructura[proyecto] = estructura[proyecto].filter(a=>a.id!==id);
+  localStorage.setItem(LS.estructuraWebs, JSON.stringify(estructura));
+  renderEstructuraWeb();
+}
+
+function renderEstructuraWeb(){
+  const proyecto = document.getElementById('proyectoWebActivo').value;
+  const wrap = document.getElementById('listaApartadosWeb');
+  if (!proyecto){
+    wrap.innerHTML = '<p class="muted small">Crea un proyecto arriba para empezar a definir su estructura de apartados.</p>';
+    return;
+  }
+  const estructura = getEstructuraWebObj();
+  const apartados = estructura[proyecto] || [];
+  if (!apartados.length){
+    wrap.innerHTML = '<p class="muted small">Todavía no hay apartados para este proyecto.</p>';
+    return;
+  }
+  wrap.innerHTML = apartados.map(a=>`
+    <div class="panel" style="margin-bottom:12px;">
+      <div class="snippet-head">
+        <h4 style="font-family:var(--mono);font-size:12.5px;">/${esc(a.slug)}</h4>
+        <span class="btn-ghost" onclick="eliminarApartadoWeb('${a.id}')"><i class="fa-solid fa-xmark"></i></span>
+      </div>
+      <p style="font-size:12.5px;color:var(--ink-700);white-space:pre-wrap;margin-top:8px;">${a.contenido ? esc(a.contenido) : '<span class="muted">Sin contenido</span>'}</p>
+    </div>`).join('');
+}
+
+const SUGERENCIAS_MANTENIMIENTO = [
+  ['Web principal CIDAUT','Semanal','Comprobar que el formulario de contacto envía correctamente'],
+  ['Web principal CIDAUT','Mensual','Revisar enlaces rotos con un verificador de enlaces'],
+  ['Web principal CIDAUT','Mensual','Comprobar velocidad de carga y Core Web Vitals'],
+  ['Web de proyecto','Mensual','Verificar que los banners de financiación europea están visibles'],
+  ['Web de proyecto','Trimestral','Actualizar el listado de publicaciones y resultados'],
+  ['Web principal CIDAUT','Trimestral','Revisar certificado SSL y renovación de dominio']
+];
+
+function renderSugerenciasMantenimiento(){
+  document.getElementById('sugerenciasMantenimiento').innerHTML = SUGERENCIAS_MANTENIMIENTO.map((s,i)=>
+    `<button class="btn btn-secondary" onclick="añadirTareaRapida(${i})"><i class="fa-solid fa-plus"></i> ${esc(s[2])}</button>`
+  ).join('');
+}
+
+function añadirTareaRapida(i){
+  const [sitio,periodo,tarea] = SUGERENCIAS_MANTENIMIENTO[i];
+  const tareas = getLS(LS.mantenimiento);
+  tareas.unshift({ id: uid(), sitio, tarea, periodo, done:false, ultima:null });
+  setLS(LS.mantenimiento, tareas);
+  renderMantenimiento();
+  updateDashboardStats();
+  showToast('Tarea añadida al checklist.');
+}
+
+function añadirTareaMantenimiento(){
+  const sitio = document.getElementById('mSitio').value;
+  const tarea = document.getElementById('mTarea').value.trim();
+  const periodo = document.getElementById('mPeriodo').value;
+  if (!tarea){ showToast('Describe la tarea de mantenimiento.'); return; }
+  const tareas = getLS(LS.mantenimiento);
+  tareas.unshift({ id: uid(), sitio, tarea, periodo, done:false, ultima:null });
+  setLS(LS.mantenimiento, tareas);
+  document.getElementById('mTarea').value='';
+  renderMantenimiento();
+  updateDashboardStats();
+  showToast('Tarea añadida al checklist.');
+}
+
+function toggleMantenimiento(id){
+  const tareas = getLS(LS.mantenimiento);
+  const t = tareas.find(x=>x.id===id);
+  if (!t) return;
+  t.done = !t.done;
+  t.ultima = t.done ? new Date().toISOString().slice(0,10) : t.ultima;
+  setLS(LS.mantenimiento, tareas);
+  renderMantenimiento();
+  updateDashboardStats();
+}
+
+function eliminarMantenimiento(id){
+  setLS(LS.mantenimiento, getLS(LS.mantenimiento).filter(x=>x.id!==id));
+  renderMantenimiento();
+  updateDashboardStats();
+}
+
+function renderMantenimiento(){
+  const tareas = getLS(LS.mantenimiento);
+  const wrap = document.getElementById('listaMantenimiento');
+  if (!tareas.length){
+    wrap.innerHTML = '<p class="muted small">No hay tareas todavía. Añade una desde el formulario o desde las sugerencias.</p>';
+    return;
+  }
+  wrap.innerHTML = tareas.map(t=>`
+    <div class="check-item ${t.done?'done':''}">
+      <input type="checkbox" ${t.done?'checked':''} onchange="toggleMantenimiento('${t.id}')">
+      <div class="ctext">
+        ${esc(t.tarea)}
+        <div class="cmeta">${esc(t.sitio)} · ${esc(t.periodo)}${t.ultima? ' · última verificación: '+fmtFecha(t.ultima) : ''}</div>
+      </div>
+      <span class="btn-ghost" onclick="eliminarMantenimiento('${t.id}')">Eliminar</span>
+    </div>`).join('');
+}
+
+/* =======================================================================
+   MÓDULO 3 — EMAIL MARKETING Y CRM
+   ======================================================================= */
+function actualizarPreviewEmail(){
+  const html = document.getElementById('emailHtmlInput').value;
+  document.getElementById('emailPreviewFrame').srcdoc = html || '<p style="font-family:sans-serif;color:#999;padding:20px;">La previsualización aparecerá aquí.</p>';
+}
+
+function setEmailDevice(device){
+  document.getElementById('btnDesktop').classList.toggle('active', device==='desktop');
+  document.getElementById('btnMovil').classList.toggle('active', device==='movil');
+  document.getElementById('emailPreviewFrame').style.width = device==='desktop' ? '600px' : '320px';
+}
+
+function construirUTMFinal(){
+  const url = document.getElementById('utmUrl').value.trim();
+  if (!url) return '';
+  const source = document.getElementById('utmSource').value.trim();
+  const medium = document.getElementById('utmMedium').value.trim();
+  const campaign = document.getElementById('utmCampaign').value.trim();
+  const term = document.getElementById('utmTerm').value.trim();
+  const content = document.getElementById('utmContent').value.trim();
+  let full;
+  try{ full = new URL(url); }catch(e){ return ''; }
+  if (source) full.searchParams.set('utm_source', source);
+  if (medium) full.searchParams.set('utm_medium', medium);
+  if (campaign) full.searchParams.set('utm_campaign', campaign);
+  if (term) full.searchParams.set('utm_term', term);
+  if (content) full.searchParams.set('utm_content', content);
+  return full.toString();
+}
+
+function generarUTM(){
+  document.getElementById('utmResult').value = construirUTMFinal();
+}
+
+function copiarUTM(){
+  const val = document.getElementById('utmResult').value;
+  if (!val){ showToast('Genera primero un enlace válido.'); return; }
+  navigator.clipboard.writeText(val).then(()=> showToast('Enlace copiado al portapapeles.'));
+}
+
+function guardarUTM(){
+  const final = construirUTMFinal();
+  if (!final){ showToast('Introduce una URL válida antes de guardar.'); return; }
+  const historial = getLS(LS.utm);
+  historial.unshift({
+    id: uid(),
+    campaign: document.getElementById('utmCampaign').value.trim() || '(sin campaña)',
+    source: document.getElementById('utmSource').value.trim(),
+    medium: document.getElementById('utmMedium').value.trim(),
+    url: final
+  });
+  setLS(LS.utm, historial);
+  renderUTMHistorial();
+  showToast('Enlace guardado en el historial.');
+}
+
+function eliminarUTM(id){
+  setLS(LS.utm, getLS(LS.utm).filter(x=>x.id!==id));
+  renderUTMHistorial();
+}
+
+function renderUTMHistorial(){
+  const historial = getLS(LS.utm);
+  const tbody = document.querySelector('#tablaUTM tbody');
+  if (!historial.length){
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="4">Todavía no se ha guardado ningún enlace.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = historial.map(h=>`
+    <tr>
+      <td>${esc(h.campaign)}</td>
+      <td>${esc(h.source)} / ${esc(h.medium)}</td>
+      <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+        <a href="${esc(h.url)}" target="_blank" rel="noopener">${esc(h.url)}</a>
+      </td>
+      <td><span class="btn-ghost" onclick="eliminarUTM('${h.id}')">Eliminar</span></td>
+    </tr>`).join('');
+}
+
+/* --- Seguimiento de envíos --- */
+function añadirEnvioEmail(){
+  const nombre = document.getElementById('envioNombre').value.trim();
+  const fecha = document.getElementById('envioFecha').value;
+  const destinatarios = document.getElementById('envioDestinatarios').value.trim();
+  const notas = document.getElementById('envioNotas').value.trim();
+  if (!nombre || !fecha){ showToast('Indica al menos el nombre y la fecha del envío.'); return; }
+  const envios = getLS(LS.emailsEnviados);
+  envios.unshift({ id: uid(), nombre, fecha, destinatarios, notas });
+  setLS(LS.emailsEnviados, envios);
+  ['envioNombre','envioDestinatarios','envioNotas'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('envioFecha').valueAsDate = new Date();
+  renderEnviosEmail();
+  showToast('Envío registrado.');
+}
+
+function eliminarEnvioEmail(id){
+  setLS(LS.emailsEnviados, getLS(LS.emailsEnviados).filter(x=>x.id!==id));
+  renderEnviosEmail();
+}
+
+function renderEnviosEmail(){
+  const envios = getLS(LS.emailsEnviados).slice().sort((a,b)=> (b.fecha||'').localeCompare(a.fecha||''));
+  const tbody = document.querySelector('#tablaEnviosEmail tbody');
+  if (!envios.length){
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">Todavía no se ha registrado ningún envío.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = envios.map(e=>`
+    <tr>
+      <td>${esc(e.nombre)}</td>
+      <td>${fmtFecha(e.fecha)}</td>
+      <td>${esc(e.destinatarios)||'—'}</td>
+      <td>${esc(e.notas)||'—'}</td>
+      <td><span class="btn-ghost" onclick="eliminarEnvioEmail('${e.id}')">Eliminar</span></td>
+    </tr>`).join('');
+}
+
+/* =======================================================================
+   MÓDULO 4 — REDES SOCIALES
+   ======================================================================= */
+let currentPlatform = 'linkedin';
+let postImageData = null;
+
+document.getElementById('postImagen').addEventListener('change', function(){
+  if (!this.files[0]) return;
+  resizeImage(this.files[0], 500, 0.75, dataUrl=>{
+    postImageData = dataUrl;
+    renderPostPreview();
+  });
+});
+
+function setPlatform(p){
+  currentPlatform = p;
+  document.querySelectorAll('.platform-tab').forEach(t=> t.classList.toggle('active', t.dataset.platform===p));
+  const labels = { linkedin:'Así se verá en LinkedIn.', x:'Así se verá en X.', instagram:'Así se verá en Instagram.', youtube:'Así se verá en YouTube.' };
+  document.getElementById('postPreviewLabel').textContent = labels[p];
+  renderPostPreview();
+}
+
+function initials(name){
+  return (name||'C').trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase();
+}
+
+function renderPostPreview(){
+  const autor = document.getElementById('postAutor').value.trim() || 'CIDAUT';
+  const texto = document.getElementById('postTexto').value.trim() || 'El texto de tu publicación aparecerá aquí.';
+  const img = postImageData;
+  const mock = document.getElementById('postPreviewMock');
+  const ini = initials(autor);
+
+  if (currentPlatform==='linkedin'){
+    mock.innerHTML = `
+      <div class="mock-card">
+        <div class="mock-head">
+          <div class="mock-avatar">${esc(ini)}</div>
+          <div><div class="mock-name">${esc(autor)}</div><div class="mock-meta">Organización · Ahora</div></div>
+        </div>
+        <div class="mock-body">${esc(texto)}</div>
+        ${img?`<img class="mock-img" src="${img}">`:''}
+        <div class="mock-actions"><span><i class="fa-regular fa-thumbs-up"></i> Me gusta</span><span><i class="fa-regular fa-comment"></i> Comentar</span><span><i class="fa-solid fa-share"></i> Compartir</span></div>
+      </div>`;
+  } else if (currentPlatform==='x'){
+    mock.innerHTML = `
+      <div class="mock-card">
+        <div class="mock-head">
+          <div class="mock-avatar">${esc(ini)}</div>
+          <div><div class="mock-name">${esc(autor)} <span class="mock-meta">@${esc(autor.toLowerCase().replace(/\s+/g,''))} · ahora</span></div></div>
+        </div>
+        <div class="mock-body">${esc(texto)}</div>
+        ${img?`<img class="mock-img" src="${img}">`:''}
+        <div class="mock-actions"><span><i class="fa-regular fa-comment"></i></span><span><i class="fa-solid fa-retweet"></i></span><span><i class="fa-regular fa-heart"></i></span><span><i class="fa-regular fa-chart-bar"></i></span></div>
+      </div>`;
+  } else if (currentPlatform==='instagram'){
+    mock.innerHTML = `
+      <div class="mock-card">
+        <div class="mock-head">
+          <div class="mock-avatar">${esc(ini)}</div>
+          <div class="mock-name">${esc(autor)}</div>
+        </div>
+        ${img?`<img class="mock-img" src="${img}">`:`<div class="mock-img" style="height:220px;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:12px;">Sin imagen adjunta</div>`}
+        <div class="mock-actions"><span><i class="fa-regular fa-heart"></i></span><span><i class="fa-regular fa-comment"></i></span><span><i class="fa-regular fa-paper-plane"></i></span><span style="margin-left:auto;"><i class="fa-regular fa-bookmark"></i></span></div>
+        <div class="mock-body" style="padding-bottom:14px;"><strong>${esc(autor)}</strong> ${esc(texto)}</div>
+      </div>`;
+  } else {
+    mock.innerHTML = `
+      <div class="mock-card">
+        <div class="mock-yt-thumb">
+          ${img?`<img src="${img}">`:`<div style="height:200px;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:12px;">Sin miniatura adjunta</div>`}
+        </div>
+        <div class="mock-yt-title">${esc(texto.split('\n')[0])}</div>
+        <div class="mock-head" style="padding-top:4px;">
+          <div class="mock-avatar" style="width:28px;height:28px;font-size:11px;">${esc(ini)}</div>
+          <div class="mock-meta">${esc(autor)} · vídeo nuevo</div>
+        </div>
+      </div>`;
+  }
+}
+
+/* --- Calendario editorial --- */
+let calDate = new Date();
+let calEditId = null;
+
+const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const DOWS = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+
+function cambiarMes(delta){
+  calDate.setMonth(calDate.getMonth()+delta);
+  renderCalendar();
+}
+
+function renderCalendar(){
+  const year = calDate.getFullYear(), month = calDate.getMonth();
+  document.getElementById('calMesLabel').textContent = `${MESES[month].charAt(0).toUpperCase()+MESES[month].slice(1)} ${year}`;
+
+  const firstDay = new Date(year, month, 1);
+  let startOffset = firstDay.getDay()-1; if (startOffset<0) startOffset=6;
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const daysInPrevMonth = new Date(year, month, 0).getDate();
+  const entries = getLS(LS.calendario);
+  const todayStr = new Date().toISOString().slice(0,10);
+
+  let cells = DOWS.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+
+  for (let i=startOffset; i>0; i--){
+    cells += `<div class="cal-day other-month"><div class="dnum">${daysInPrevMonth-i+1}</div></div>`;
+  }
+  for (let day=1; day<=daysInMonth; day++){
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const dayEntries = entries.filter(e=>e.fecha===dateStr);
+    const entryHtml = dayEntries.map(e=>{
+      let label = esc(e.titulo);
+      if (e.etiqueta==='proyecto' && e.proyecto) label = esc(e.proyecto) + ': ' + label;
+      return `<div class="entry ${e.etiqueta==='proyecto'?'proyecto':''}" onclick="abrirModalCal('${dateStr}','${e.id}')" title="${esc(e.titulo)}">${label}</div>`;
+    }).join('');
+    cells += `<div class="cal-day" style="${dateStr===todayStr?'box-shadow:inset 0 0 0 2px var(--teal-500);':''}">
+      <div class="dnum">${day}</div>
+      <span class="add-btn" onclick="abrirModalCal('${dateStr}')"><i class="fa-solid fa-plus"></i></span>
+      ${entryHtml}
+    </div>`;
+  }
+  const totalCells = startOffset + daysInMonth;
+  const remaining = (7 - (totalCells % 7)) % 7;
+  for (let i=1; i<=remaining; i++){
+    cells += `<div class="cal-day other-month"><div class="dnum">${i}</div></div>`;
+  }
+  document.getElementById('calGrid').innerHTML = cells;
+}
+
+function abrirModalCal(dateStr, entryId){
+  calEditId = entryId || null;
+  document.getElementById('calFecha').value = dateStr;
+  if (entryId){
+    const e = getLS(LS.calendario).find(x=>x.id===entryId);
+    document.getElementById('calTitulo').value = e.titulo;
+    document.getElementById('calEtiqueta').value = e.etiqueta;
+    document.getElementById('calProyectoNombre').value = e.proyecto || '';
+    document.getElementById('calPlataforma').value = e.plataforma;
+    document.getElementById('calDeleteBtn').style.display = 'inline-flex';
+  } else {
+    document.getElementById('calTitulo').value = '';
+    document.getElementById('calEtiqueta').value = 'cidaut';
+    document.getElementById('calProyectoNombre').value = '';
+    document.getElementById('calPlataforma').value = 'LinkedIn';
+    document.getElementById('calDeleteBtn').style.display = 'none';
+  }
+  document.getElementById('calModal').classList.add('active');
+}
+
+function cerrarModalCal(){
+  document.getElementById('calModal').classList.remove('active');
+}
+
+function guardarEntradaCalendario(){
+  const fecha = document.getElementById('calFecha').value;
+  const titulo = document.getElementById('calTitulo').value.trim();
+  if (!fecha || !titulo){ showToast('Indica fecha y contenido de la publicación.'); return; }
+  const calEtiquetaVal = document.getElementById('calEtiqueta').value;
+  const calProyectoVal = document.getElementById('calProyectoNombre').value.trim();
+  if (calEtiquetaVal === 'proyecto' && !calProyectoVal){ showToast('Indica el nombre del proyecto coordinado.'); return; }
+  const entries = getLS(LS.calendario);
+  const data = {
+    fecha,
+    titulo,
+    etiqueta: document.getElementById('calEtiqueta').value,
+    proyecto: document.getElementById('calProyectoNombre').value.trim(),
+    plataforma: document.getElementById('calPlataforma').value
+  };
+  if (calEditId){
+    const idx = entries.findIndex(x=>x.id===calEditId);
+    if (idx>-1) entries[idx] = {...entries[idx], ...data};
+  } else {
+    entries.push({ id: uid(), ...data });
+  }
+  setLS(LS.calendario, entries);
+  cerrarModalCal();
+  renderCalendar();
+  showToast('Calendario actualizado.');
+}
+
+function borrarEntradaCalendario(){
+  if (!calEditId) return;
+  setLS(LS.calendario, getLS(LS.calendario).filter(x=>x.id!==calEditId));
+  cerrarModalCal();
+  renderCalendar();
+}
+
+/* =======================================================================
+   MÓDULO 5 — ORGANIZADOR DE EVENTOS PROPIOS
+   ======================================================================= */
+const PLANTILLA_LOGISTICA = {
+  pre: [
+    'Definir objetivos y presupuesto del evento',
+    'Reservar espacio y confirmar fecha',
+    'Diseñar y publicar la landing de inscripción',
+    'Preparar material gráfico (cartelería, roll-ups, presentaciones)',
+    'Enviar invitaciones y difundir en redes sociales',
+    'Confirmar catering y logística de sala'
+  ],
+  durante: [
+    'Control de acceso y acreditaciones',
+    'Grabación fotográfica y en vídeo',
+    'Publicación en redes sociales en directo',
+    'Encuesta de satisfacción a los asistentes'
+  ],
+  post: [
+    'Enviar email de agradecimiento a los inscritos',
+    'Recopilar fotos y material para la memoria anual',
+    'Publicar resumen del evento en la web y redes',
+    'Analizar resultados frente a los objetivos iniciales',
+    'Archivar documentación y facturas'
+  ]
+};
+const FASE_LABEL = { pre:'Pre-evento', durante:'Durante el evento', post:'Post-evento' };
+
+function getEventosPropios(){ return getLS(LS.eventosPropios); }
+
+function crearEventoPropio(){
+  const nombre = document.getElementById('nuevoEventoNombre').value.trim();
+  if (!nombre){ showToast('Escribe un nombre para el nuevo evento.'); return; }
+  const eventos = getEventosPropios();
+  if (eventos.includes(nombre)){ showToast('Ya existe un evento con ese nombre.'); return; }
+  eventos.push(nombre);
+  setLS(LS.eventosPropios, eventos);
+
+  const logistica = getLS(LS.logistica);
+  const obj = Array.isArray(logistica) ? {} : logistica;
+  obj[nombre] = {
+    pre: PLANTILLA_LOGISTICA.pre.map(t=>({id:uid(), texto:t, done:false})),
+    durante: PLANTILLA_LOGISTICA.durante.map(t=>({id:uid(), texto:t, done:false})),
+    post: PLANTILLA_LOGISTICA.post.map(t=>({id:uid(), texto:t, done:false}))
+  };
+  localStorage.setItem(LS.logistica, JSON.stringify(obj));
+
+  document.getElementById('nuevoEventoNombre').value = '';
+  populateEventoSelects();
+  document.getElementById('eventoActivo').value = nombre;
+  document.getElementById('eventoInscritosSelect').value = nombre;
+  renderLogistica();
+  renderInscritos();
+  showToast('Evento creado con la checklist estándar.');
+}
+
+function getLogisticaObj(){
+  const raw = localStorage.getItem(LS.logistica);
+  if (!raw) return {};
+  try{ const parsed = JSON.parse(raw); return Array.isArray(parsed) ? {} : parsed; }catch(e){ return {}; }
+}
+
+function populateEventoSelects(){
+  const eventos = getEventosPropios();
+  const opciones = eventos.length ? eventos.map(e=>`<option>${esc(e)}</option>`).join('') : '<option value="">Crea un evento primero</option>';
+  ['eventoActivo','eventoInscritosSelect'].forEach(id=>{
+    const sel = document.getElementById(id);
+    const prev = sel.value;
+    sel.innerHTML = opciones;
+    if (eventos.includes(prev)) sel.value = prev;
+  });
+}
+
+function renderLogistica(){
+  const evento = document.getElementById('eventoActivo').value;
+  const wrap = document.getElementById('logisticaFases');
+  if (!evento){
+    wrap.innerHTML = '<div class="panel"><p class="muted">Crea un evento propio arriba para empezar su checklist de logística.</p></div>';
+    return;
+  }
+  const logistica = getLogisticaObj();
+  const datos = logistica[evento] || {pre:[],durante:[],post:[]};
+
+  wrap.innerHTML = Object.keys(FASE_LABEL).map(fase=>{
+    const tasks = datos[fase] || [];
+    const done = tasks.filter(t=>t.done).length;
+    const pct = tasks.length ? Math.round(done/tasks.length*100) : 0;
+    const items = tasks.map(t=>`
+      <div class="check-item ${t.done?'done':''}">
+        <input type="checkbox" ${t.done?'checked':''} onchange="toggleLogisticaTask('${evento}','${fase}','${t.id}')">
+        <div class="ctext">${esc(t.texto)}</div>
+        <span class="btn-ghost" onclick="eliminarTareaLogistica('${evento}','${fase}','${t.id}')"><i class="fa-solid fa-xmark"></i></span>
+      </div>`).join('') || '<p class="muted small">Sin tareas.</p>';
+    return `
+      <div class="panel">
+        <div class="panel-title">${FASE_LABEL[fase]}</div>
+        <div class="panel-subtitle" style="margin-bottom:6px;">${done} de ${tasks.length} completadas</div>
+        <div class="progress-bar"><div class="progress-bar-fill" style="width:${pct}%;"></div></div>
+        ${items}
+        <div class="field" style="margin-top:14px;margin-bottom:0;display:flex;gap:8px;">
+          <input type="text" id="nuevaTarea-${fase}" placeholder="Añadir tarea..." style="flex:1;">
+          <button class="btn btn-secondary" onclick="añadirTareaLogistica('${evento}','${fase}')"><i class="fa-solid fa-plus"></i></button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function toggleLogisticaTask(evento, fase, id){
+  const logistica = getLogisticaObj();
+  const t = (logistica[evento] && logistica[evento][fase] || []).find(x=>x.id===id);
+  if (!t) return;
+  t.done = !t.done;
+  localStorage.setItem(LS.logistica, JSON.stringify(logistica));
+  renderLogistica();
+}
+
+function eliminarTareaLogistica(evento, fase, id){
+  const logistica = getLogisticaObj();
+  logistica[evento][fase] = (logistica[evento][fase]||[]).filter(x=>x.id!==id);
+  localStorage.setItem(LS.logistica, JSON.stringify(logistica));
+  renderLogistica();
+}
+
+function añadirTareaLogistica(evento, fase){
+  const input = document.getElementById('nuevaTarea-'+fase);
+  const texto = input.value.trim();
+  if (!texto) return;
+  const logistica = getLogisticaObj();
+  if (!logistica[evento]) logistica[evento] = {pre:[],durante:[],post:[]};
+  if (!logistica[evento][fase]) logistica[evento][fase] = [];
+  logistica[evento][fase].push({id:uid(), texto, done:false});
+  localStorage.setItem(LS.logistica, JSON.stringify(logistica));
+  renderLogistica();
+}
+
+/* --- Control de inscritos --- */
+let chartInscritosRef = null;
+
+function añadirInscrito(){
+  const evento = document.getElementById('eventoInscritosSelect').value;
+  if (!evento){ showToast('Crea o selecciona primero un evento.'); return; }
+  const nombre = document.getElementById('insNombre').value.trim();
+  const email = document.getElementById('insEmail').value.trim();
+  const fecha = document.getElementById('insFecha').value;
+  const landing = document.getElementById('insLanding').value.trim();
+  if (!nombre || !fecha){ showToast('Indica al menos nombre y fecha de inscripción.'); return; }
+
+  const inscritos = getLS(LS.inscritos);
+  inscritos.push({ id:uid(), evento, nombre, email, fecha, landing });
+  setLS(LS.inscritos, inscritos);
+
+  ['insNombre','insEmail','insFecha','insLanding'].forEach(id=>document.getElementById(id).value='');
+  renderInscritos();
+  updateDashboardStats();
+  showToast('Inscrito añadido.');
+}
+
+function eliminarInscrito(id){
+  setLS(LS.inscritos, getLS(LS.inscritos).filter(x=>x.id!==id));
+  renderInscritos();
+  updateDashboardStats();
+}
+
+function renderInscritos(){
+  const evento = document.getElementById('eventoInscritosSelect').value;
+  const todos = getLS(LS.inscritos).filter(i=>i.evento===evento);
+  const tbody = document.querySelector('#tablaInscritos tbody');
+  if (!evento){
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">Selecciona o crea un evento propio.</td></tr>';
+  } else if (!todos.length){
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">Todavía no hay inscritos para este evento.</td></tr>';
+  } else {
+    tbody.innerHTML = todos.slice().sort((a,b)=>a.fecha.localeCompare(b.fecha)).map(i=>`
+      <tr>
+        <td>${esc(i.nombre)}</td>
+        <td>${esc(i.email)}</td>
+        <td>${fmtFecha(i.fecha)}</td>
+        <td>${esc(i.landing)||'—'}</td>
+        <td><span class="btn-ghost" onclick="eliminarInscrito('${i.id}')">Eliminar</span></td>
+      </tr>`).join('');
+  }
+
+  const porFecha = {};
+  todos.forEach(i=>{ porFecha[i.fecha] = (porFecha[i.fecha]||0)+1; });
+  const fechas = Object.keys(porFecha).sort();
+  let acumulado = 0;
+  const acumulados = fechas.map(f=>{ acumulado += porFecha[f]; return acumulado; });
+
+  const ctx = document.getElementById('chartInscritos');
+  if (chartInscritosRef) chartInscritosRef.destroy();
+  chartInscritosRef = new Chart(ctx, {
+    type:'line',
+    data:{
+      labels: fechas.map(fmtFecha),
+      datasets:[{
+        label:'Inscritos acumulados',
+        data: acumulados,
+        borderColor:'#1bb8a6',
+        backgroundColor:'rgba(27,184,166,0.12)',
+        fill:true,
+        tension:0.25,
+        pointRadius:3
+      }]
+    },
+    options:{
+      responsive:true,
+      plugins:{ legend:{display:false} },
+      scales:{ y:{ beginAtZero:true, ticks:{ precision:0 } } }
+    }
+  });
+}
+
+/* ======================================================================
+   MÓDULO 0 — GESTOR DE TAREAS
+   ====================================================================== */
+const ESTADOS_TAREA = {
+  pendiente:  { label: 'Pendiente',    color: '#f2762e', bg: '#fdeadd' },
+  progreso:   { label: 'En progreso',  color: '#1bb8a6', bg: '#e3f6f3' },
+  revision:   { label: 'En revisión',  color: '#33454a', bg: '#eef0f0' },
+  completada: { label: 'Completada',   color: '#5b6b6e', bg: '#f6f7f6' }
+};
+const PRIORIDAD_TAREA = {
+  alta:  { label: 'Alta',  cls: 'tag-orange' },
+  media: { label: 'Media', cls: 'tag-teal' },
+  baja:  { label: 'Baja',  cls: 'tag-grey' }
+};
+
+function getTareas(){ return getLS(LS.tareas); }
+
+function guardarTarea(){
+  const titulo = document.getElementById('tareaTitulo').value.trim();
+  const desc = document.getElementById('tareaDesc').value.trim();
+  const estado = document.getElementById('tareaEstado').value;
+  const prioridad = document.getElementById('tareaPrioridad').value;
+  const fechaInicio = document.getElementById('tareaFechaInicio').value;
+  const fechaFin = document.getElementById('tareaFechaFin').value;
+  const responsable = document.getElementById('tareaResponsable').value.trim();
+  const etiqueta = document.getElementById('tareaEtiqueta').value.trim();
+  if (!titulo || !fechaInicio){ showToast('Indica al menos título y fecha de inicio.'); return; }
+  if (fechaFin && fechaFin < fechaInicio){ showToast('La fecha de fin no puede ser anterior a la de inicio.'); return; }
+  const tareas = getTareas();
+  tareas.push({ id: uid(), titulo, desc, estado, prioridad, fechaInicio, fechaFin, responsable, etiqueta });
+  setLS(LS.tareas, tareas);
+  limpiarFormularioTarea();
+  renderTareasLista();
+  renderKanban();
+  renderCalendarioTareas();
+  renderGantt();
+  updateTareasStats();
+  showToast('Tarea guardada.');
+}
+
+function limpiarFormularioTarea(){
+  ['tareaTitulo','tareaDesc','tareaResponsable','tareaEtiqueta','tareaFechaFin'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('tareaEstado').value='pendiente';
+  document.getElementById('tareaPrioridad').value='media';
+  document.getElementById('tareaFechaInicio').valueAsDate = new Date();
+}
+
+function eliminarTarea(id){
+  setLS(LS.tareas, getTareas().filter(t=>t.id!==id));
+  renderTareasLista();
+  renderKanban();
+  renderCalendarioTareas();
+  renderGantt();
+  updateTareasStats();
+}
+
+function cambiarEstadoTarea(id, nuevoEstado){
+  const tareas = getTareas();
+  const t = tareas.find(x=>x.id===id);
+  if (t){ t.estado = nuevoEstado; setLS(LS.tareas, tareas); }
+  renderTareasLista();
+  renderKanban();
+  renderCalendarioTareas();
+  renderGantt();
+  updateTareasStats();
+}
+
+function filtrarTareasLista(){
+  renderTareasLista();
+}
+
+function renderTareasLista(){
+  const q = document.getElementById('tareaSearch').value.trim().toLowerCase();
+  const fEstado = document.getElementById('filtroTareaEstado').value;
+  const fPrioridad = document.getElementById('filtroTareaPrioridad').value;
+  const fEtiqueta = document.getElementById('filtroTareaEtiqueta').value.trim().toLowerCase();
+  let tareas = getTareas().filter(t=>{
+    const okQ = !q || t.titulo.toLowerCase().includes(q) || (t.desc||'').toLowerCase().includes(q);
+    const okE = !fEstado || t.estado===fEstado;
+    const okP = !fPrioridad || t.prioridad===fPrioridad;
+    const okEt = !fEtiqueta || (t.etiqueta||'').toLowerCase().includes(fEtiqueta);
+    return okQ && okE && okP && okEt;
+  }).sort((a,b)=> (a.fechaInicio||'').localeCompare(b.fechaInicio||''));
+
+  const tbody = document.querySelector('#tablaTareas tbody');
+  if (!tareas.length){
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="8">No hay tareas que coincidan con los filtros.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = tareas.map(t=>`
+    <tr>
+      <td><strong>${esc(t.titulo)}</strong>${t.desc?`<div class="small muted">${esc(t.desc)}</div>`:''}</td>
+      <td><span class="tag ${ESTADOS_TAREA[t.estado].cls||'tag-grey'}" style="background:${ESTADOS_TAREA[t.estado].bg};color:${ESTADOS_TAREA[t.estado].color};">${ESTADOS_TAREA[t.estado].label}</span></td>
+      <td><span class="tag ${PRIORIDAD_TAREA[t.prioridad].cls}">${PRIORIDAD_TAREA[t.prioridad].label}</span></td>
+      <td>${fmtFecha(t.fechaInicio)}</td>
+      <td>${fmtFecha(t.fechaFin)}</td>
+      <td>${esc(t.responsable)||'—'}</td>
+      <td>${esc(t.etiqueta)||'—'}</td>
+      <td>
+        <span class="btn-ghost" onclick="cambiarEstadoTarea('${t.id}','${t.estado==='completada'?'pendiente':'completada'}')">${t.estado==='completada'?'Reabrir':'Completar'}</span>
+        <span class="btn-ghost" onclick="eliminarTarea('${t.id}')">Eliminar</span>
+      </td>
+    </tr>`).join('');
+}
+
+function abrirModalTarea(id){
+  const tarea = getTareas().find(t=>t.id===id);
+  if (!tarea) return;
+  const overlay = document.getElementById('taskEditModal');
+  if (!overlay) return;
+  document.getElementById('editTareaId').value = tarea.id;
+  document.getElementById('editTareaTitulo').value = tarea.titulo || '';
+  document.getElementById('editTareaDesc').value = tarea.desc || '';
+  document.getElementById('editTareaEstado').value = tarea.estado || 'pendiente';
+  document.getElementById('editTareaPrioridad').value = tarea.prioridad || 'media';
+  document.getElementById('editTareaFechaInicio').value = tarea.fechaInicio || '';
+  document.getElementById('editTareaFechaFin').value = tarea.fechaFin || '';
+  document.getElementById('editTareaResponsable').value = tarea.responsable || '';
+  document.getElementById('editTareaEtiqueta').value = tarea.etiqueta || '';
+  overlay.classList.add('active');
+}
+
+function cerrarModalTarea(){
+  const overlay = document.getElementById('taskEditModal');
+  if (overlay) overlay.classList.remove('active');
+}
+
+function guardarEdicionTarea(){
+  const id = document.getElementById('editTareaId').value;
+  const titulo = document.getElementById('editTareaTitulo').value.trim();
+  const desc = document.getElementById('editTareaDesc').value.trim();
+  const estado = document.getElementById('editTareaEstado').value;
+  const prioridad = document.getElementById('editTareaPrioridad').value;
+  const fechaInicio = document.getElementById('editTareaFechaInicio').value;
+  const fechaFin = document.getElementById('editTareaFechaFin').value;
+  const responsable = document.getElementById('editTareaResponsable').value.trim();
+  const etiqueta = document.getElementById('editTareaEtiqueta').value.trim();
+  if (!titulo || !fechaInicio){ showToast('Indica al menos título y fecha de inicio.'); return; }
+  if (fechaFin && fechaFin < fechaInicio){ showToast('La fecha de fin no puede ser anterior a la de inicio.'); return; }
+  const tareas = getTareas();
+  const tarea = tareas.find(t=>t.id===id);
+  if (!tarea) return;
+  Object.assign(tarea,{titulo,desc,estado,prioridad,fechaInicio,fechaFin,responsable,etiqueta});
+  setLS(LS.tareas,tareas);
+  cerrarModalTarea();
+  renderTareasLista(); renderKanban(); renderCalendarioTareas(); renderGantt(); updateTareasStats();
+  showToast('Tarea actualizada.');
+}
+
+function renderKanban(){
+  const board = document.getElementById('kanbanBoard');
+  if (!board) return;
+  const tareas = getTareas();
+  board.innerHTML = Object.keys(ESTADOS_TAREA).map(est=>{
+    const info = ESTADOS_TAREA[est];
+    const cols = tareas.filter(t=>t.estado===est);
+    return `
+      <div style="background:#f6f7f6;border:1px solid var(--line);border-radius:8px;padding:14px;">
+        <div style="font-weight:700;font-size:13px;margin-bottom:10px;display:flex;align-items:center;gap:8px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:${info.color};"></span>
+          ${info.label} <span style="margin-left:auto;font-size:11px;color:var(--ink-500);">${cols.length}</span>
+        </div>
+        ${cols.map(t=>`
+          <div style="background:#fff;border:1px solid var(--line);border-radius:6px;padding:12px;margin-bottom:10px;cursor:pointer;" onclick="abrirModalTarea('${t.id}')">
+            <div style="font-weight:600;font-size:12.5px;margin-bottom:4px;">${esc(t.titulo)}</div>
+            <div style="font-size:11px;color:var(--ink-500);margin-bottom:6px;">${fmtFecha(t.fechaInicio)}${t.fechaFin?' → '+fmtFecha(t.fechaFin):''}</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <span class="tag ${PRIORIDAD_TAREA[t.prioridad].cls}" style="font-size:10px;">${PRIORIDAD_TAREA[t.prioridad].label}</span>
+              ${t.etiqueta?`<span class="tag tag-grey" style="font-size:10px;">${esc(t.etiqueta)}</span>`:''}
+            </div>
+          </div>
+        `).join('')}
+      </div>`;
+  }).join('');
+}
+
+let calDateTareas = new Date();
+function cambiarMesTareas(delta){
+  calDateTareas.setMonth(calDateTareas.getMonth()+delta);
+  renderCalendarioTareas();
+}
+
+function renderCalendarioTareas(){
+  const year = calDateTareas.getFullYear(), month = calDateTareas.getMonth();
+  document.getElementById('calMesLabelTareas').textContent = `${MESES[month].charAt(0).toUpperCase()+MESES[month].slice(1)} ${year}`;
+  const firstDay = new Date(year, month, 1);
+  let startOffset = firstDay.getDay()-1; if (startOffset<0) startOffset=6;
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const daysInPrevMonth = new Date(year, month, 0).getDate();
+  const tareas = getTareas();
+  const todayStr = new Date().toISOString().slice(0,10);
+
+  let cells = DOWS.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  for (let i=startOffset; i>0; i--){
+    cells += `<div class="cal-day other-month"><div class="dnum">${daysInPrevMonth-i+1}</div></div>`;
+  }
+  for (let day=1; day<=daysInMonth; day++){
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const dayTareas = tareas.filter(t=> t.fechaInicio===dateStr || t.fechaFin===dateStr);
+    const tareasHtml = dayTareas.map(t=>{
+      const isStart = t.fechaInicio===dateStr;
+      const isEnd = t.fechaFin===dateStr;
+      let cls = 'entry';
+      if (isStart && !isEnd) cls += '';
+      else if (isEnd) cls += ' proyecto';
+      return `<div class="${cls}" title="${esc(t.titulo)}">${esc(t.titulo)}</div>`;
+    }).join('');
+    cells += `<div class="cal-day" style="${dateStr===todayStr?'box-shadow:inset 0 0 0 2px var(--teal-500);':''}">
+      <div class="dnum">${day}</div>
+      ${tareasHtml}
+    </div>`;
+  }
+  const totalCells = startOffset + daysInMonth;
+  const remaining = (7 - (totalCells % 7)) % 7;
+  for (let i=1; i<=remaining; i++){
+    cells += `<div class="cal-day other-month"><div class="dnum">${i}</div></div>`;
+  }
+  document.getElementById('calGridTareas').innerHTML = cells;
+}
+
+function renderGantt(){
+  const wrap = document.getElementById('ganttWrap');
+  if (!wrap) return;
+  const tareas = getTareas().filter(t=>t.fechaInicio).sort((a,b)=>a.fechaInicio.localeCompare(b.fechaInicio));
+  if (!tareas.length){ wrap.innerHTML = '<p class="muted">No hay tareas con fechas para mostrar.</p>'; return; }
+
+  const fechas = tareas.map(t=>t.fechaInicio);
+  if (tareas.some(t=>t.fechaFin)) fechas.push(...tareas.filter(t=>t.fechaFin).map(t=>t.fechaFin));
+  fechas.sort();
+  const minDate = new Date(fechas[0]);
+  const maxDate = new Date(fechas[fechas.length-1]);
+  maxDate.setDate(maxDate.getDate()+7);
+  const totalDays = Math.max(1, Math.ceil((maxDate - minDate)/(1000*60*60*24)));
+  const dayWidth = Math.max(24, Math.min(48, Math.floor(900/totalDays)));
+
+  let htmlG = `<div style="display:flex;gap:0;border:1px solid var(--line);border-radius:6px;overflow:hidden;min-width:${totalDays*dayWidth + 200}px;">`;
+  htmlG += `<div style="width:200px;flex-shrink:0;background:#fafbfb;border-right:1px solid var(--line);">`;
+  htmlG += `<div style="padding:8px 10px;font-size:11px;font-weight:600;color:var(--ink-500);border-bottom:1px solid var(--line-strong);height:36px;">Tarea</div>`;
+  tareas.forEach(t=>{
+    htmlG += `<div style="padding:8px 10px;font-size:12px;border-bottom:1px solid var(--line);height:34px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><strong>${esc(t.titulo)}</strong></div>`;
+  });
+  htmlG += `</div>`;
+
+  htmlG += `<div style="flex:1;position:relative;overflow-x:auto;">`;
+  htmlG += `<div style="display:flex;border-bottom:1px solid var(--line-strong);height:36px;background:#fafbfb;">`;
+  for (let d=0; d<=totalDays; d++){
+    const cur = new Date(minDate); cur.setDate(cur.getDate()+d);
+    const label = `${String(cur.getDate()).padStart(2,'0')}/${String(cur.getMonth()+1).padStart(2,'0')}`;
+    htmlG += `<div style="width:${dayWidth}px;flex-shrink:0;text-align:center;font-size:10px;color:var(--ink-500);padding-top:10px;border-right:1px solid var(--line);">${label}</div>`;
+  }
+  htmlG += `</div>`;
+
+  tareas.forEach(t=>{
+    const start = new Date(t.fechaInicio);
+    const end = t.fechaFin ? new Date(t.fechaFin) : new Date(start);
+    if (!t.fechaFin) end.setDate(end.getDate()+1);
+    const offsetDays = Math.max(0, Math.ceil((start - minDate)/(1000*60*60*24)));
+    const durationDays = Math.max(1, Math.ceil((end - start)/(1000*60*60*24)) + 1);
+    const color = ESTADOS_TAREA[t.estado].color;
+    htmlG += `<div style="position:relative;height:34px;border-bottom:1px solid var(--line);">`;
+    htmlG += `<div style="position:absolute;left:${offsetDays*dayWidth}px;width:${durationDays*dayWidth - 4}px;top:6px;height:22px;background:${color};border-radius:4px;opacity:0.85;font-size:10px;color:#fff;display:flex;align-items:center;padding:0 8px;white-space:nowrap;overflow:hidden;">${esc(t.titulo)}</div>`;
+    htmlG += `</div>`;
+  });
+  htmlG += `</div></div>`;
+  wrap.innerHTML = htmlG;
+}
+
+function updateTareasStats(){
+  const tareas = getTareas();
+  document.getElementById('statTareasPendientes').textContent = tareas.filter(t=>t.estado==='pendiente').length;
+  document.getElementById('statTareasProgreso').textContent = tareas.filter(t=>t.estado==='progreso').length;
+  document.getElementById('statTareasCompletadas').textContent = tareas.filter(t=>t.estado==='completada').length;
+
+  const ctx = document.getElementById('chartTareasPrioridad');
+  if (!ctx) return;
+  if (window._chartTareas) window._chartTareas.destroy();
+  const counts = { alta: tareas.filter(t=>t.prioridad==='alta').length, media: tareas.filter(t=>t.prioridad==='media').length, baja: tareas.filter(t=>t.prioridad==='baja').length };
+  window._chartTareas = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Alta','Media','Baja'],
+      datasets: [{ label:'Tareas', data:[counts.alta, counts.media, counts.baja], backgroundColor:['#f2762e','#1bb8a6','#8fa0a2'], borderRadius:4 }]
+    },
+    options: { responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true,ticks:{precision:0}}} }
+  });
+}
+
+/* ======================================================================
+   DASHBOARD (INICIO)
+   ====================================================================== */
+function updateDashboardStats(){
+  const anioActual = String(new Date().getFullYear());
+  const eventosEsteAnio = getLS(LS.eventos).filter(r=> r.fecha && r.fecha.slice(0,4)===anioActual).length;
+  const mantenimientoPendiente = getLS(LS.mantenimiento).filter(t=>!t.done).length;
+  const inscritosTotales = getLS(LS.inscritos).length;
+
+  document.getElementById('statEventos').textContent = eventosEsteAnio;
+  document.getElementById('statMantenimiento').textContent = mantenimientoPendiente;
+  document.getElementById('statInscritos').textContent = inscritosTotales;
+}
+
+/* =======================================================================
+   INICIALIZACIÓN
+   ======================================================================= */
+function init(){
+  document.getElementById('evFecha').valueAsDate = new Date();
+  document.getElementById('insFecha').valueAsDate = new Date();
+  document.getElementById('calFecha').valueAsDate = new Date();
+  document.getElementById('envioFecha').valueAsDate = new Date();
+  document.getElementById('tareaFechaInicio').valueAsDate = new Date();
+
+  renderRegistrosRecientes();
+  populateMemoriaFilters();
+  renderMemoria();
+
+  renderSnippets(getLS(LS.snippets));
+  populateProyectoWebSelect();
+  renderEstructuraWeb();
+  renderSugerenciasMantenimiento();
+  renderMantenimiento();
+
+  actualizarPreviewEmail();
+  renderUTMHistorial();
+  renderEnviosEmail();
+
+  renderPostPreview();
+  renderCalendar();
+
+  populateEventoSelects();
+  renderLogistica();
+  renderInscritos();
+
+  renderTareasLista();
+  renderKanban();
+  renderCalendarioTareas();
+  renderGantt();
+  updateTareasStats();
+
+  updateDashboardStats();
+}
+
+init();
+</script>
+
+</body>
+</html>
