@@ -331,6 +331,25 @@
   .cal-day .add-btn{position:absolute;top:5px;right:5px;font-size:11px;color:var(--ink-300);cursor:pointer;opacity:0;}
   .cal-day:hover .add-btn{opacity:1;}
 
+  /* ---------- Kanban (tareas) ---------- */
+  .kanban-col{display:flex;flex-direction:column;gap:8px;min-height:60px;}
+  .kanban-card{border:1px solid var(--line);border-radius:6px;padding:10px 12px;background:#fbfcfc;cursor:grab;}
+  .kanban-card:hover{border-color:var(--teal-500);}
+  .kanban-card:active{cursor:grabbing;}
+  .kanban-card .kt-title{font-size:12.5px;font-weight:600;color:var(--ink-900);margin-bottom:5px;}
+  .kanban-card .kt-meta{font-size:11px;color:var(--ink-500);display:flex;gap:7px;align-items:center;flex-wrap:wrap;}
+
+  /* ---------- Gantt (tareas) ---------- */
+  .gantt-wrap{overflow-x:auto;}
+  .gantt-axis{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-500);margin:0 0 10px 190px;}
+  .gantt-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);}
+  .gantt-row:last-child{border-bottom:none;}
+  .gantt-label{width:180px;flex-shrink:0;font-size:12.5px;color:var(--ink-700);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .gantt-track{flex:1;position:relative;height:22px;background:#f2f4f4;border-radius:4px;min-width:320px;}
+  .gantt-bar{position:absolute;top:0;height:100%;border-radius:4px;background:var(--teal-500);font-size:10.5px;color:#fff;display:flex;align-items:center;padding:0 7px;overflow:hidden;white-space:nowrap;cursor:pointer;}
+  .gantt-bar.prioridad-alta{background:var(--orange-500);}
+  .gantt-bar.prioridad-baja{background:var(--ink-300);}
+
   /* ---------- Modal ---------- */
   .modal-overlay{
     display:none;position:fixed;inset:0;background:rgba(10,32,35,0.5);
@@ -410,15 +429,14 @@
       <div class="sub">Hub de Marketing</div>
     </div>
     <div class="sidebar-nav" id="sidebarNav">
-      <div class="nav-item" data-view="tareas"><span class="num">0</span><i class="fa-solid fa-list-check"></i> Gestor de tareas</div>
       <div class="nav-item" data-view="inicio"><i class="fa-solid fa-house"></i> Inicio</div>
-
-      <div class="sidebar-group-label">Módulos</div>
-      <div class="nav-item" data-view="eventos"><span class="num">1</span><i class="fa-solid fa-calendar-check"></i> Eventos y memoria anual</div>
-      <div class="nav-item" data-view="webs"><span class="num">2</span><i class="fa-solid fa-code"></i> Gestor de webs de proyectos</div>
-      <div class="nav-item" data-view="email"><span class="num">3</span><i class="fa-solid fa-envelope-open-text"></i> Email marketing y CRM</div>
-      <div class="nav-item" data-view="redes"><span class="num">4</span><i class="fa-solid fa-share-nodes"></i> Redes sociales</div>
-      <div class="nav-item" data-view="propios"><span class="num">5</span><i class="fa-solid fa-clipboard-list"></i> Organizador de eventos propios</div>
+      <div class="nav-item" data-view="tareas"><i class="fa-solid fa-list-check"></i> Tareas</div>
+      <div class="nav-item" data-view="eventos"><i class="fa-solid fa-calendar-check"></i> Eventos y memoria anual</div>
+      <div class="nav-item" data-view="webs"><i class="fa-solid fa-code"></i> Gestor de webs de proyectos</div>
+      <div class="nav-item" data-view="email"><i class="fa-solid fa-envelope-open-text"></i> Email marketing y CRM</div>
+      <div class="nav-item" data-view="redes"><i class="fa-solid fa-share-nodes"></i> Redes sociales</div>
+      <div class="nav-item" data-view="propios"><i class="fa-solid fa-clipboard-list"></i> Organizador de eventos propios</div>
+      <div class="nav-item" data-view="config"><i class="fa-solid fa-gear"></i> Configuración</div>
     </div>
     <div class="sidebar-foot">Uso interno — Comunicación y Marketing</div>
   </nav>
@@ -443,165 +461,172 @@
           <button class="tab-btn" data-tab="gantt" onclick="switchTab('tareas','gantt')">Gantt</button>
         </div>
 
-        <!-- LISTA -->
+        <!-- Lista -->
         <div class="tab-pane active" id="tareas-lista">
-          <div class="grid-2">
-            <div class="panel">
-              <div class="panel-title">Nueva tarea</div>
-              <div class="panel-subtitle">Añade una tarea con estado, prioridad y fechas.</div>
-              <div class="field">
-                <label for="tareaTitulo">Título</label>
-                <input type="text" id="tareaTitulo" placeholder="Ej. Revisar copy de la newsletter">
-              </div>
-              <div class="field">
-                <label for="tareaDesc">Descripción</label>
-                <textarea id="tareaDesc" placeholder="Detalles de la tarea..."></textarea>
-              </div>
-              <div class="field-row">
-                <div class="field">
-                  <label for="tareaEstado">Estado</label>
-                  <select id="tareaEstado">
-                    <option value="pendiente">Pendiente</option>
-                    <option value="progreso">En progreso</option>
-                    <option value="revision">En revisión</option>
-                    <option value="completada">Completada</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label for="tareaPrioridad">Prioridad</label>
-                  <select id="tareaPrioridad">
-                    <option value="baja">Baja</option>
-                    <option value="media" selected>Media</option>
-                    <option value="alta">Alta</option>
-                  </select>
-                </div>
-              </div>
-              <div class="field-row">
-                <div class="field">
-                  <label for="tareaFechaInicio">Fecha inicio</label>
-                  <input type="date" id="tareaFechaInicio">
-                </div>
-                <div class="field">
-                  <label for="tareaFechaFin">Fecha fin (opcional)</label>
-                  <input type="date" id="tareaFechaFin">
-                </div>
-              </div>
-              <div class="field-row">
-                <div class="field">
-                  <label for="tareaResponsable">Responsable</label>
-                  <input type="text" id="tareaResponsable" placeholder="Nombre del responsable">
-                </div>
-                <div class="field">
-                  <label for="tareaEtiqueta">Etiqueta / Proyecto</label>
-                  <input type="text" id="tareaEtiqueta" placeholder="Ej. RESILIENT, General...">
-                </div>
-              </div>
-              <div class="btn-row">
-                <button class="btn" onclick="guardarTarea()"><i class="fa-solid fa-floppy-disk"></i> Guardar tarea</button>
-                <button class="btn btn-secondary" onclick="limpiarFormularioTarea()">Limpiar</button>
-              </div>
-            </div>
-
-            <div class="panel">
-              <div class="panel-title">Resumen</div>
-              <div class="grid-3" style="margin-top:8px;">
-                <div class="stat-block accent">
-                  <div class="stat-num" id="statTareasPendientes" style="font-size:24px;">0</div>
-                  <div class="stat-label">Pendientes</div>
-                </div>
-                <div class="stat-block accent">
-                  <div class="stat-num" id="statTareasProgreso" style="font-size:24px;">0</div>
-                  <div class="stat-label">En progreso</div>
-                </div>
-                <div class="stat-block accent">
-                  <div class="stat-num" id="statTareasCompletadas" style="font-size:24px;">0</div>
-                  <div class="stat-label">Completadas</div>
-                </div>
-              </div>
-              <div class="divider"></div>
-              <div class="panel-title" style="font-size:13px;">Tareas por prioridad</div>
-              <canvas id="chartTareasPrioridad" height="140"></canvas>
-            </div>
-          </div>
-
-          <div class="panel section-gap">
+          <div class="panel">
             <div class="flex-between">
               <div>
-                <div class="panel-title">Listado de tareas</div>
-                <div class="panel-subtitle" style="margin-bottom:0;">Filtra y gestiona el estado de cada tarea.</div>
+                <div class="panel-title">Tareas del equipo</div>
+                <div class="panel-subtitle" style="margin-bottom:0;">Todas las tareas registradas, con su prioridad y su estado.</div>
               </div>
-              <div class="field" style="min-width:220px;margin-bottom:0;">
-                <input type="text" id="tareaSearch" placeholder="Buscar tarea..." oninput="filtrarTareasLista()">
-              </div>
+              <button class="btn" onclick="abrirModalTarea()"><i class="fa-solid fa-plus"></i> Añadir tarea</button>
             </div>
-            <div class="filter-row" style="margin-top:14px;">
-              <div class="field" style="margin-bottom:0;">
-                <label style="font-size:11px;">Estado</label>
-                <select id="filtroTareaEstado" onchange="filtrarTareasLista()">
-                  <option value="">Todos</option>
-                  <option value="pendiente">Pendiente</option>
-                  <option value="progreso">En progreso</option>
-                  <option value="revision">En revisión</option>
-                  <option value="completada">Completada</option>
-                </select>
-              </div>
-              <div class="field" style="margin-bottom:0;">
-                <label style="font-size:11px;">Prioridad</label>
-                <select id="filtroTareaPrioridad" onchange="filtrarTareasLista()">
-                  <option value="">Todas</option>
-                  <option value="alta">Alta</option>
-                  <option value="media">Media</option>
-                  <option value="baja">Baja</option>
-                </select>
-              </div>
-              <div class="field" style="margin-bottom:0;">
-                <label style="font-size:11px;">Etiqueta</label>
-                <input type="text" id="filtroTareaEtiqueta" placeholder="Filtrar por etiqueta..." oninput="filtrarTareasLista()">
-              </div>
+          </div>
+          <div class="filter-row">
+            <div class="field">
+              <label for="tareaFiltroEstado">Estado</label>
+              <select id="tareaFiltroEstado" onchange="renderTareasLista()">
+                <option value="">Todos</option>
+                <option value="pendiente">Pendiente</option>
+                <option value="progreso">En progreso</option>
+                <option value="hecha">Hecha</option>
+              </select>
             </div>
-            <div class="table-wrap" style="margin-top:14px;">
+            <div class="field">
+              <label for="tareaFiltroPrioridad">Prioridad</label>
+              <select id="tareaFiltroPrioridad" onchange="renderTareasLista()">
+                <option value="">Todas</option>
+                <option value="alta">Alta</option>
+                <option value="media">Media</option>
+                <option value="baja">Baja</option>
+              </select>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="table-wrap">
               <table id="tablaTareas">
-                <thead><tr><th>Título</th><th>Estado</th><th>Prioridad</th><th>Inicio</th><th>Fin</th><th>Responsable</th><th>Etiqueta</th><th></th></tr></thead>
+                <thead><tr><th></th><th>Tarea</th><th>Proyecto</th><th>Responsable</th><th>Prioridad</th><th>Estado</th><th>Fechas</th><th></th></tr></thead>
                 <tbody></tbody>
               </table>
             </div>
           </div>
         </div>
 
-        <!-- KANBAN -->
+        <!-- Kanban -->
         <div class="tab-pane" id="tareas-kanban">
-          <div class="panel">
-            <div class="panel-title">Tablero Kanban</div>
-            <div class="panel-subtitle">Mueve las tareas entre columnas cambiando su estado.</div>
-            <div id="kanbanBoard" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:18px;">
-              <!-- Se genera por JS -->
+          <div class="grid-3">
+            <div class="panel">
+              <div class="flex-between" style="margin-bottom:12px;">
+                <div class="panel-title" style="margin-bottom:0;">Pendiente</div>
+                <span class="btn-ghost" onclick="abrirModalTarea(null,'pendiente')"><i class="fa-solid fa-plus"></i></span>
+              </div>
+              <div class="kanban-col" id="kanban-pendiente" ondragover="event.preventDefault()" ondrop="onDropTarea(event,'pendiente')"></div>
+            </div>
+            <div class="panel">
+              <div class="flex-between" style="margin-bottom:12px;">
+                <div class="panel-title" style="margin-bottom:0;">En progreso</div>
+                <span class="btn-ghost" onclick="abrirModalTarea(null,'progreso')"><i class="fa-solid fa-plus"></i></span>
+              </div>
+              <div class="kanban-col" id="kanban-progreso" ondragover="event.preventDefault()" ondrop="onDropTarea(event,'progreso')"></div>
+            </div>
+            <div class="panel">
+              <div class="flex-between" style="margin-bottom:12px;">
+                <div class="panel-title" style="margin-bottom:0;">Hecha</div>
+                <span class="btn-ghost" onclick="abrirModalTarea(null,'hecha')"><i class="fa-solid fa-plus"></i></span>
+              </div>
+              <div class="kanban-col" id="kanban-hecha" ondragover="event.preventDefault()" ondrop="onDropTarea(event,'hecha')"></div>
             </div>
           </div>
         </div>
 
-        <!-- CALENDARIO DE TAREAS -->
+        <!-- Calendario de tareas -->
         <div class="tab-pane" id="tareas-calendario">
           <div class="panel">
             <div class="cal-head">
               <button class="btn btn-secondary" onclick="cambiarMesTareas(-1)"><i class="fa-solid fa-chevron-left"></i></button>
-              <h3 id="calMesLabelTareas"></h3>
+              <h3 id="calTareasMesLabel"></h3>
               <button class="btn btn-secondary" onclick="cambiarMesTareas(1)"><i class="fa-solid fa-chevron-right"></i></button>
-            </div>
-            <div style="margin-bottom:14px;">
-              <span class="tag tag-teal">Inicio</span>
-              <span class="tag tag-orange" style="margin-left:6px;">Fin</span>
             </div>
             <div class="cal-grid" id="calGridTareas"></div>
           </div>
         </div>
 
-        <!-- GANTT -->
+        <!-- Gantt -->
         <div class="tab-pane" id="tareas-gantt">
           <div class="panel">
-            <div class="panel-title">Vista Gantt</div>
-            <div class="panel-subtitle">Línea temporal de las tareas con sus duraciones.</div>
-            <div id="ganttWrap" style="margin-top:18px;overflow-x:auto;">
-              <!-- Se genera por JS -->
+            <div class="panel-title">Diagrama de Gantt</div>
+            <div class="panel-subtitle">Vista temporal de las tareas con fecha de inicio y de fin.</div>
+            <div id="ganttChart"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ CONFIGURACIÓN ============ -->
+      <section class="module-view" id="view-config">
+        <div class="tabbar">
+          <button class="tab-btn active" data-tab="proyectos" onclick="switchTab('config','proyectos')">Proyectos</button>
+          <button class="tab-btn" data-tab="sectores" onclick="switchTab('config','sectores')">Sectores</button>
+        </div>
+
+        <!-- Proyectos -->
+        <div class="tab-pane active" id="config-proyectos">
+          <div class="grid-2">
+            <div class="panel">
+              <div class="panel-title" id="proyectoFormTitulo">Registrar proyecto</div>
+              <div class="panel-subtitle">Los proyectos que registres aquí quedarán disponibles como selector en eventos, publicaciones, tareas y páginas web.</div>
+              <div class="field">
+                <label for="proyNombre">Nombre del proyecto</label>
+                <input type="text" id="proyNombre" placeholder="Ej. RESILIENT — Cubiertas vegetales en viñedo">
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="proyAcronimo">Acrónimo (opcional)</label>
+                  <input type="text" id="proyAcronimo" placeholder="Ej. RESILIENT">
+                </div>
+                <div class="field">
+                  <label for="proyPrograma">Programa de financiación</label>
+                  <select id="proyPrograma">
+                    <option value="">Sin especificar</option>
+                    <option>FEDER</option>
+                    <option>Horizonte Europa</option>
+                    <option>Nacional</option>
+                    <option>Interno / propio</option>
+                    <option>Otro</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field">
+                <label for="proyEstado">Estado</label>
+                <select id="proyEstado">
+                  <option>Activo</option>
+                  <option>Finalizado</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="proyDescripcion">Descripción breve (opcional)</label>
+                <textarea id="proyDescripcion" placeholder="Objetivo o ámbito del proyecto"></textarea>
+              </div>
+              <div class="btn-row">
+                <button class="btn" onclick="guardarProyecto()"><i class="fa-solid fa-floppy-disk"></i> Guardar proyecto</button>
+                <button class="btn btn-secondary" id="cancelarEdicionProyectoBtn" style="display:none;" onclick="cancelarEdicionProyecto()">Cancelar edición</button>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-title">Proyectos registrados</div>
+              <div class="panel-subtitle">Disponibles en los selectores de todo el hub.</div>
+              <div id="listaProyectos"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sectores -->
+        <div class="tab-pane" id="config-sectores">
+          <div class="grid-2">
+            <div class="panel">
+              <div class="panel-title">Añadir sector</div>
+              <div class="panel-subtitle">Los sectores que registres aquí quedarán disponibles al añadir inscritos en eventos propios.</div>
+              <div class="field">
+                <label for="sectorNombre">Nombre del sector</label>
+                <input type="text" id="sectorNombre" placeholder="Ej. Automoción">
+              </div>
+              <button class="btn" onclick="guardarSector()"><i class="fa-solid fa-floppy-disk"></i> Guardar sector</button>
+            </div>
+
+            <div class="panel">
+              <div class="panel-title">Sectores registrados</div>
+              <div class="panel-subtitle">Disponibles en el formulario de inscritos.</div>
+              <div id="listaSectores"></div>
             </div>
           </div>
         </div>
@@ -634,13 +659,14 @@
           <div class="panel-title">Accesos directos</div>
           <div class="panel-subtitle">Ir directamente a una tarea habitual.</div>
           <div class="btn-row">
+            <button class="btn btn-secondary" onclick="goTo('config','proyectos')"><i class="fa-solid fa-diagram-project"></i> Registrar un proyecto</button>
+            <button class="btn btn-secondary" onclick="goTo('tareas','lista')"><i class="fa-solid fa-list-check"></i> Añadir una tarea</button>
             <button class="btn btn-secondary" onclick="goTo('eventos','registro')"><i class="fa-solid fa-plus"></i> Registrar asistencia a un evento</button>
             <button class="btn btn-secondary" onclick="goTo('webs','snippets')"><i class="fa-solid fa-code"></i> Copiar un snippet de web</button>
             <button class="btn btn-secondary" onclick="goTo('webs','estructura')"><i class="fa-solid fa-sitemap"></i> Definir estructura de una web de proyecto</button>
             <button class="btn btn-secondary" onclick="goTo('email','utm')"><i class="fa-solid fa-link"></i> Generar un enlace UTM</button>
             <button class="btn btn-secondary" onclick="goTo('email','seguimiento')"><i class="fa-solid fa-paper-plane"></i> Registrar un envío de email</button>
             <button class="btn btn-secondary" onclick="goTo('redes','calendario')"><i class="fa-solid fa-calendar-days"></i> Abrir calendario editorial</button>
-            <button class="btn btn-secondary" onclick="goTo('tareas','lista')"><i class="fa-solid fa-list-check"></i> Ver tareas del equipo</button>
           </div>
         </div>
 
@@ -687,6 +713,10 @@
                 <input type="text" id="evEvento" placeholder="Nombre del congreso, jornada o feria">
               </div>
               <div class="field">
+                <label for="evProyecto">Proyecto relacionado (opcional)</label>
+                <select id="evProyecto"><option value="">Ninguno / General</option></select>
+              </div>
+              <div class="field">
                 <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:0;">
                   <input type="checkbox" id="evVariosDias" onchange="toggleEvVariosDias()" style="width:auto;margin:0;accent-color:var(--teal-500);">
                   <span>El evento dura varios días</span>
@@ -711,8 +741,8 @@
                 <textarea id="evDescripcion" placeholder="Una o dos frases para la memoria anual"></textarea>
               </div>
               <div class="field">
-                <label for="evGastos">Nota de gastos</label>
-                <textarea id="evGastos" placeholder="Indica aquí el importe o concepto de los gastos asociados a este evento"></textarea>
+                <label for="evGastos">Nota de gastos (opcional)</label>
+                <textarea id="evGastos" placeholder="Ej. Billete de tren 45€, dietas 2 días, pendiente de justificante..."></textarea>
               </div>
               <div class="field">
                 <label>Fotos del evento</label>
@@ -733,7 +763,7 @@
               <div class="panel-subtitle">Últimas asistencias registradas por el equipo.</div>
               <div class="table-wrap">
                 <table id="tablaRegistrosRecientes">
-                  <thead><tr><th>Empleado</th><th>Departamento</th><th>Evento</th><th>Fecha</th><th>Gastos</th><th></th></tr></thead>
+                  <thead><tr><th>Empleado</th><th>Departamento</th><th>Evento</th><th>Proyecto</th><th>Fecha</th><th></th></tr></thead>
                   <tbody></tbody>
                 </table>
               </div>
@@ -757,14 +787,20 @@
                   <option value="">Todos</option>
                 </select>
               </div>
+              <div class="field">
+                <label for="memProyecto">Proyecto</label>
+                <select id="memProyecto" onchange="renderMemoria()">
+                  <option value="">Todos</option>
+                </select>
+              </div>
               <div class="btn-row" style="margin-top:0;">
-                <button class="btn btn-orange" onclick="exportarExcel()"><i class="fa-solid fa-file-excel"></i> Exportar a CSV</button>
+                <button class="btn btn-orange" onclick="exportarExcel()"><i class="fa-solid fa-file-excel"></i> Exportar a Excel</button>
                 <button class="btn btn-secondary" onclick="exportarPDF()"><i class="fa-solid fa-file-pdf"></i> Exportar a PDF</button>
               </div>
             </div>
             <div class="table-wrap">
               <table id="tablaMemoria">
-                <thead><tr><th>Empleado</th><th>Departamento</th><th>Evento</th><th>Fecha</th><th>Qué presentó</th><th>Nota de gastos</th></tr></thead>
+                <thead><tr><th>Empleado</th><th>Departamento</th><th>Evento</th><th>Proyecto</th><th>Fecha</th><th>Qué presentó</th><th>Gastos</th></tr></thead>
                 <tbody></tbody>
               </table>
             </div>
@@ -822,11 +858,7 @@
                 <label for="proyectoWebActivo">Proyecto</label>
                 <select id="proyectoWebActivo" onchange="renderEstructuraWeb()"></select>
               </div>
-              <div class="field" style="flex:2;">
-                <label for="nuevoProyectoWebNombre">Crear nuevo proyecto</label>
-                <input type="text" id="nuevoProyectoWebNombre" placeholder="Nombre del proyecto / web">
-              </div>
-              <button class="btn" style="margin-bottom:15px;" onclick="crearProyectoWeb()"><i class="fa-solid fa-plus"></i> Crear</button>
+              <button class="btn btn-secondary" style="margin-bottom:15px;" onclick="goTo('config','proyectos')"><i class="fa-solid fa-plus"></i> Registrar nuevo proyecto</button>
             </div>
           </div>
 
@@ -1001,6 +1033,10 @@
                 </div>
               </div>
               <div class="field">
+                <label for="envioProyecto">Proyecto relacionado (opcional)</label>
+                <select id="envioProyecto"><option value="">Ninguno / General</option></select>
+              </div>
+              <div class="field">
                 <label for="envioNotas">Notas (opcional)</label>
                 <textarea id="envioNotas" placeholder="Asunto utilizado, resultados, incidencias..."></textarea>
               </div>
@@ -1012,7 +1048,7 @@
               <div class="panel-subtitle">Emails y campañas que ya se han mandado.</div>
               <div class="table-wrap">
                 <table id="tablaEnviosEmail">
-                  <thead><tr><th>Campaña</th><th>Fecha</th><th>Público</th><th>Notas</th><th></th></tr></thead>
+                  <thead><tr><th>Campaña</th><th>Fecha</th><th>Proyecto</th><th>Público</th><th>Notas</th><th></th></tr></thead>
                   <tbody></tbody>
                 </table>
               </div>
@@ -1026,6 +1062,7 @@
         <div class="tabbar">
           <button class="tab-btn active" data-tab="preview" onclick="switchTab('redes','preview')">Previsualizador de posts</button>
           <button class="tab-btn" data-tab="calendario" onclick="switchTab('redes','calendario')">Calendario editorial</button>
+          <button class="tab-btn" data-tab="lista" onclick="switchTab('redes','lista')">Publicaciones programadas</button>
         </div>
 
         <!-- Previsualizador -->
@@ -1073,9 +1110,23 @@
             </div>
             <div style="margin-bottom:14px;">
               <span class="tag tag-teal">CIDAUT</span>
-              <span class="tag tag-orange" style="margin-left:6px;">Proyecto coordinado</span>
+              <span class="tag tag-orange" style="margin-left:6px;">Proyecto</span>
             </div>
             <div class="cal-grid" id="calGrid"></div>
+          </div>
+        </div>
+
+        <!-- Lista de publicaciones -->
+        <div class="tab-pane" id="redes-lista">
+          <div class="panel">
+            <div class="panel-title">Publicaciones programadas</div>
+            <div class="panel-subtitle">Todas las entradas del calendario editorial, ordenadas por fecha.</div>
+            <div class="table-wrap">
+              <table id="tablaPublicaciones">
+                <thead><tr><th>Fecha</th><th>Contenido</th><th>Etiqueta</th><th>Plataforma</th><th></th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
@@ -1128,12 +1179,22 @@
               </div>
               <div class="field-row">
                 <div class="field">
-                  <label for="insFecha">Fecha de inscripción</label>
-                  <input type="date" id="insFecha">
+                  <label for="insCargo">Cargo</label>
+                  <input type="text" id="insCargo" placeholder="Ej. Directora de Innovación">
                 </div>
                 <div class="field">
-                  <label for="insLanding">Landing de origen</label>
-                  <input type="text" id="insLanding" placeholder="Ej. landing-jornada-viticultura">
+                  <label for="insEmpresa">Empresa</label>
+                  <input type="text" id="insEmpresa" placeholder="Ej. Grupo Antolin">
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="insSector">Sector</label>
+                  <select id="insSector"><option value="">Sin especificar</option></select>
+                </div>
+                <div class="field">
+                  <label for="insFecha">Fecha de inscripción</label>
+                  <input type="date" id="insFecha">
                 </div>
               </div>
               <button class="btn" onclick="añadirInscrito()"><i class="fa-solid fa-plus"></i> Añadir inscrito</button>
@@ -1147,7 +1208,7 @@
               <div class="panel-title">Listado de inscritos</div>
               <div class="table-wrap">
                 <table id="tablaInscritos">
-                  <thead><tr><th>Nombre</th><th>Email</th><th>Fecha</th><th>Landing</th><th></th></tr></thead>
+                  <thead><tr><th>Nombre</th><th>Email</th><th>Empresa</th><th>Cargo</th><th>Sector</th><th>Fecha</th><th></th></tr></thead>
                   <tbody></tbody>
                 </table>
               </div>
@@ -1155,30 +1216,6 @@
           </div>
         </div>
       </section>
-
-      <!-- Modal de edición de tareas -->
-      <div class="modal-overlay" id="taskEditModal" onclick="if(event.target===this) cerrarModalTarea()">
-        <div class="modal-box">
-          <span class="modal-close" onclick="cerrarModalTarea()"><i class="fa-solid fa-xmark"></i></span>
-          <h3>Editar tarea</h3>
-          <input type="hidden" id="editTareaId">
-          <div class="field"><label for="editTareaTitulo">Título</label><input type="text" id="editTareaTitulo"></div>
-          <div class="field"><label for="editTareaDesc">Descripción</label><textarea id="editTareaDesc"></textarea></div>
-          <div class="field-row">
-            <div class="field"><label for="editTareaEstado">Estado</label><select id="editTareaEstado"><option value="pendiente">Pendiente</option><option value="progreso">En progreso</option><option value="revision">En revisión</option><option value="completada">Completada</option></select></div>
-            <div class="field"><label for="editTareaPrioridad">Prioridad</label><select id="editTareaPrioridad"><option value="baja">Baja</option><option value="media">Media</option><option value="alta">Alta</option></select></div>
-          </div>
-          <div class="field-row">
-            <div class="field"><label for="editTareaFechaInicio">Fecha inicio</label><input type="date" id="editTareaFechaInicio"></div>
-            <div class="field"><label for="editTareaFechaFin">Fecha fin</label><input type="date" id="editTareaFechaFin"></div>
-          </div>
-          <div class="field-row">
-            <div class="field"><label for="editTareaResponsable">Responsable</label><input type="text" id="editTareaResponsable"></div>
-            <div class="field"><label for="editTareaEtiqueta">Etiqueta / Proyecto</label><input type="text" id="editTareaEtiqueta"></div>
-          </div>
-          <div class="btn-row"><button class="btn" onclick="guardarEdicionTarea()"><i class="fa-solid fa-floppy-disk"></i> Guardar cambios</button><button class="btn btn-secondary" onclick="cerrarModalTarea()">Cancelar</button></div>
-        </div>
-      </div>
 
       <!-- ============ MODALS ============ -->
       <div class="modal-overlay" id="calModal">
@@ -1195,14 +1232,18 @@
           </div>
           <div class="field">
             <label for="calEtiqueta">Etiqueta</label>
-            <select id="calEtiqueta">
+            <select id="calEtiqueta" onchange="toggleCalProyectoField()">
               <option value="cidaut">CIDAUT</option>
-              <option value="proyecto">Proyecto coordinado</option>
+              <option value="proyecto">Proyecto</option>
             </select>
           </div>
-          <div class="field">
-            <label for="calProyectoNombre">Nombre del proyecto (si aplica)</label>
-            <input type="text" id="calProyectoNombre" placeholder="Ej. RESILIENT">
+          <div class="field" id="calProyectoField" style="display:none;">
+            <label for="calProyectoNombre">Proyecto</label>
+            <select id="calProyectoNombre"></select>
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <input type="text" id="calProyectoNuevo" placeholder="Nombre de un proyecto nuevo">
+              <button type="button" class="btn btn-secondary" onclick="añadirProyectoDesdeCalendario()" style="flex-shrink:0;"><i class="fa-solid fa-plus"></i></button>
+            </div>
           </div>
           <div class="field">
             <label for="calPlataforma">Plataforma</label>
@@ -1216,6 +1257,64 @@
           <div class="btn-row">
             <button class="btn" onclick="guardarEntradaCalendario()"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
             <button class="btn btn-danger" id="calDeleteBtn" style="display:none;" onclick="borrarEntradaCalendario()">Eliminar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal de tareas -->
+      <div class="modal-overlay" id="tareaModal">
+        <div class="modal-box">
+          <span class="modal-close" onclick="cerrarModalTarea()"><i class="fa-solid fa-xmark"></i></span>
+          <h3 id="tareaModalTitulo">Añadir tarea</h3>
+          <div class="field">
+            <label for="tareaTitulo">Título</label>
+            <input type="text" id="tareaTitulo" placeholder="Nombre de la tarea">
+          </div>
+          <div class="field">
+            <label for="tareaDescripcion">Descripción (opcional)</label>
+            <textarea id="tareaDescripcion" placeholder="Detalles de la tarea..."></textarea>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="tareaResponsable">Responsable</label>
+              <input type="text" id="tareaResponsable" placeholder="Nombre">
+            </div>
+            <div class="field">
+              <label for="tareaProyecto">Proyecto (opcional)</label>
+              <select id="tareaProyecto"><option value="">Ninguno</option></select>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="tareaPrioridad">Prioridad</label>
+              <select id="tareaPrioridad">
+                <option value="baja">Baja</option>
+                <option value="media">Media</option>
+                <option value="alta">Alta</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="tareaEstado">Estado</label>
+              <select id="tareaEstado">
+                <option value="pendiente">Pendiente</option>
+                <option value="progreso">En progreso</option>
+                <option value="hecha">Hecha</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="tareaFechaInicio">Fecha de inicio</label>
+              <input type="date" id="tareaFechaInicio">
+            </div>
+            <div class="field">
+              <label for="tareaFechaFin">Fecha de fin</label>
+              <input type="date" id="tareaFechaFin">
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn" onclick="guardarTarea()"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+            <button class="btn btn-danger" id="tareaDeleteBtn" style="display:none;" onclick="borrarTareaModal()">Eliminar</button>
           </div>
         </div>
       </div>
@@ -1243,10 +1342,12 @@ const LS = {
   inscritos: 'cidautHub_inscritos',
   eventosPropios: 'cidautHub_eventosPropios',
   snippets: 'cidautHub_snippets',
+  proyectos: 'cidautHub_proyectos',
   proyectosWeb: 'cidautHub_proyectosWeb',
   estructuraWebs: 'cidautHub_estructuraWebs',
   emailsEnviados: 'cidautHub_emailsEnviados',
-  tareas: 'cidautHub_tareas'
+  tareas: 'cidautHub_tareas',
+  sectores: 'cidautHub_sectores'
 };
 
 function getLS(key){ try{ return JSON.parse(localStorage.getItem(key)) || []; }catch(e){ return []; } }
@@ -1285,13 +1386,14 @@ function resizeImage(file, maxDim, quality, cb){
    NAVEGACIÓN
    --------------------------------------------------------------------- */
 const TOPBAR_TEXT = {
-  tareas:   ['Gestor de tareas', 'Planifica, organiza y da seguimiento a las tareas del equipo de marketing con vistas de lista, kanban, calendario y gantt.'],
+  tareas:   ['Tareas', 'Organiza las tareas del equipo en lista, kanban, calendario o diagrama de Gantt.'],
   inicio:   ['Inicio', 'Resumen general de la actividad de marketing registrada en el hub.'],
   eventos:  ['Eventos y memoria anual', 'Registra la asistencia del personal a congresos y jornadas, y genera el resumen para la memoria anual.'],
   webs:     ['Gestor de webs de proyectos', 'Snippets reutilizables, estructura de apartados de cada web de proyecto y checklist de mantenimiento periódico.'],
   email:    ['Email marketing y CRM', 'Previsualiza el HTML de tus newsletters, genera enlaces UTM y lleva el seguimiento de los envíos realizados.'],
   redes:    ['Redes sociales', 'Simula cómo se verán tus publicaciones y planifica el calendario editorial del equipo.'],
-  propios:  ['Organizador de eventos propios', 'Checklist de logística por fases y control de inscritos para los eventos organizados por CIDAUT.']
+  propios:  ['Organizador de eventos propios', 'Checklist de logística por fases y control de inscritos para los eventos organizados por CIDAUT.'],
+  config:   ['Configuración', 'Gestiona los proyectos y los sectores compartidos en todo el hub.']
 };
 
 function setActiveNav(view){
@@ -1321,6 +1423,477 @@ document.querySelectorAll('.nav-item[data-view]').forEach(n=>{
 document.getElementById('mobileToggle').addEventListener('click', ()=>{
   document.getElementById('sidebar').classList.toggle('open');
 });
+
+/* =======================================================================
+   PROYECTOS — registro central de proyectos
+   ======================================================================= */
+let proyectoEditId = null;
+
+function getProyectos(){ return getLS(LS.proyectos); }
+function getProyectosNombres(){ return getProyectos().map(p=>p.nombre); }
+
+/* Alias de compatibilidad: varios módulos ya usaban getProyectosWeb()
+   para obtener la lista de nombres de proyecto. */
+function getProyectosWeb(){ return getProyectosNombres(); }
+
+function crearProyectoPorNombre(nombre){
+  const proyectos = getProyectos();
+  if (proyectos.some(p=>p.nombre===nombre)) return false;
+  proyectos.push({ id: uid(), nombre, acronimo:'', programa:'', estado:'Activo', descripcion:'' });
+  setLS(LS.proyectos, proyectos);
+  return true;
+}
+
+function migrarProyectosLegacy(){
+  const legacy = getLS(LS.proyectosWeb);
+  if (!legacy.length) return;
+  const proyectos = getProyectos();
+  let cambiado = false;
+  legacy.forEach(nombre=>{
+    if (!proyectos.some(p=>p.nombre===nombre)){
+      proyectos.push({ id: uid(), nombre, acronimo:'', programa:'', estado:'Activo', descripcion:'' });
+      cambiado = true;
+    }
+  });
+  if (cambiado) setLS(LS.proyectos, proyectos);
+}
+
+function refrescarSelectsProyecto(){
+  populateProyectoWebSelect();
+  poblarSelectProyectoRegistro();
+  poblarSelectProyectoEnvio();
+  poblarMemoriaProyectoFilter();
+}
+
+function guardarProyecto(){
+  const nombre = document.getElementById('proyNombre').value.trim();
+  if (!nombre){ showToast('Indica el nombre del proyecto.'); return; }
+  const proyectos = getProyectos();
+  const duplicado = proyectos.some(p=>p.nombre===nombre && p.id!==proyectoEditId);
+  if (duplicado){ showToast('Ya existe un proyecto con ese nombre.'); return; }
+  const data = {
+    nombre,
+    acronimo: document.getElementById('proyAcronimo').value.trim(),
+    programa: document.getElementById('proyPrograma').value,
+    estado: document.getElementById('proyEstado').value,
+    descripcion: document.getElementById('proyDescripcion').value.trim()
+  };
+  if (proyectoEditId){
+    const idx = proyectos.findIndex(p=>p.id===proyectoEditId);
+    if (idx>-1) proyectos[idx] = {...proyectos[idx], ...data};
+  } else {
+    proyectos.unshift({ id: uid(), ...data });
+  }
+  setLS(LS.proyectos, proyectos);
+  cancelarEdicionProyecto();
+  renderProyectos();
+  refrescarSelectsProyecto();
+  showToast('Proyecto guardado.');
+}
+
+function editarProyecto(id){
+  const p = getProyectos().find(x=>x.id===id);
+  if (!p) return;
+  proyectoEditId = id;
+  document.getElementById('proyNombre').value = p.nombre;
+  document.getElementById('proyAcronimo').value = p.acronimo||'';
+  document.getElementById('proyPrograma').value = p.programa||'';
+  document.getElementById('proyEstado').value = p.estado||'Activo';
+  document.getElementById('proyDescripcion').value = p.descripcion||'';
+  document.getElementById('proyectoFormTitulo').textContent = 'Editar proyecto';
+  document.getElementById('cancelarEdicionProyectoBtn').style.display = 'inline-flex';
+  goTo('config','proyectos');
+}
+
+function cancelarEdicionProyecto(){
+  proyectoEditId = null;
+  ['proyNombre','proyAcronimo','proyDescripcion'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('proyPrograma').value = '';
+  document.getElementById('proyEstado').value = 'Activo';
+  document.getElementById('proyectoFormTitulo').textContent = 'Registrar proyecto';
+  document.getElementById('cancelarEdicionProyectoBtn').style.display = 'none';
+}
+
+function eliminarProyecto(id){
+  setLS(LS.proyectos, getProyectos().filter(p=>p.id!==id));
+  if (proyectoEditId===id) cancelarEdicionProyecto();
+  renderProyectos();
+  refrescarSelectsProyecto();
+}
+
+function renderProyectos(){
+  const proyectos = getProyectos();
+  const wrap = document.getElementById('listaProyectos');
+  if (!proyectos.length){
+    wrap.innerHTML = '<p class="muted small">Todavía no hay proyectos registrados. Añade el primero con el formulario.</p>';
+    return;
+  }
+  wrap.innerHTML = proyectos.map(p=>`
+    <div class="panel" style="margin-bottom:12px;">
+      <div class="snippet-head">
+        <div>
+          <h4>${esc(p.nombre)}${p.acronimo?` <span class="muted small">(${esc(p.acronimo)})</span>`:''}</h4>
+          <div style="margin-top:6px;">
+            ${p.programa?`<span class="tag tag-teal">${esc(p.programa)}</span>`:''}
+            <span class="tag ${p.estado==='Finalizado'?'tag-grey':'tag-orange'}" style="margin-left:4px;">${esc(p.estado||'Activo')}</span>
+          </div>
+        </div>
+        <div class="btn-row" style="margin-top:0;">
+          <span class="btn-ghost" onclick="editarProyecto('${p.id}')"><i class="fa-solid fa-pen"></i></span>
+          <span class="btn-ghost" onclick="eliminarProyecto('${p.id}')"><i class="fa-solid fa-trash"></i></span>
+        </div>
+      </div>
+      ${p.descripcion?`<p style="font-size:12.5px;color:var(--ink-700);white-space:pre-wrap;margin-top:10px;">${esc(p.descripcion)}</p>`:''}
+    </div>`).join('');
+}
+
+function poblarSelectProyectoRegistro(){
+  const proyectos = getProyectosNombres();
+  const sel = document.getElementById('evProyecto');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">Ninguno / General</option>' + proyectos.map(p=>`<option>${esc(p)}</option>`).join('');
+  if (proyectos.includes(prev)) sel.value = prev;
+}
+
+function poblarSelectProyectoEnvio(){
+  const proyectos = getProyectosNombres();
+  const sel = document.getElementById('envioProyecto');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">Ninguno / General</option>' + proyectos.map(p=>`<option>${esc(p)}</option>`).join('');
+  if (proyectos.includes(prev)) sel.value = prev;
+}
+
+function poblarMemoriaProyectoFilter(){
+  const proyectos = getProyectosNombres();
+  const sel = document.getElementById('memProyecto');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">Todos</option>' + proyectos.map(p=>`<option>${esc(p)}</option>`).join('');
+  if (proyectos.includes(prev)) sel.value = prev;
+}
+
+/* ---------------------------------------------------------------------
+   CONFIGURACIÓN — sectores
+   --------------------------------------------------------------------- */
+function getSectores(){ return getLS(LS.sectores); }
+
+function guardarSector(){
+  const nombre = document.getElementById('sectorNombre').value.trim();
+  if (!nombre){ showToast('Indica el nombre del sector.'); return; }
+  const sectores = getSectores();
+  if (sectores.some(s=>s.nombre.toLowerCase()===nombre.toLowerCase())){ showToast('Ya existe ese sector.'); return; }
+  sectores.push({ id: uid(), nombre });
+  setLS(LS.sectores, sectores);
+  document.getElementById('sectorNombre').value = '';
+  renderSectores();
+  poblarSelectSectorInscrito();
+  showToast('Sector guardado.');
+}
+
+function eliminarSector(id){
+  setLS(LS.sectores, getSectores().filter(s=>s.id!==id));
+  renderSectores();
+  poblarSelectSectorInscrito();
+}
+
+function renderSectores(){
+  const sectores = getSectores();
+  const wrap = document.getElementById('listaSectores');
+  if (!sectores.length){
+    wrap.innerHTML = '<p class="muted small">Todavía no hay sectores registrados. Añade el primero con el formulario.</p>';
+    return;
+  }
+  wrap.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:8px;">' + sectores.map(s=>`
+    <span class="tag tag-grey" style="display:inline-flex;align-items:center;gap:7px;">
+      ${esc(s.nombre)}
+      <i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="eliminarSector('${s.id}')"></i>
+    </span>`).join('') + '</div>';
+}
+
+function poblarSelectSectorInscrito(){
+  const sel = document.getElementById('insSector');
+  if (!sel) return;
+  const sectores = getSectores();
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">Sin especificar</option>' + sectores.map(s=>`<option>${esc(s.nombre)}</option>`).join('');
+  if (sectores.some(s=>s.nombre===prev)) sel.value = prev;
+}
+
+/* =======================================================================
+   TAREAS — lista, kanban, calendario y diagrama de Gantt
+   ======================================================================= */
+let tareaEditId = null;
+let calTareasDate = new Date();
+
+const PRIORIDAD_LABEL = { alta:'Alta', media:'Media', baja:'Baja' };
+const PRIORIDAD_TAG = { alta:'tag-orange', media:'tag-teal', baja:'tag-grey' };
+const ESTADO_LABEL = { pendiente:'Pendiente', progreso:'En progreso', hecha:'Hecha' };
+
+function getTareas(){ return getLS(LS.tareas); }
+
+function poblarSelectProyectoTarea(){
+  const proyectos = getProyectosWeb();
+  const sel = document.getElementById('tareaProyecto');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">Ninguno</option>' + proyectos.map(p=>`<option value="${esc(p)}">${esc(p)}</option>`).join('');
+  if (proyectos.includes(prev)) sel.value = prev;
+}
+
+function abrirModalTarea(id, estadoInicial){
+  tareaEditId = id || null;
+  poblarSelectProyectoTarea();
+  if (id){
+    const t = getTareas().find(x=>x.id===id);
+    if (!t) return;
+    document.getElementById('tareaModalTitulo').textContent = 'Editar tarea';
+    document.getElementById('tareaTitulo').value = t.titulo;
+    document.getElementById('tareaDescripcion').value = t.descripcion || '';
+    document.getElementById('tareaResponsable').value = t.responsable || '';
+    document.getElementById('tareaProyecto').value = t.proyecto || '';
+    document.getElementById('tareaPrioridad').value = t.prioridad || 'media';
+    document.getElementById('tareaEstado').value = t.estado || 'pendiente';
+    document.getElementById('tareaFechaInicio').value = t.fechaInicio || '';
+    document.getElementById('tareaFechaFin').value = t.fechaFin || '';
+    document.getElementById('tareaDeleteBtn').style.display = 'inline-flex';
+  } else {
+    document.getElementById('tareaModalTitulo').textContent = 'Añadir tarea';
+    document.getElementById('tareaTitulo').value = '';
+    document.getElementById('tareaDescripcion').value = '';
+    document.getElementById('tareaResponsable').value = '';
+    document.getElementById('tareaProyecto').value = '';
+    document.getElementById('tareaPrioridad').value = 'media';
+    document.getElementById('tareaEstado').value = estadoInicial || 'pendiente';
+    document.getElementById('tareaFechaInicio').value = '';
+    document.getElementById('tareaFechaFin').value = '';
+    document.getElementById('tareaDeleteBtn').style.display = 'none';
+  }
+  document.getElementById('tareaModal').classList.add('active');
+}
+
+function abrirModalTareaEnFecha(dateStr){
+  abrirModalTarea(null);
+  document.getElementById('tareaFechaInicio').value = dateStr;
+}
+
+function cerrarModalTarea(){
+  document.getElementById('tareaModal').classList.remove('active');
+}
+
+function guardarTarea(){
+  const titulo = document.getElementById('tareaTitulo').value.trim();
+  if (!titulo){ showToast('Indica al menos el título de la tarea.'); return; }
+  const fechaInicio = document.getElementById('tareaFechaInicio').value;
+  const fechaFin = document.getElementById('tareaFechaFin').value;
+  if (fechaInicio && fechaFin && fechaFin < fechaInicio){
+    showToast('La fecha de fin no puede ser anterior a la fecha de inicio.');
+    return;
+  }
+  const data = {
+    titulo,
+    descripcion: document.getElementById('tareaDescripcion').value.trim(),
+    responsable: document.getElementById('tareaResponsable').value.trim(),
+    proyecto: document.getElementById('tareaProyecto').value,
+    prioridad: document.getElementById('tareaPrioridad').value,
+    estado: document.getElementById('tareaEstado').value,
+    fechaInicio,
+    fechaFin
+  };
+  const tareas = getTareas();
+  if (tareaEditId){
+    const idx = tareas.findIndex(x=>x.id===tareaEditId);
+    if (idx>-1) tareas[idx] = {...tareas[idx], ...data};
+  } else {
+    tareas.unshift({ id: uid(), ...data });
+  }
+  setLS(LS.tareas, tareas);
+  cerrarModalTarea();
+  renderTareas();
+  showToast('Tarea guardada.');
+}
+
+function borrarTareaModal(){
+  if (!tareaEditId) return;
+  setLS(LS.tareas, getTareas().filter(x=>x.id!==tareaEditId));
+  cerrarModalTarea();
+  renderTareas();
+}
+
+function eliminarTarea(id){
+  setLS(LS.tareas, getTareas().filter(x=>x.id!==id));
+  renderTareas();
+}
+
+function toggleTareaHecha(id){
+  const tareas = getTareas();
+  const t = tareas.find(x=>x.id===id);
+  if (!t) return;
+  t.estado = t.estado==='hecha' ? 'pendiente' : 'hecha';
+  setLS(LS.tareas, tareas);
+  renderTareas();
+}
+
+function renderTareas(){
+  renderTareasLista();
+  renderKanban();
+  renderCalendarTareas();
+  renderGanttTareas();
+}
+
+function fmtRangoTarea(t){
+  if (!t.fechaInicio && !t.fechaFin) return '—';
+  if (t.fechaInicio && t.fechaFin && t.fechaInicio !== t.fechaFin) return `${fmtFecha(t.fechaInicio)} – ${fmtFecha(t.fechaFin)}`;
+  return fmtFecha(t.fechaInicio || t.fechaFin);
+}
+
+/* --- Lista --- */
+function renderTareasLista(){
+  const filtroEstado = document.getElementById('tareaFiltroEstado').value;
+  const filtroPrioridad = document.getElementById('tareaFiltroPrioridad').value;
+  const tareas = getTareas().filter(t=>{
+    const okEstado = !filtroEstado || t.estado === filtroEstado;
+    const okPrioridad = !filtroPrioridad || t.prioridad === filtroPrioridad;
+    return okEstado && okPrioridad;
+  });
+  const tbody = document.querySelector('#tablaTareas tbody');
+  if (!tareas.length){
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="8">No hay tareas con este filtro.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = tareas.map(t=>`
+    <tr>
+      <td><input type="checkbox" ${t.estado==='hecha'?'checked':''} onchange="toggleTareaHecha('${t.id}')"></td>
+      <td>${esc(t.titulo)}</td>
+      <td>${esc(t.proyecto)||'—'}</td>
+      <td>${esc(t.responsable)||'—'}</td>
+      <td><span class="tag ${PRIORIDAD_TAG[t.prioridad]||'tag-grey'}">${PRIORIDAD_LABEL[t.prioridad]||t.prioridad}</span></td>
+      <td>${ESTADO_LABEL[t.estado]||t.estado}</td>
+      <td>${fmtRangoTarea(t)}</td>
+      <td>
+        <span class="btn-ghost" onclick="abrirModalTarea('${t.id}')">Editar</span>
+        <span class="btn-ghost" onclick="eliminarTarea('${t.id}')">Eliminar</span>
+      </td>
+    </tr>`).join('');
+}
+
+/* --- Kanban --- */
+let dragTareaId = null;
+
+function onDragStartTarea(ev, id){
+  dragTareaId = id;
+  ev.dataTransfer.effectAllowed = 'move';
+}
+
+function onDropTarea(ev, estado){
+  ev.preventDefault();
+  if (!dragTareaId) return;
+  const tareas = getTareas();
+  const t = tareas.find(x=>x.id===dragTareaId);
+  if (t){ t.estado = estado; setLS(LS.tareas, tareas); }
+  dragTareaId = null;
+  renderTareas();
+}
+
+function kanbanCardHtml(t){
+  return `
+    <div class="kanban-card" draggable="true" ondragstart="onDragStartTarea(event,'${t.id}')" onclick="abrirModalTarea('${t.id}')">
+      <div class="kt-title">${esc(t.titulo)}</div>
+      <div class="kt-meta">
+        <span class="tag ${PRIORIDAD_TAG[t.prioridad]||'tag-grey'}">${PRIORIDAD_LABEL[t.prioridad]||t.prioridad}</span>
+        ${t.proyecto?`<span>${esc(t.proyecto)}</span>`:''}
+        ${t.fechaFin?`<span>· ${fmtFecha(t.fechaFin)}</span>`:''}
+      </div>
+    </div>`;
+}
+
+function renderKanban(){
+  const tareas = getTareas();
+  ['pendiente','progreso','hecha'].forEach(estado=>{
+    const col = document.getElementById('kanban-'+estado);
+    if (!col) return;
+    const items = tareas.filter(t=>t.estado===estado);
+    col.innerHTML = items.length ? items.map(kanbanCardHtml).join('') : '<p class="muted small">Sin tareas.</p>';
+  });
+}
+
+/* --- Calendario de tareas --- */
+function cambiarMesTareas(delta){
+  calTareasDate.setMonth(calTareasDate.getMonth()+delta);
+  renderCalendarTareas();
+}
+
+function renderCalendarTareas(){
+  const grid = document.getElementById('calGridTareas');
+  if (!grid) return;
+  const year = calTareasDate.getFullYear(), month = calTareasDate.getMonth();
+  document.getElementById('calTareasMesLabel').textContent = `${MESES[month].charAt(0).toUpperCase()+MESES[month].slice(1)} ${year}`;
+
+  const firstDay = new Date(year, month, 1);
+  let startOffset = firstDay.getDay()-1; if (startOffset<0) startOffset=6;
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const daysInPrevMonth = new Date(year, month, 0).getDate();
+  const tareas = getTareas();
+  const todayStr = new Date().toISOString().slice(0,10);
+
+  let cells = DOWS.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  for (let i=startOffset; i>0; i--){
+    cells += `<div class="cal-day other-month"><div class="dnum">${daysInPrevMonth-i+1}</div></div>`;
+  }
+  for (let day=1; day<=daysInMonth; day++){
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const dayTareas = tareas.filter(t=>{
+      if (!t.fechaInicio) return false;
+      const fin = t.fechaFin || t.fechaInicio;
+      return t.fechaInicio <= dateStr && fin >= dateStr;
+    });
+    const entryHtml = dayTareas.map(t=>`<div class="entry ${t.estado==='hecha'?'proyecto':''}" onclick="abrirModalTarea('${t.id}')" title="${esc(t.titulo)}">${esc(t.titulo)}</div>`).join('');
+    cells += `<div class="cal-day" style="${dateStr===todayStr?'box-shadow:inset 0 0 0 2px var(--teal-500);':''}">
+      <div class="dnum">${day}</div>
+      <span class="add-btn" onclick="abrirModalTareaEnFecha('${dateStr}')"><i class="fa-solid fa-plus"></i></span>
+      ${entryHtml}
+    </div>`;
+  }
+  const totalCells = startOffset + daysInMonth;
+  const remaining = (7 - (totalCells % 7)) % 7;
+  for (let i=1; i<=remaining; i++){
+    cells += `<div class="cal-day other-month"><div class="dnum">${i}</div></div>`;
+  }
+  grid.innerHTML = cells;
+}
+
+/* --- Gantt --- */
+function renderGanttTareas(){
+  const wrap = document.getElementById('ganttChart');
+  if (!wrap) return;
+  const tareas = getTareas().filter(t=>t.fechaInicio);
+  if (!tareas.length){
+    wrap.innerHTML = '<p class="muted small">Añade tareas con fecha de inicio (y de fin, si la tienes) para verlas aquí en el Gantt.</p>';
+    return;
+  }
+  const minDate = tareas.map(t=>t.fechaInicio).reduce((a,b)=> a<b?a:b);
+  const maxDate = tareas.map(t=>t.fechaFin || t.fechaInicio).reduce((a,b)=> a>b?a:b);
+  const dMin = new Date(minDate);
+  const dMax = new Date(maxDate);
+  const totalDays = Math.max(1, Math.round((dMax - dMin)/86400000) + 1);
+
+  const rows = tareas.map(t=>{
+    const start = new Date(t.fechaInicio);
+    const end = new Date(t.fechaFin || t.fechaInicio);
+    const offsetDays = Math.round((start - dMin)/86400000);
+    const durDays = Math.max(1, Math.round((end - start)/86400000) + 1);
+    const leftPct = (offsetDays/totalDays)*100;
+    const widthPct = Math.max((durDays/totalDays)*100, 2);
+    return `
+      <div class="gantt-row">
+        <div class="gantt-label" title="${esc(t.titulo)}">${esc(t.titulo)}</div>
+        <div class="gantt-track">
+          <div class="gantt-bar prioridad-${esc(t.prioridad||'media')}" style="left:${leftPct}%;width:${widthPct}%;" onclick="abrirModalTarea('${t.id}')" title="${esc(t.titulo)} (${fmtRangoTarea(t)})">${esc(t.titulo)}</div>
+        </div>
+      </div>`;
+  }).join('');
+
+  wrap.innerHTML = `
+    <div class="gantt-axis"><span>${fmtFecha(minDate)}</span><span>${fmtFecha(maxDate)}</span></div>
+    <div class="gantt-wrap">${rows}</div>`;
+}
 
 /* =======================================================================
    MÓDULO 1 — EVENTOS Y MEMORIA ANUAL
@@ -1364,6 +1937,7 @@ function guardarRegistroEvento(){
   let depto = document.getElementById('evDepartamento').value;
   if (depto==='__otro') depto = document.getElementById('evDepartamentoOtro').value.trim() || 'Otro';
   const evento = document.getElementById('evEvento').value.trim();
+  const proyecto = document.getElementById('evProyecto').value;
   const variosDias = document.getElementById('evVariosDias').checked;
   const fecha = document.getElementById('evFecha').value;
   const fechaFin = variosDias ? document.getElementById('evFechaFin').value : '';
@@ -1380,7 +1954,7 @@ function guardarRegistroEvento(){
     return;
   }
   const registros = getLS(LS.eventos);
-  registros.unshift({ id: uid(), nombre, depto, evento, fecha, fechaFin: fechaFin || '', rol, descripcion, gastos, fotos: evFotosData });
+  registros.unshift({ id: uid(), nombre, depto, evento, proyecto, fecha, fechaFin: fechaFin || '', rol, descripcion, gastos, fotos: evFotosData });
   setLS(LS.eventos, registros);
   limpiarFormularioEvento();
   renderRegistrosRecientes();
@@ -1395,6 +1969,7 @@ function limpiarFormularioEvento(){
   document.getElementById('evDepartamento').value='';
   document.getElementById('evDepartamentoOtro').style.display='none';
   document.getElementById('evDepartamentoOtro').value='';
+  document.getElementById('evProyecto').value='';
   document.getElementById('evVariosDias').checked=false;
   document.getElementById('evFechaFinField').style.display='none';
   document.getElementById('evFechaLabel').textContent='Fecha';
@@ -1423,8 +1998,8 @@ function renderRegistrosRecientes(){
       <td>${esc(r.nombre)}</td>
       <td>${esc(r.depto)}</td>
       <td>${esc(r.evento)}</td>
+      <td>${esc(r.proyecto)||'—'}</td>
       <td>${fmtRangoFecha(r)}</td>
-      <td>${esc(r.gastos)||'—'}</td>
       <td><span class="btn-ghost" onclick="eliminarRegistroEvento('${r.id}')">Eliminar</span></td>
     </tr>`).join('');
 }
@@ -1444,20 +2019,28 @@ function populateMemoriaFilters(){
   const prevDepto = selDepto.value;
   selDepto.innerHTML = '<option value="">Todos</option>' + deptos.map(d=>`<option value="${esc(d)}">${esc(d)}</option>`).join('');
   selDepto.value = deptos.includes(prevDepto) ? prevDepto : '';
+
+  poblarMemoriaProyectoFilter();
+}
+
+function filtrarRegistrosMemoria(){
+  const anio = document.getElementById('memAnio').value;
+  const depto = document.getElementById('memDepto').value;
+  const proyecto = document.getElementById('memProyecto').value;
+  return getLS(LS.eventos).filter(r=>{
+    const okAnio = !anio || (r.fecha && r.fecha.slice(0,4)===anio);
+    const okDepto = !depto || r.depto===depto;
+    const okProyecto = !proyecto || r.proyecto===proyecto;
+    return okAnio && okDepto && okProyecto;
+  });
 }
 
 function renderMemoria(){
-  const anio = document.getElementById('memAnio').value;
-  const depto = document.getElementById('memDepto').value;
-  const registros = getLS(LS.eventos).filter(r=>{
-    const okAnio = !anio || (r.fecha && r.fecha.slice(0,4)===anio);
-    const okDepto = !depto || r.depto===depto;
-    return okAnio && okDepto;
-  }).sort((a,b)=> (a.fecha||'').localeCompare(b.fecha||''));
+  const registros = filtrarRegistrosMemoria().sort((a,b)=> (a.fecha||'').localeCompare(b.fecha||''));
 
   const tbody = document.querySelector('#tablaMemoria tbody');
   if (!registros.length){
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="6">No hay registros para este filtro.</td></tr>';
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="7">No hay registros para este filtro.</td></tr>';
     return;
   }
   tbody.innerHTML = registros.map(r=>`
@@ -1465,6 +2048,7 @@ function renderMemoria(){
       <td>${esc(r.nombre)}</td>
       <td>${esc(r.depto)}</td>
       <td>${esc(r.evento)}</td>
+      <td>${esc(r.proyecto)||'—'}</td>
       <td>${fmtRangoFecha(r)}</td>
       <td>${esc(r.rol)}</td>
       <td>${esc(r.gastos)||'—'}</td>
@@ -1474,15 +2058,11 @@ function renderMemoria(){
 function exportarExcel(){
   const anio = document.getElementById('memAnio').value;
   const depto = document.getElementById('memDepto').value;
-  const registros = getLS(LS.eventos).filter(r=>{
-    const okAnio = !anio || (r.fecha && r.fecha.slice(0,4)===anio);
-    const okDepto = !depto || r.depto===depto;
-    return okAnio && okDepto;
-  });
+  const registros = filtrarRegistrosMemoria();
   if (!registros.length){ showToast('No hay registros que exportar con este filtro.'); return; }
 
-  const headers = ['Empleado','Departamento','Evento','Fecha','Qué presentó','Resumen','Nota de gastos'];
-  const rows = registros.map(r=>[r.nombre, r.depto, r.evento, fmtRangoFecha(r), r.rol, r.descripcion, r.gastos]);
+  const headers = ['Empleado','Departamento','Evento','Proyecto','Fecha','Qué presentó','Resumen','Gastos'];
+  const rows = registros.map(r=>[r.nombre, r.depto, r.evento, r.proyecto, fmtRangoFecha(r), r.rol, r.descripcion, r.gastos]);
   const csv = [headers, ...rows].map(row=>
     row.map(cell=>{
       const val = (cell==null?'':String(cell)).replace(/"/g,'""');
@@ -1497,17 +2077,13 @@ function exportarExcel(){
   a.download = `memoria_eventos_${anio||'todos'}${depto?'_'+depto.replace(/\s+/g,'_'):''}.csv`;
   a.click();
   URL.revokeObjectURL(url);
-  showToast('CSV exportado correctamente.');
+  showToast('Excel (CSV) exportado.');
 }
 
 function exportarPDF(){
   const anio = document.getElementById('memAnio').value;
   const depto = document.getElementById('memDepto').value;
-  const registros = getLS(LS.eventos).filter(r=>{
-    const okAnio = !anio || (r.fecha && r.fecha.slice(0,4)===anio);
-    const okDepto = !depto || r.depto===depto;
-    return okAnio && okDepto;
-  });
+  const registros = filtrarRegistrosMemoria();
   if (!registros.length){ showToast('No hay registros que exportar con este filtro.'); return; }
 
   const rows = registros.map(r=>`
@@ -1515,9 +2091,10 @@ function exportarPDF(){
       <td style="padding:6px 8px;border-bottom:1px solid #ddd;">${esc(r.nombre)}</td>
       <td style="padding:6px 8px;border-bottom:1px solid #ddd;">${esc(r.depto)}</td>
       <td style="padding:6px 8px;border-bottom:1px solid #ddd;">${esc(r.evento)}</td>
+      <td style="padding:6px 8px;border-bottom:1px solid #ddd;">${esc(r.proyecto)||'—'}</td>
       <td style="padding:6px 8px;border-bottom:1px solid #ddd;">${fmtRangoFecha(r)}</td>
       <td style="padding:6px 8px;border-bottom:1px solid #ddd;">${esc(r.rol)}</td>
-      <td style="padding:6px 8px;border-bottom:1px solid #ddd;">${esc(r.gastos)||'—'}</td>
+      <td style="padding:6px 8px;border-bottom:1px solid #ddd;">${esc(r.gastos)}</td>
     </tr>`).join('');
 
   document.getElementById('printArea').innerHTML = `
@@ -1529,14 +2106,23 @@ function exportarPDF(){
           <th style="text-align:left;padding:6px 8px;border-bottom:2px solid #333;">Empleado</th>
           <th style="text-align:left;padding:6px 8px;border-bottom:2px solid #333;">Departamento</th>
           <th style="text-align:left;padding:6px 8px;border-bottom:2px solid #333;">Evento</th>
+          <th style="text-align:left;padding:6px 8px;border-bottom:2px solid #333;">Proyecto</th>
           <th style="text-align:left;padding:6px 8px;border-bottom:2px solid #333;">Fecha</th>
           <th style="text-align:left;padding:6px 8px;border-bottom:2px solid #333;">Qué presentó</th>
-          <th style="text-align:left;padding:6px 8px;border-bottom:2px solid #333;">Nota de gastos</th>
+          <th style="text-align:left;padding:6px 8px;border-bottom:2px solid #333;">Gastos</th>
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </div>`;
+
+  const printArea = document.getElementById('printArea');
+  printArea.style.display = 'block';
   window.print();
+  const restaurarPrintArea = () => {
+    printArea.style.display = 'none';
+    window.removeEventListener('afterprint', restaurarPrintArea);
+  };
+  window.addEventListener('afterprint', restaurarPrintArea);
 }
 
 /* =======================================================================
@@ -1598,22 +2184,6 @@ function eliminarSnippet(id){
 }
 
 /* --- Estructura de páginas de proyecto --- */
-function getProyectosWeb(){ return getLS(LS.proyectosWeb); }
-
-function crearProyectoWeb(){
-  const nombre = document.getElementById('nuevoProyectoWebNombre').value.trim();
-  if (!nombre){ showToast('Escribe un nombre para el nuevo proyecto.'); return; }
-  const proyectos = getProyectosWeb();
-  if (proyectos.includes(nombre)){ showToast('Ya existe un proyecto con ese nombre.'); return; }
-  proyectos.push(nombre);
-  setLS(LS.proyectosWeb, proyectos);
-  document.getElementById('nuevoProyectoWebNombre').value = '';
-  populateProyectoWebSelect();
-  document.getElementById('proyectoWebActivo').value = nombre;
-  renderEstructuraWeb();
-  showToast('Proyecto creado.');
-}
-
 function getEstructuraWebObj(){
   const raw = localStorage.getItem(LS.estructuraWebs);
   if (!raw) return {};
@@ -1622,7 +2192,7 @@ function getEstructuraWebObj(){
 
 function populateProyectoWebSelect(){
   const proyectos = getProyectosWeb();
-  const opciones = proyectos.length ? proyectos.map(p=>`<option>${esc(p)}</option>`).join('') : '<option value="">Crea un proyecto primero</option>';
+  const opciones = proyectos.length ? proyectos.map(p=>`<option>${esc(p)}</option>`).join('') : '<option value="">Registra un proyecto en Configuración</option>';
   const sel = document.getElementById('proyectoWebActivo');
   const prev = sel.value;
   sel.innerHTML = opciones;
@@ -1631,7 +2201,7 @@ function populateProyectoWebSelect(){
 
 function añadirApartadoWeb(){
   const proyecto = document.getElementById('proyectoWebActivo').value;
-  if (!proyecto){ showToast('Crea o selecciona primero un proyecto.'); return; }
+  if (!proyecto){ showToast('Registra o selecciona primero un proyecto.'); return; }
   const slug = document.getElementById('apartadoSlug').value.trim();
   const contenido = document.getElementById('apartadoContenido').value.trim();
   if (!slug){ showToast('Indica el slug del apartado.'); return; }
@@ -1658,7 +2228,7 @@ function renderEstructuraWeb(){
   const proyecto = document.getElementById('proyectoWebActivo').value;
   const wrap = document.getElementById('listaApartadosWeb');
   if (!proyecto){
-    wrap.innerHTML = '<p class="muted small">Crea un proyecto arriba para empezar a definir su estructura de apartados.</p>';
+    wrap.innerHTML = '<p class="muted small">Registra un proyecto en Configuración para empezar a definir su estructura de apartados.</p>';
     return;
   }
   const estructura = getEstructuraWebObj();
@@ -1837,12 +2407,14 @@ function añadirEnvioEmail(){
   const nombre = document.getElementById('envioNombre').value.trim();
   const fecha = document.getElementById('envioFecha').value;
   const destinatarios = document.getElementById('envioDestinatarios').value.trim();
+  const proyecto = document.getElementById('envioProyecto').value;
   const notas = document.getElementById('envioNotas').value.trim();
   if (!nombre || !fecha){ showToast('Indica al menos el nombre y la fecha del envío.'); return; }
   const envios = getLS(LS.emailsEnviados);
-  envios.unshift({ id: uid(), nombre, fecha, destinatarios, notas });
+  envios.unshift({ id: uid(), nombre, fecha, destinatarios, proyecto, notas });
   setLS(LS.emailsEnviados, envios);
   ['envioNombre','envioDestinatarios','envioNotas'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('envioProyecto').value='';
   document.getElementById('envioFecha').valueAsDate = new Date();
   renderEnviosEmail();
   showToast('Envío registrado.');
@@ -1857,13 +2429,14 @@ function renderEnviosEmail(){
   const envios = getLS(LS.emailsEnviados).slice().sort((a,b)=> (b.fecha||'').localeCompare(a.fecha||''));
   const tbody = document.querySelector('#tablaEnviosEmail tbody');
   if (!envios.length){
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">Todavía no se ha registrado ningún envío.</td></tr>';
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Todavía no se ha registrado ningún envío.</td></tr>';
     return;
   }
   tbody.innerHTML = envios.map(e=>`
     <tr>
       <td>${esc(e.nombre)}</td>
       <td>${fmtFecha(e.fecha)}</td>
+      <td>${esc(e.proyecto)||'—'}</td>
       <td>${esc(e.destinatarios)||'—'}</td>
       <td>${esc(e.notas)||'—'}</td>
       <td><span class="btn-ghost" onclick="eliminarEnvioEmail('${e.id}')">Eliminar</span></td>
@@ -1983,9 +2556,8 @@ function renderCalendar(){
     const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
     const dayEntries = entries.filter(e=>e.fecha===dateStr);
     const entryHtml = dayEntries.map(e=>{
-      let label = esc(e.titulo);
-      if (e.etiqueta==='proyecto' && e.proyecto) label = esc(e.proyecto) + ': ' + label;
-      return `<div class="entry ${e.etiqueta==='proyecto'?'proyecto':''}" onclick="abrirModalCal('${dateStr}','${e.id}')" title="${esc(e.titulo)}">${label}</div>`;
+      const label = (e.etiqueta==='proyecto' && e.proyecto) ? `${e.proyecto}: ${e.titulo}` : e.titulo;
+      return `<div class="entry ${e.etiqueta==='proyecto'?'proyecto':''}" onclick="abrirModalCal('${dateStr}','${e.id}')" title="${esc(label)}">${esc(label)}</div>`;
     }).join('');
     cells += `<div class="cal-day" style="${dateStr===todayStr?'box-shadow:inset 0 0 0 2px var(--teal-500);':''}">
       <div class="dnum">${day}</div>
@@ -2004,21 +2576,53 @@ function renderCalendar(){
 function abrirModalCal(dateStr, entryId){
   calEditId = entryId || null;
   document.getElementById('calFecha').value = dateStr;
+  document.getElementById('calProyectoNuevo').value = '';
   if (entryId){
     const e = getLS(LS.calendario).find(x=>x.id===entryId);
     document.getElementById('calTitulo').value = e.titulo;
     document.getElementById('calEtiqueta').value = e.etiqueta;
-    document.getElementById('calProyectoNombre').value = e.proyecto || '';
     document.getElementById('calPlataforma').value = e.plataforma;
     document.getElementById('calDeleteBtn').style.display = 'inline-flex';
+    toggleCalProyectoField();
+    if (e.etiqueta === 'proyecto') poblarSelectProyectoCalendario(e.proyecto);
   } else {
     document.getElementById('calTitulo').value = '';
     document.getElementById('calEtiqueta').value = 'cidaut';
-    document.getElementById('calProyectoNombre').value = '';
     document.getElementById('calPlataforma').value = 'LinkedIn';
     document.getElementById('calDeleteBtn').style.display = 'none';
+    toggleCalProyectoField();
   }
   document.getElementById('calModal').classList.add('active');
+}
+
+function toggleCalProyectoField(){
+  const esProyecto = document.getElementById('calEtiqueta').value === 'proyecto';
+  document.getElementById('calProyectoField').style.display = esProyecto ? 'block' : 'none';
+  if (esProyecto) poblarSelectProyectoCalendario();
+}
+
+function poblarSelectProyectoCalendario(seleccionado){
+  const proyectos = getProyectosWeb();
+  const sel = document.getElementById('calProyectoNombre');
+  let opciones = proyectos.map(p=>`<option value="${esc(p)}">${esc(p)}</option>`).join('');
+  if (seleccionado && !proyectos.includes(seleccionado)){
+    opciones += `<option value="${esc(seleccionado)}">${esc(seleccionado)}</option>`;
+  }
+  sel.innerHTML = opciones || '<option value="">Añade un proyecto abajo</option>';
+  if (seleccionado) sel.value = seleccionado;
+}
+
+function añadirProyectoDesdeCalendario(){
+  const nombre = document.getElementById('calProyectoNuevo').value.trim();
+  if (!nombre){ showToast('Escribe el nombre del nuevo proyecto.'); return; }
+  if (!getProyectosNombres().includes(nombre)){
+    crearProyectoPorNombre(nombre);
+    refrescarSelectsProyecto();
+    renderProyectos();
+  }
+  document.getElementById('calProyectoNuevo').value = '';
+  poblarSelectProyectoCalendario(nombre);
+  showToast('Proyecto añadido y seleccionado.');
 }
 
 function cerrarModalCal(){
@@ -2029,15 +2633,18 @@ function guardarEntradaCalendario(){
   const fecha = document.getElementById('calFecha').value;
   const titulo = document.getElementById('calTitulo').value.trim();
   if (!fecha || !titulo){ showToast('Indica fecha y contenido de la publicación.'); return; }
-  const calEtiquetaVal = document.getElementById('calEtiqueta').value;
-  const calProyectoVal = document.getElementById('calProyectoNombre').value.trim();
-  if (calEtiquetaVal === 'proyecto' && !calProyectoVal){ showToast('Indica el nombre del proyecto coordinado.'); return; }
+  const etiqueta = document.getElementById('calEtiqueta').value;
+  let proyecto = '';
+  if (etiqueta === 'proyecto'){
+    proyecto = document.getElementById('calProyectoNombre').value;
+    if (!proyecto){ showToast('Selecciona o añade primero un proyecto.'); return; }
+  }
   const entries = getLS(LS.calendario);
   const data = {
     fecha,
     titulo,
-    etiqueta: document.getElementById('calEtiqueta').value,
-    proyecto: document.getElementById('calProyectoNombre').value.trim(),
+    etiqueta,
+    proyecto,
     plataforma: document.getElementById('calPlataforma').value
   };
   if (calEditId){
@@ -2049,6 +2656,7 @@ function guardarEntradaCalendario(){
   setLS(LS.calendario, entries);
   cerrarModalCal();
   renderCalendar();
+  renderListaPublicaciones();
   showToast('Calendario actualizado.');
 }
 
@@ -2057,6 +2665,30 @@ function borrarEntradaCalendario(){
   setLS(LS.calendario, getLS(LS.calendario).filter(x=>x.id!==calEditId));
   cerrarModalCal();
   renderCalendar();
+  renderListaPublicaciones();
+}
+
+function renderListaPublicaciones(){
+  const tbody = document.querySelector('#tablaPublicaciones tbody');
+  if (!tbody) return;
+  const hoy = new Date().toISOString().slice(0,10);
+  const entries = getLS(LS.calendario).slice().sort((a,b)=> (a.fecha||'').localeCompare(b.fecha||''));
+  if (!entries.length){
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">Todavía no hay publicaciones programadas. Añádelas desde el calendario editorial.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = entries.map(e=>{
+    const etiquetaTxt = e.etiqueta==='proyecto' ? (e.proyecto || 'Proyecto') : 'CIDAUT';
+    const pasada = e.fecha < hoy;
+    return `
+    <tr style="${pasada?'opacity:0.55;':''}">
+      <td>${fmtFecha(e.fecha)}</td>
+      <td>${esc(e.titulo)}</td>
+      <td><span class="tag ${e.etiqueta==='proyecto'?'tag-orange':'tag-teal'}">${esc(etiquetaTxt)}</span></td>
+      <td>${esc(e.plataforma)}</td>
+      <td><span class="btn-ghost" onclick="abrirModalCal('${e.fecha}','${e.id}')">Editar</span></td>
+    </tr>`;
+  }).join('');
 }
 
 /* =======================================================================
@@ -2202,15 +2834,18 @@ function añadirInscrito(){
   if (!evento){ showToast('Crea o selecciona primero un evento.'); return; }
   const nombre = document.getElementById('insNombre').value.trim();
   const email = document.getElementById('insEmail').value.trim();
+  const cargo = document.getElementById('insCargo').value.trim();
+  const empresa = document.getElementById('insEmpresa').value.trim();
+  const sector = document.getElementById('insSector').value;
   const fecha = document.getElementById('insFecha').value;
-  const landing = document.getElementById('insLanding').value.trim();
   if (!nombre || !fecha){ showToast('Indica al menos nombre y fecha de inscripción.'); return; }
 
   const inscritos = getLS(LS.inscritos);
-  inscritos.push({ id:uid(), evento, nombre, email, fecha, landing });
+  inscritos.push({ id:uid(), evento, nombre, email, cargo, empresa, sector, fecha });
   setLS(LS.inscritos, inscritos);
 
-  ['insNombre','insEmail','insFecha','insLanding'].forEach(id=>document.getElementById(id).value='');
+  ['insNombre','insEmail','insCargo','insEmpresa','insFecha'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('insSector').value = '';
   renderInscritos();
   updateDashboardStats();
   showToast('Inscrito añadido.');
@@ -2227,16 +2862,18 @@ function renderInscritos(){
   const todos = getLS(LS.inscritos).filter(i=>i.evento===evento);
   const tbody = document.querySelector('#tablaInscritos tbody');
   if (!evento){
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">Selecciona o crea un evento propio.</td></tr>';
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Selecciona o crea un evento propio.</td></tr>';
   } else if (!todos.length){
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">Todavía no hay inscritos para este evento.</td></tr>';
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Todavía no hay inscritos para este evento.</td></tr>';
   } else {
     tbody.innerHTML = todos.slice().sort((a,b)=>a.fecha.localeCompare(b.fecha)).map(i=>`
       <tr>
         <td>${esc(i.nombre)}</td>
         <td>${esc(i.email)}</td>
+        <td>${esc(i.empresa)||'—'}</td>
+        <td>${esc(i.cargo)||'—'}</td>
+        <td>${esc(i.sector)||'—'}</td>
         <td>${fmtFecha(i.fecha)}</td>
-        <td>${esc(i.landing)||'—'}</td>
         <td><span class="btn-ghost" onclick="eliminarInscrito('${i.id}')">Eliminar</span></td>
       </tr>`).join('');
   }
@@ -2271,296 +2908,9 @@ function renderInscritos(){
   });
 }
 
-/* ======================================================================
-   MÓDULO 0 — GESTOR DE TAREAS
-   ====================================================================== */
-const ESTADOS_TAREA = {
-  pendiente:  { label: 'Pendiente',    color: '#f2762e', bg: '#fdeadd' },
-  progreso:   { label: 'En progreso',  color: '#1bb8a6', bg: '#e3f6f3' },
-  revision:   { label: 'En revisión',  color: '#33454a', bg: '#eef0f0' },
-  completada: { label: 'Completada',   color: '#5b6b6e', bg: '#f6f7f6' }
-};
-const PRIORIDAD_TAREA = {
-  alta:  { label: 'Alta',  cls: 'tag-orange' },
-  media: { label: 'Media', cls: 'tag-teal' },
-  baja:  { label: 'Baja',  cls: 'tag-grey' }
-};
-
-function getTareas(){ return getLS(LS.tareas); }
-
-function guardarTarea(){
-  const titulo = document.getElementById('tareaTitulo').value.trim();
-  const desc = document.getElementById('tareaDesc').value.trim();
-  const estado = document.getElementById('tareaEstado').value;
-  const prioridad = document.getElementById('tareaPrioridad').value;
-  const fechaInicio = document.getElementById('tareaFechaInicio').value;
-  const fechaFin = document.getElementById('tareaFechaFin').value;
-  const responsable = document.getElementById('tareaResponsable').value.trim();
-  const etiqueta = document.getElementById('tareaEtiqueta').value.trim();
-  if (!titulo || !fechaInicio){ showToast('Indica al menos título y fecha de inicio.'); return; }
-  if (fechaFin && fechaFin < fechaInicio){ showToast('La fecha de fin no puede ser anterior a la de inicio.'); return; }
-  const tareas = getTareas();
-  tareas.push({ id: uid(), titulo, desc, estado, prioridad, fechaInicio, fechaFin, responsable, etiqueta });
-  setLS(LS.tareas, tareas);
-  limpiarFormularioTarea();
-  renderTareasLista();
-  renderKanban();
-  renderCalendarioTareas();
-  renderGantt();
-  updateTareasStats();
-  showToast('Tarea guardada.');
-}
-
-function limpiarFormularioTarea(){
-  ['tareaTitulo','tareaDesc','tareaResponsable','tareaEtiqueta','tareaFechaFin'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('tareaEstado').value='pendiente';
-  document.getElementById('tareaPrioridad').value='media';
-  document.getElementById('tareaFechaInicio').valueAsDate = new Date();
-}
-
-function eliminarTarea(id){
-  setLS(LS.tareas, getTareas().filter(t=>t.id!==id));
-  renderTareasLista();
-  renderKanban();
-  renderCalendarioTareas();
-  renderGantt();
-  updateTareasStats();
-}
-
-function cambiarEstadoTarea(id, nuevoEstado){
-  const tareas = getTareas();
-  const t = tareas.find(x=>x.id===id);
-  if (t){ t.estado = nuevoEstado; setLS(LS.tareas, tareas); }
-  renderTareasLista();
-  renderKanban();
-  renderCalendarioTareas();
-  renderGantt();
-  updateTareasStats();
-}
-
-function filtrarTareasLista(){
-  renderTareasLista();
-}
-
-function renderTareasLista(){
-  const q = document.getElementById('tareaSearch').value.trim().toLowerCase();
-  const fEstado = document.getElementById('filtroTareaEstado').value;
-  const fPrioridad = document.getElementById('filtroTareaPrioridad').value;
-  const fEtiqueta = document.getElementById('filtroTareaEtiqueta').value.trim().toLowerCase();
-  let tareas = getTareas().filter(t=>{
-    const okQ = !q || t.titulo.toLowerCase().includes(q) || (t.desc||'').toLowerCase().includes(q);
-    const okE = !fEstado || t.estado===fEstado;
-    const okP = !fPrioridad || t.prioridad===fPrioridad;
-    const okEt = !fEtiqueta || (t.etiqueta||'').toLowerCase().includes(fEtiqueta);
-    return okQ && okE && okP && okEt;
-  }).sort((a,b)=> (a.fechaInicio||'').localeCompare(b.fechaInicio||''));
-
-  const tbody = document.querySelector('#tablaTareas tbody');
-  if (!tareas.length){
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="8">No hay tareas que coincidan con los filtros.</td></tr>';
-    return;
-  }
-  tbody.innerHTML = tareas.map(t=>`
-    <tr>
-      <td><strong>${esc(t.titulo)}</strong>${t.desc?`<div class="small muted">${esc(t.desc)}</div>`:''}</td>
-      <td><span class="tag ${ESTADOS_TAREA[t.estado].cls||'tag-grey'}" style="background:${ESTADOS_TAREA[t.estado].bg};color:${ESTADOS_TAREA[t.estado].color};">${ESTADOS_TAREA[t.estado].label}</span></td>
-      <td><span class="tag ${PRIORIDAD_TAREA[t.prioridad].cls}">${PRIORIDAD_TAREA[t.prioridad].label}</span></td>
-      <td>${fmtFecha(t.fechaInicio)}</td>
-      <td>${fmtFecha(t.fechaFin)}</td>
-      <td>${esc(t.responsable)||'—'}</td>
-      <td>${esc(t.etiqueta)||'—'}</td>
-      <td>
-        <span class="btn-ghost" onclick="cambiarEstadoTarea('${t.id}','${t.estado==='completada'?'pendiente':'completada'}')">${t.estado==='completada'?'Reabrir':'Completar'}</span>
-        <span class="btn-ghost" onclick="eliminarTarea('${t.id}')">Eliminar</span>
-      </td>
-    </tr>`).join('');
-}
-
-function abrirModalTarea(id){
-  const tarea = getTareas().find(t=>t.id===id);
-  if (!tarea) return;
-  const overlay = document.getElementById('taskEditModal');
-  if (!overlay) return;
-  document.getElementById('editTareaId').value = tarea.id;
-  document.getElementById('editTareaTitulo').value = tarea.titulo || '';
-  document.getElementById('editTareaDesc').value = tarea.desc || '';
-  document.getElementById('editTareaEstado').value = tarea.estado || 'pendiente';
-  document.getElementById('editTareaPrioridad').value = tarea.prioridad || 'media';
-  document.getElementById('editTareaFechaInicio').value = tarea.fechaInicio || '';
-  document.getElementById('editTareaFechaFin').value = tarea.fechaFin || '';
-  document.getElementById('editTareaResponsable').value = tarea.responsable || '';
-  document.getElementById('editTareaEtiqueta').value = tarea.etiqueta || '';
-  overlay.classList.add('active');
-}
-
-function cerrarModalTarea(){
-  const overlay = document.getElementById('taskEditModal');
-  if (overlay) overlay.classList.remove('active');
-}
-
-function guardarEdicionTarea(){
-  const id = document.getElementById('editTareaId').value;
-  const titulo = document.getElementById('editTareaTitulo').value.trim();
-  const desc = document.getElementById('editTareaDesc').value.trim();
-  const estado = document.getElementById('editTareaEstado').value;
-  const prioridad = document.getElementById('editTareaPrioridad').value;
-  const fechaInicio = document.getElementById('editTareaFechaInicio').value;
-  const fechaFin = document.getElementById('editTareaFechaFin').value;
-  const responsable = document.getElementById('editTareaResponsable').value.trim();
-  const etiqueta = document.getElementById('editTareaEtiqueta').value.trim();
-  if (!titulo || !fechaInicio){ showToast('Indica al menos título y fecha de inicio.'); return; }
-  if (fechaFin && fechaFin < fechaInicio){ showToast('La fecha de fin no puede ser anterior a la de inicio.'); return; }
-  const tareas = getTareas();
-  const tarea = tareas.find(t=>t.id===id);
-  if (!tarea) return;
-  Object.assign(tarea,{titulo,desc,estado,prioridad,fechaInicio,fechaFin,responsable,etiqueta});
-  setLS(LS.tareas,tareas);
-  cerrarModalTarea();
-  renderTareasLista(); renderKanban(); renderCalendarioTareas(); renderGantt(); updateTareasStats();
-  showToast('Tarea actualizada.');
-}
-
-function renderKanban(){
-  const board = document.getElementById('kanbanBoard');
-  if (!board) return;
-  const tareas = getTareas();
-  board.innerHTML = Object.keys(ESTADOS_TAREA).map(est=>{
-    const info = ESTADOS_TAREA[est];
-    const cols = tareas.filter(t=>t.estado===est);
-    return `
-      <div style="background:#f6f7f6;border:1px solid var(--line);border-radius:8px;padding:14px;">
-        <div style="font-weight:700;font-size:13px;margin-bottom:10px;display:flex;align-items:center;gap:8px;">
-          <span style="width:8px;height:8px;border-radius:50%;background:${info.color};"></span>
-          ${info.label} <span style="margin-left:auto;font-size:11px;color:var(--ink-500);">${cols.length}</span>
-        </div>
-        ${cols.map(t=>`
-          <div style="background:#fff;border:1px solid var(--line);border-radius:6px;padding:12px;margin-bottom:10px;cursor:pointer;" onclick="abrirModalTarea('${t.id}')">
-            <div style="font-weight:600;font-size:12.5px;margin-bottom:4px;">${esc(t.titulo)}</div>
-            <div style="font-size:11px;color:var(--ink-500);margin-bottom:6px;">${fmtFecha(t.fechaInicio)}${t.fechaFin?' → '+fmtFecha(t.fechaFin):''}</div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;">
-              <span class="tag ${PRIORIDAD_TAREA[t.prioridad].cls}" style="font-size:10px;">${PRIORIDAD_TAREA[t.prioridad].label}</span>
-              ${t.etiqueta?`<span class="tag tag-grey" style="font-size:10px;">${esc(t.etiqueta)}</span>`:''}
-            </div>
-          </div>
-        `).join('')}
-      </div>`;
-  }).join('');
-}
-
-let calDateTareas = new Date();
-function cambiarMesTareas(delta){
-  calDateTareas.setMonth(calDateTareas.getMonth()+delta);
-  renderCalendarioTareas();
-}
-
-function renderCalendarioTareas(){
-  const year = calDateTareas.getFullYear(), month = calDateTareas.getMonth();
-  document.getElementById('calMesLabelTareas').textContent = `${MESES[month].charAt(0).toUpperCase()+MESES[month].slice(1)} ${year}`;
-  const firstDay = new Date(year, month, 1);
-  let startOffset = firstDay.getDay()-1; if (startOffset<0) startOffset=6;
-  const daysInMonth = new Date(year, month+1, 0).getDate();
-  const daysInPrevMonth = new Date(year, month, 0).getDate();
-  const tareas = getTareas();
-  const todayStr = new Date().toISOString().slice(0,10);
-
-  let cells = DOWS.map(d=>`<div class="cal-dow">${d}</div>`).join('');
-  for (let i=startOffset; i>0; i--){
-    cells += `<div class="cal-day other-month"><div class="dnum">${daysInPrevMonth-i+1}</div></div>`;
-  }
-  for (let day=1; day<=daysInMonth; day++){
-    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-    const dayTareas = tareas.filter(t=> t.fechaInicio===dateStr || t.fechaFin===dateStr);
-    const tareasHtml = dayTareas.map(t=>{
-      const isStart = t.fechaInicio===dateStr;
-      const isEnd = t.fechaFin===dateStr;
-      let cls = 'entry';
-      if (isStart && !isEnd) cls += '';
-      else if (isEnd) cls += ' proyecto';
-      return `<div class="${cls}" title="${esc(t.titulo)}">${esc(t.titulo)}</div>`;
-    }).join('');
-    cells += `<div class="cal-day" style="${dateStr===todayStr?'box-shadow:inset 0 0 0 2px var(--teal-500);':''}">
-      <div class="dnum">${day}</div>
-      ${tareasHtml}
-    </div>`;
-  }
-  const totalCells = startOffset + daysInMonth;
-  const remaining = (7 - (totalCells % 7)) % 7;
-  for (let i=1; i<=remaining; i++){
-    cells += `<div class="cal-day other-month"><div class="dnum">${i}</div></div>`;
-  }
-  document.getElementById('calGridTareas').innerHTML = cells;
-}
-
-function renderGantt(){
-  const wrap = document.getElementById('ganttWrap');
-  if (!wrap) return;
-  const tareas = getTareas().filter(t=>t.fechaInicio).sort((a,b)=>a.fechaInicio.localeCompare(b.fechaInicio));
-  if (!tareas.length){ wrap.innerHTML = '<p class="muted">No hay tareas con fechas para mostrar.</p>'; return; }
-
-  const fechas = tareas.map(t=>t.fechaInicio);
-  if (tareas.some(t=>t.fechaFin)) fechas.push(...tareas.filter(t=>t.fechaFin).map(t=>t.fechaFin));
-  fechas.sort();
-  const minDate = new Date(fechas[0]);
-  const maxDate = new Date(fechas[fechas.length-1]);
-  maxDate.setDate(maxDate.getDate()+7);
-  const totalDays = Math.max(1, Math.ceil((maxDate - minDate)/(1000*60*60*24)));
-  const dayWidth = Math.max(24, Math.min(48, Math.floor(900/totalDays)));
-
-  let htmlG = `<div style="display:flex;gap:0;border:1px solid var(--line);border-radius:6px;overflow:hidden;min-width:${totalDays*dayWidth + 200}px;">`;
-  htmlG += `<div style="width:200px;flex-shrink:0;background:#fafbfb;border-right:1px solid var(--line);">`;
-  htmlG += `<div style="padding:8px 10px;font-size:11px;font-weight:600;color:var(--ink-500);border-bottom:1px solid var(--line-strong);height:36px;">Tarea</div>`;
-  tareas.forEach(t=>{
-    htmlG += `<div style="padding:8px 10px;font-size:12px;border-bottom:1px solid var(--line);height:34px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"><strong>${esc(t.titulo)}</strong></div>`;
-  });
-  htmlG += `</div>`;
-
-  htmlG += `<div style="flex:1;position:relative;overflow-x:auto;">`;
-  htmlG += `<div style="display:flex;border-bottom:1px solid var(--line-strong);height:36px;background:#fafbfb;">`;
-  for (let d=0; d<=totalDays; d++){
-    const cur = new Date(minDate); cur.setDate(cur.getDate()+d);
-    const label = `${String(cur.getDate()).padStart(2,'0')}/${String(cur.getMonth()+1).padStart(2,'0')}`;
-    htmlG += `<div style="width:${dayWidth}px;flex-shrink:0;text-align:center;font-size:10px;color:var(--ink-500);padding-top:10px;border-right:1px solid var(--line);">${label}</div>`;
-  }
-  htmlG += `</div>`;
-
-  tareas.forEach(t=>{
-    const start = new Date(t.fechaInicio);
-    const end = t.fechaFin ? new Date(t.fechaFin) : new Date(start);
-    if (!t.fechaFin) end.setDate(end.getDate()+1);
-    const offsetDays = Math.max(0, Math.ceil((start - minDate)/(1000*60*60*24)));
-    const durationDays = Math.max(1, Math.ceil((end - start)/(1000*60*60*24)) + 1);
-    const color = ESTADOS_TAREA[t.estado].color;
-    htmlG += `<div style="position:relative;height:34px;border-bottom:1px solid var(--line);">`;
-    htmlG += `<div style="position:absolute;left:${offsetDays*dayWidth}px;width:${durationDays*dayWidth - 4}px;top:6px;height:22px;background:${color};border-radius:4px;opacity:0.85;font-size:10px;color:#fff;display:flex;align-items:center;padding:0 8px;white-space:nowrap;overflow:hidden;">${esc(t.titulo)}</div>`;
-    htmlG += `</div>`;
-  });
-  htmlG += `</div></div>`;
-  wrap.innerHTML = htmlG;
-}
-
-function updateTareasStats(){
-  const tareas = getTareas();
-  document.getElementById('statTareasPendientes').textContent = tareas.filter(t=>t.estado==='pendiente').length;
-  document.getElementById('statTareasProgreso').textContent = tareas.filter(t=>t.estado==='progreso').length;
-  document.getElementById('statTareasCompletadas').textContent = tareas.filter(t=>t.estado==='completada').length;
-
-  const ctx = document.getElementById('chartTareasPrioridad');
-  if (!ctx) return;
-  if (window._chartTareas) window._chartTareas.destroy();
-  const counts = { alta: tareas.filter(t=>t.prioridad==='alta').length, media: tareas.filter(t=>t.prioridad==='media').length, baja: tareas.filter(t=>t.prioridad==='baja').length };
-  window._chartTareas = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: ['Alta','Media','Baja'],
-      datasets: [{ label:'Tareas', data:[counts.alta, counts.media, counts.baja], backgroundColor:['#f2762e','#1bb8a6','#8fa0a2'], borderRadius:4 }]
-    },
-    options: { responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true,ticks:{precision:0}}} }
-  });
-}
-
-/* ======================================================================
+/* =======================================================================
    DASHBOARD (INICIO)
-   ====================================================================== */
+   ======================================================================= */
 function updateDashboardStats(){
   const anioActual = String(new Date().getFullYear());
   const eventosEsteAnio = getLS(LS.eventos).filter(r=> r.fecha && r.fecha.slice(0,4)===anioActual).length;
@@ -2576,11 +2926,21 @@ function updateDashboardStats(){
    INICIALIZACIÓN
    ======================================================================= */
 function init(){
+  migrarProyectosLegacy();
+
   document.getElementById('evFecha').valueAsDate = new Date();
   document.getElementById('insFecha').valueAsDate = new Date();
   document.getElementById('calFecha').valueAsDate = new Date();
   document.getElementById('envioFecha').valueAsDate = new Date();
-  document.getElementById('tareaFechaInicio').valueAsDate = new Date();
+
+  renderProyectos();
+  poblarSelectProyectoRegistro();
+  poblarSelectProyectoEnvio();
+
+  renderSectores();
+  poblarSelectSectorInscrito();
+
+  renderTareas();
 
   renderRegistrosRecientes();
   populateMemoriaFilters();
@@ -2598,16 +2958,11 @@ function init(){
 
   renderPostPreview();
   renderCalendar();
+  renderListaPublicaciones();
 
   populateEventoSelects();
   renderLogistica();
   renderInscritos();
-
-  renderTareasLista();
-  renderKanban();
-  renderCalendarioTareas();
-  renderGantt();
-  updateTareasStats();
 
   updateDashboardStats();
 }
