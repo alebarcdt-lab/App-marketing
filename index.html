@@ -487,6 +487,8 @@
   .filter-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:18px;}
   .filter-row .field{margin-bottom:0;min-width:160px;}
 
+  #printArea{position:fixed;top:0;left:-9999px;width:800px;}
+
   @media print{
     body *{visibility:hidden;}
     #printArea, #printArea *{visibility:visible;}
@@ -519,6 +521,7 @@
       <div class="nav-item" data-view="tareas"><i class="fa-solid fa-list-check"></i> Tareas</div>
       <div class="nav-item" data-view="eventos"><i class="fa-solid fa-calendar-check"></i> Eventos y memoria anual</div>
       <div class="nav-item" data-view="webs"><i class="fa-solid fa-code"></i> Gestor de webs de proyectos</div>
+      <div class="nav-item" data-view="seo"><i class="fa-solid fa-magnifying-glass-chart"></i> SEO</div>
       <div class="nav-item" data-view="email"><i class="fa-solid fa-envelope-open-text"></i> Email marketing y CRM</div>
       <div class="nav-item" data-view="redes"><i class="fa-solid fa-share-nodes"></i> Redes sociales</div>
       <div class="nav-item" data-view="propios"><i class="fa-solid fa-clipboard-list"></i> Organizador de eventos propios</div>
@@ -868,6 +871,7 @@
             <button class="quick-action" onclick="goTo('eventos','registro')"><i class="fa-solid fa-plus"></i><span>Registrar asistencia a un evento</span></button>
             <button class="quick-action" onclick="goTo('webs','snippets')"><i class="fa-solid fa-code"></i><span>Copiar un snippet de web</span></button>
             <button class="quick-action" onclick="goTo('webs','estructura')"><i class="fa-solid fa-sitemap"></i><span>Definir estructura de una web</span></button>
+            <button class="quick-action" onclick="goTo('seo','keywords')"><i class="fa-solid fa-magnifying-glass-chart"></i><span>Añadir una keyword SEO</span></button>
             <button class="quick-action" onclick="goTo('email','utm')"><i class="fa-solid fa-link"></i><span>Generar un enlace UTM</span></button>
             <button class="quick-action" onclick="goTo('email','seguimiento')"><i class="fa-solid fa-paper-plane"></i><span>Registrar un envío de email</span></button>
           </div>
@@ -1124,6 +1128,270 @@
               <div class="panel-title">Checklist de mantenimiento</div>
               <div class="panel-subtitle">Marca cada tarea cuando quede verificada.</div>
               <div id="listaMantenimiento"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ MÓDULO SEO ============ -->
+      <section class="module-view" id="view-seo">
+        <div class="tabbar">
+          <button class="tab-btn active" data-tab="keywords" onclick="switchTab('seo','keywords')">Keywords</button>
+          <button class="tab-btn" data-tab="paginas" onclick="switchTab('seo','paginas')">Páginas</button>
+          <button class="tab-btn" data-tab="auditoria" onclick="switchTab('seo','auditoria')">Auditoría</button>
+          <button class="tab-btn" data-tab="contenidos" onclick="switchTab('seo','contenidos')">Contenidos</button>
+        </div>
+
+        <!-- Keywords -->
+        <div class="tab-pane active" id="seo-keywords">
+          <div class="grid-2">
+            <div class="panel">
+              <div class="panel-title" id="kwFormTitulo">Añadir keyword</div>
+              <div class="panel-subtitle">Seguimiento de posicionamiento por palabra clave, para cada web o proyecto.</div>
+              <div class="field">
+                <label for="kwProyecto">Web / proyecto</label>
+                <select id="kwProyecto"></select>
+              </div>
+              <div class="field">
+                <label for="kwKeyword">Keyword</label>
+                <input type="text" id="kwKeyword" placeholder="Ej. cubiertas vegetales viñedo">
+              </div>
+              <div class="field">
+                <label for="kwUrl">URL</label>
+                <input type="text" id="kwUrl" placeholder="Ej. proyectoresilient.es/soluciones">
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="kwPosicion">Posición actual</label>
+                  <input type="number" id="kwPosicion" min="1" placeholder="Ej. 14">
+                </div>
+                <div class="field">
+                  <label for="kwObjetivo">Objetivo</label>
+                  <input type="text" id="kwObjetivo" placeholder="Ej. Top 10">
+                </div>
+              </div>
+              <div class="btn-row">
+                <button class="btn" onclick="guardarKeyword()"><i class="fa-solid fa-floppy-disk"></i> Guardar keyword</button>
+                <button class="btn btn-secondary" id="cancelarEdicionKwBtn" style="display:none;" onclick="cancelarEdicionKeyword()">Cancelar edición</button>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-title">Keywords en seguimiento</div>
+              <div class="panel-subtitle">Filtra por web o proyecto.</div>
+              <div class="field">
+                <label for="kwFiltroProyecto">Web / proyecto</label>
+                <select id="kwFiltroProyecto" onchange="renderKeywords()"><option value="">Todas</option></select>
+              </div>
+              <div class="table-wrap">
+                <table id="tablaKeywords">
+                  <thead><tr><th>Keyword</th><th>Web / proyecto</th><th>Posición</th><th>Objetivo</th><th></th></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Páginas -->
+        <div class="tab-pane" id="seo-paginas">
+          <div class="grid-2">
+            <div class="panel">
+              <div class="panel-title" id="paginaFormTitulo">Ficha SEO de página</div>
+              <div class="panel-subtitle">Metadatos on-page de cada URL, su keyword objetivo y su estado de optimización.</div>
+              <div class="field">
+                <label for="paginaProyecto">Web / proyecto</label>
+                <select id="paginaProyecto"></select>
+              </div>
+              <div class="field">
+                <label for="paginaUrl">URL</label>
+                <input type="text" id="paginaUrl" placeholder="Ej. proyectoresilient.es/soluciones">
+              </div>
+              <div class="field">
+                <label for="paginaTitle">Title</label>
+                <input type="text" id="paginaTitle" maxlength="70" oninput="actualizarContadorSEO('paginaTitle','paginaTitleContador',60)" placeholder="Título SEO de la página">
+                <div class="muted small" id="paginaTitleContador" style="margin-top:4px;">0 / 60</div>
+              </div>
+              <div class="field">
+                <label for="paginaMeta">Meta description</label>
+                <textarea id="paginaMeta" maxlength="200" oninput="actualizarContadorSEO('paginaMeta','paginaMetaContador',155)" placeholder="Descripción SEO de la página"></textarea>
+                <div class="muted small" id="paginaMetaContador" style="margin-top:4px;">0 / 155</div>
+              </div>
+              <div class="field">
+                <label for="paginaH1">H1</label>
+                <input type="text" id="paginaH1" placeholder="Encabezado principal de la página">
+              </div>
+              <div class="field">
+                <label for="paginaKeyword">Keyword objetivo</label>
+                <input type="text" id="paginaKeyword" placeholder="Ej. cubiertas vegetales viñedo">
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="paginaEnlaces">Enlaces internos</label>
+                  <input type="text" id="paginaEnlaces" placeholder="Ej. 3 enlaces desde blog y home">
+                </div>
+                <div class="field">
+                  <label for="paginaAlt">Alt imágenes</label>
+                  <input type="text" id="paginaAlt" placeholder="Ej. Revisados y completos">
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="paginaRevision">Última revisión</label>
+                  <input type="date" id="paginaRevision">
+                </div>
+                <div class="field">
+                  <label for="paginaEstado">Estado SEO</label>
+                  <select id="paginaEstado">
+                    <option value="optima">Óptima</option>
+                    <option value="mejorable">Mejorable</option>
+                    <option value="pendiente">Pendiente de optimizar</option>
+                  </select>
+                </div>
+              </div>
+              <div class="btn-row">
+                <button class="btn" onclick="guardarPaginaSEO()"><i class="fa-solid fa-floppy-disk"></i> Guardar ficha</button>
+                <button class="btn btn-secondary" id="cancelarEdicionPaginaBtn" style="display:none;" onclick="cancelarEdicionPaginaSEO()">Cancelar edición</button>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-title">Páginas con ficha SEO</div>
+              <div class="panel-subtitle">Filtra por web/proyecto o por estado.</div>
+              <div class="filter-row">
+                <div class="field">
+                  <label for="paginaFiltroProyecto">Web / proyecto</label>
+                  <select id="paginaFiltroProyecto" onchange="renderPaginasSEO()"><option value="">Todas</option></select>
+                </div>
+                <div class="field">
+                  <label for="paginaFiltroEstado">Estado</label>
+                  <select id="paginaFiltroEstado" onchange="renderPaginasSEO()">
+                    <option value="">Todos</option>
+                    <option value="optima">Óptima</option>
+                    <option value="mejorable">Mejorable</option>
+                    <option value="pendiente">Pendiente de optimizar</option>
+                  </select>
+                </div>
+              </div>
+              <div id="listaPaginasSEO"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Auditoría -->
+        <div class="tab-pane" id="seo-auditoria">
+          <div class="grid-2">
+            <div class="panel">
+              <div class="panel-title">Añadir tarea de auditoría</div>
+              <div class="field">
+                <label for="auditProyecto">Web / proyecto</label>
+                <select id="auditProyecto"></select>
+              </div>
+              <div class="field">
+                <label for="auditTarea">Tarea</label>
+                <input type="text" id="auditTarea" placeholder="Ej. Comprobar datos estructurados (schema.org)">
+              </div>
+              <div class="field">
+                <label for="auditPeriodo">Periodicidad</label>
+                <select id="auditPeriodo">
+                  <option>Mensual</option>
+                  <option>Trimestral</option>
+                  <option>Semestral</option>
+                  <option>Anual</option>
+                </select>
+              </div>
+              <button class="btn" onclick="añadirTareaAuditoria()"><i class="fa-solid fa-plus"></i> Añadir tarea</button>
+
+              <div class="divider"></div>
+              <div class="panel-title" style="font-size:13px;">Sugerencias habituales</div>
+              <div class="panel-subtitle">Añade cualquiera de estas con un clic.</div>
+              <div class="btn-row" id="sugerenciasAuditoriaSEO"></div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-title">Checklist de auditoría SEO</div>
+              <div class="panel-subtitle">Marca cada tarea cuando quede revisada.</div>
+              <div class="field">
+                <label for="auditFiltroProyecto">Filtrar por web / proyecto</label>
+                <select id="auditFiltroProyecto" onchange="renderAuditoriaSEO()"><option value="">Todas</option></select>
+              </div>
+              <div id="listaAuditoriaSEO"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contenidos -->
+        <div class="tab-pane" id="seo-contenidos">
+          <div class="grid-2">
+            <div class="panel">
+              <div class="panel-title" id="contenidoFormTitulo">Añadir contenido</div>
+              <div class="panel-subtitle">Planifica artículos y páginas pensados para posicionar una keyword.</div>
+              <div class="field">
+                <label for="contProyecto">Web / proyecto</label>
+                <select id="contProyecto"></select>
+              </div>
+              <div class="field">
+                <label for="contTitulo">Título del contenido</label>
+                <input type="text" id="contTitulo" placeholder="Ej. Guía de cubiertas vegetales en viñedo">
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="contTipo">Tipo</label>
+                  <select id="contTipo">
+                    <option>Artículo de blog</option>
+                    <option>Landing page</option>
+                    <option>Página de producto o servicio</option>
+                    <option>Otro</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="contKeyword">Keyword objetivo</label>
+                  <input type="text" id="contKeyword" placeholder="Ej. cubiertas vegetales viñedo">
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="contEstado">Estado</label>
+                  <select id="contEstado">
+                    <option value="idea">Idea</option>
+                    <option value="redaccion">En redacción</option>
+                    <option value="publicado">Publicado</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="contFecha">Fecha de publicación (opcional)</label>
+                  <input type="date" id="contFecha">
+                </div>
+              </div>
+              <div class="field">
+                <label for="contUrl">URL (una vez publicado, opcional)</label>
+                <input type="text" id="contUrl" placeholder="Ej. proyectoresilient.es/blog/...">
+              </div>
+              <div class="btn-row">
+                <button class="btn" onclick="guardarContenidoSEO()"><i class="fa-solid fa-floppy-disk"></i> Guardar contenido</button>
+                <button class="btn btn-secondary" id="cancelarEdicionContenidoBtn" style="display:none;" onclick="cancelarEdicionContenidoSEO()">Cancelar edición</button>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-title">Contenidos planificados</div>
+              <div class="panel-subtitle">Filtra por web/proyecto o por estado.</div>
+              <div class="filter-row">
+                <div class="field">
+                  <label for="contFiltroProyecto">Web / proyecto</label>
+                  <select id="contFiltroProyecto" onchange="renderContenidosSEO()"><option value="">Todas</option></select>
+                </div>
+                <div class="field">
+                  <label for="contFiltroEstado">Estado</label>
+                  <select id="contFiltroEstado" onchange="renderContenidosSEO()">
+                    <option value="">Todos</option>
+                    <option value="idea">Idea</option>
+                    <option value="redaccion">En redacción</option>
+                    <option value="publicado">Publicado</option>
+                  </select>
+                </div>
+              </div>
+              <div id="listaContenidosSEO"></div>
             </div>
           </div>
         </div>
@@ -1577,7 +1845,7 @@
       </div>
 
       <!-- Hidden print area for PDF export -->
-      <div id="printArea" style="display:none;"></div>
+      <div id="printArea"></div>
     </div>
   </div>
 </div>
@@ -1606,7 +1874,11 @@ const LS = {
   tareas: 'cidautHub_tareas',
   sectores: 'cidautHub_sectores',
   ideas: 'cidautHub_ideas',
-  enlaces: 'cidautHub_enlaces'
+  enlaces: 'cidautHub_enlaces',
+  seoKeywords: 'cidautHub_seoKeywords',
+  seoPaginas: 'cidautHub_seoPaginas',
+  seoAuditoria: 'cidautHub_seoAuditoria',
+  seoContenidos: 'cidautHub_seoContenidos'
 };
 
 function getLS(key){ try{ return JSON.parse(localStorage.getItem(key)) || []; }catch(e){ return []; } }
@@ -1649,6 +1921,7 @@ const TOPBAR_TEXT = {
   inicio:   ['Inicio', 'Resumen general de la actividad de marketing registrada en el hub.'],
   eventos:  ['Eventos y memoria anual', 'Registra la asistencia del personal a congresos y jornadas, y genera el resumen para la memoria anual.'],
   webs:     ['Gestor de webs de proyectos', 'Snippets reutilizables, estructura de apartados de cada web de proyecto y checklist de mantenimiento periódico.'],
+  seo:      ['SEO', 'Seguimiento de keywords, fichas SEO de páginas, auditoría técnica y planificación de contenidos para cada web de proyecto.'],
   email:    ['Email marketing y CRM', 'Previsualiza el HTML de tus newsletters, genera enlaces UTM y lleva el seguimiento de los envíos realizados.'],
   redes:    ['Redes sociales', 'Simula cómo se verán tus publicaciones y planifica el calendario editorial del equipo.'],
   propios:  ['Organizador de eventos propios', 'Checklist de logística por fases y control de inscritos para los eventos organizados por CIDAUT.'],
@@ -1724,6 +1997,7 @@ function refrescarSelectsProyecto(){
   poblarSelectProyectoEnvio();
   poblarMemoriaProyectoFilter();
   poblarSelectProyectoIdea();
+  poblarSelectsProyectoSEO();
 }
 
 function guardarProyecto(){
@@ -2398,14 +2672,7 @@ function exportarPDF(){
       </table>
     </div>`;
 
-  const printArea = document.getElementById('printArea');
-  printArea.style.display = 'block';
   window.print();
-  const restaurarPrintArea = () => {
-    printArea.style.display = 'none';
-    window.removeEventListener('afterprint', restaurarPrintArea);
-  };
-  window.addEventListener('afterprint', restaurarPrintArea);
 }
 
 /* =======================================================================
@@ -2601,6 +2868,414 @@ function renderMantenimiento(){
         <div class="cmeta">${esc(t.sitio)} · ${esc(t.periodo)}${t.ultima? ' · última verificación: '+fmtFecha(t.ultima) : ''}</div>
       </div>
       <span class="btn-ghost" onclick="eliminarMantenimiento('${t.id}')">Eliminar</span>
+    </div>`).join('');
+}
+
+/* =======================================================================
+   MÓDULO SEO — keywords, páginas, auditoría y contenidos
+   ======================================================================= */
+
+/* --- Selects de web/proyecto compartidos por las 4 pestañas --- */
+function poblarSelectProyectoSEOForm(selectId, valorPrevio){
+  const sel = document.getElementById(selectId);
+  if (!sel) return;
+  const proyectos = getProyectosNombres();
+  const prev = valorPrevio !== undefined ? valorPrevio : sel.value;
+  sel.innerHTML = '<option value="">Web corporativa CIDAUT</option>' + proyectos.map(p=>`<option>${esc(p)}</option>`).join('');
+  sel.value = proyectos.includes(prev) ? prev : '';
+}
+
+function poblarSelectProyectoSEOFiltro(selectId){
+  const sel = document.getElementById(selectId);
+  if (!sel) return;
+  const proyectos = getProyectosNombres();
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">Todas</option><option value="__CIDAUT__">Web corporativa CIDAUT</option>' + proyectos.map(p=>`<option>${esc(p)}</option>`).join('');
+  if (prev==='__CIDAUT__' || proyectos.includes(prev)) sel.value = prev;
+}
+
+function poblarSelectsProyectoSEO(){
+  ['kwProyecto','paginaProyecto','auditProyecto','contProyecto'].forEach(id=>poblarSelectProyectoSEOForm(id));
+  ['kwFiltroProyecto','paginaFiltroProyecto','auditFiltroProyecto','contFiltroProyecto'].forEach(id=>poblarSelectProyectoSEOFiltro(id));
+}
+
+function coincideProyectoFiltro(valor, filtro){
+  if (!filtro) return true;
+  if (filtro==='__CIDAUT__') return !valor;
+  return valor===filtro;
+}
+
+function etiquetaWebProyecto(valor){
+  return valor || 'Web corporativa CIDAUT';
+}
+
+function actualizarContadorSEO(campoId, contadorId, limite){
+  const campo = document.getElementById(campoId);
+  const contador = document.getElementById(contadorId);
+  if (!campo || !contador) return;
+  const len = campo.value.length;
+  contador.textContent = `${len} / ${limite}`;
+  contador.style.color = len > limite ? '#b1521a' : 'var(--ink-500)';
+}
+
+/* --- Keywords --- */
+let kwEditId = null;
+
+function getKeywordsSEO(){ return getLS(LS.seoKeywords); }
+
+function guardarKeyword(){
+  const proyecto = document.getElementById('kwProyecto').value;
+  const keyword = document.getElementById('kwKeyword').value.trim();
+  const url = document.getElementById('kwUrl').value.trim();
+  const posicion = document.getElementById('kwPosicion').value;
+  const objetivo = document.getElementById('kwObjetivo').value.trim();
+  if (!keyword){ showToast('Indica la keyword.'); return; }
+  const data = { proyecto, keyword, url, posicion: posicion?Number(posicion):null, objetivo };
+  const keywords = getKeywordsSEO();
+  if (kwEditId){
+    const idx = keywords.findIndex(k=>k.id===kwEditId);
+    if (idx>-1) keywords[idx] = {...keywords[idx], ...data};
+  } else {
+    keywords.unshift({ id: uid(), ...data });
+  }
+  setLS(LS.seoKeywords, keywords);
+  cancelarEdicionKeyword();
+  renderKeywords();
+  showToast('Keyword guardada.');
+}
+
+function editarKeyword(id){
+  const k = getKeywordsSEO().find(x=>x.id===id);
+  if (!k) return;
+  kwEditId = id;
+  poblarSelectProyectoSEOForm('kwProyecto', k.proyecto);
+  document.getElementById('kwKeyword').value = k.keyword;
+  document.getElementById('kwUrl').value = k.url||'';
+  document.getElementById('kwPosicion').value = k.posicion||'';
+  document.getElementById('kwObjetivo').value = k.objetivo||'';
+  document.getElementById('kwFormTitulo').textContent = 'Editar keyword';
+  document.getElementById('cancelarEdicionKwBtn').style.display = 'inline-flex';
+}
+
+function cancelarEdicionKeyword(){
+  kwEditId = null;
+  ['kwKeyword','kwUrl','kwPosicion','kwObjetivo'].forEach(id=>document.getElementById(id).value='');
+  poblarSelectProyectoSEOForm('kwProyecto','');
+  document.getElementById('kwFormTitulo').textContent = 'Añadir keyword';
+  document.getElementById('cancelarEdicionKwBtn').style.display = 'none';
+}
+
+function eliminarKeyword(id){
+  setLS(LS.seoKeywords, getKeywordsSEO().filter(k=>k.id!==id));
+  if (kwEditId===id) cancelarEdicionKeyword();
+  renderKeywords();
+}
+
+function renderKeywords(){
+  const filtro = document.getElementById('kwFiltroProyecto').value;
+  const keywords = getKeywordsSEO().filter(k=>coincideProyectoFiltro(k.proyecto, filtro));
+  const tbody = document.querySelector('#tablaKeywords tbody');
+  if (!keywords.length){
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No hay keywords que coincidan. Añade la primera con el formulario.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = keywords.map(k=>`
+    <tr>
+      <td>${esc(k.keyword)}</td>
+      <td>${esc(etiquetaWebProyecto(k.proyecto))}</td>
+      <td>${k.posicion!=null?esc(String(k.posicion)):'—'}</td>
+      <td>${esc(k.objetivo)||'—'}</td>
+      <td>
+        <span class="btn-ghost" onclick="editarKeyword('${k.id}')">Editar</span>
+        <span class="btn-ghost" onclick="eliminarKeyword('${k.id}')">Eliminar</span>
+      </td>
+    </tr>`).join('');
+}
+
+/* --- Páginas --- */
+let paginaEditId = null;
+const ESTADO_SEO_LABEL = { optima:'Óptima', mejorable:'Mejorable', pendiente:'Pendiente de optimizar' };
+const ESTADO_SEO_TAG = { optima:'tag-teal', mejorable:'tag-orange', pendiente:'tag-grey' };
+
+function getPaginasSEO(){ return getLS(LS.seoPaginas); }
+
+function guardarPaginaSEO(){
+  const url = document.getElementById('paginaUrl').value.trim();
+  if (!url){ showToast('Indica la URL de la página.'); return; }
+  const data = {
+    proyecto: document.getElementById('paginaProyecto').value,
+    url,
+    title: document.getElementById('paginaTitle').value.trim(),
+    meta: document.getElementById('paginaMeta').value.trim(),
+    h1: document.getElementById('paginaH1').value.trim(),
+    keyword: document.getElementById('paginaKeyword').value.trim(),
+    enlaces: document.getElementById('paginaEnlaces').value.trim(),
+    alt: document.getElementById('paginaAlt').value.trim(),
+    revision: document.getElementById('paginaRevision').value,
+    estado: document.getElementById('paginaEstado').value
+  };
+  const paginas = getPaginasSEO();
+  if (paginaEditId){
+    const idx = paginas.findIndex(p=>p.id===paginaEditId);
+    if (idx>-1) paginas[idx] = {...paginas[idx], ...data};
+  } else {
+    paginas.unshift({ id: uid(), ...data });
+  }
+  setLS(LS.seoPaginas, paginas);
+  cancelarEdicionPaginaSEO();
+  renderPaginasSEO();
+  showToast('Ficha SEO guardada.');
+}
+
+function editarPaginaSEO(id){
+  const p = getPaginasSEO().find(x=>x.id===id);
+  if (!p) return;
+  paginaEditId = id;
+  poblarSelectProyectoSEOForm('paginaProyecto', p.proyecto);
+  document.getElementById('paginaUrl').value = p.url;
+  document.getElementById('paginaTitle').value = p.title||'';
+  document.getElementById('paginaMeta').value = p.meta||'';
+  document.getElementById('paginaH1').value = p.h1||'';
+  document.getElementById('paginaKeyword').value = p.keyword||'';
+  document.getElementById('paginaEnlaces').value = p.enlaces||'';
+  document.getElementById('paginaAlt').value = p.alt||'';
+  document.getElementById('paginaRevision').value = p.revision||'';
+  document.getElementById('paginaEstado').value = p.estado||'pendiente';
+  actualizarContadorSEO('paginaTitle','paginaTitleContador',60);
+  actualizarContadorSEO('paginaMeta','paginaMetaContador',155);
+  document.getElementById('paginaFormTitulo').textContent = 'Editar ficha SEO';
+  document.getElementById('cancelarEdicionPaginaBtn').style.display = 'inline-flex';
+}
+
+function cancelarEdicionPaginaSEO(){
+  paginaEditId = null;
+  ['paginaUrl','paginaTitle','paginaMeta','paginaH1','paginaKeyword','paginaEnlaces','paginaAlt','paginaRevision'].forEach(id=>document.getElementById(id).value='');
+  poblarSelectProyectoSEOForm('paginaProyecto','');
+  document.getElementById('paginaEstado').value = 'pendiente';
+  actualizarContadorSEO('paginaTitle','paginaTitleContador',60);
+  actualizarContadorSEO('paginaMeta','paginaMetaContador',155);
+  document.getElementById('paginaFormTitulo').textContent = 'Ficha SEO de página';
+  document.getElementById('cancelarEdicionPaginaBtn').style.display = 'none';
+}
+
+function eliminarPaginaSEO(id){
+  setLS(LS.seoPaginas, getPaginasSEO().filter(p=>p.id!==id));
+  if (paginaEditId===id) cancelarEdicionPaginaSEO();
+  renderPaginasSEO();
+}
+
+function renderPaginasSEO(){
+  const filtroProyecto = document.getElementById('paginaFiltroProyecto').value;
+  const filtroEstado = document.getElementById('paginaFiltroEstado').value;
+  const paginas = getPaginasSEO().filter(p=>
+    coincideProyectoFiltro(p.proyecto, filtroProyecto) && (!filtroEstado || p.estado===filtroEstado)
+  );
+  const wrap = document.getElementById('listaPaginasSEO');
+  if (!paginas.length){
+    wrap.innerHTML = '<p class="muted small">No hay páginas que coincidan. Añade la primera con el formulario.</p>';
+    return;
+  }
+  wrap.innerHTML = paginas.map(p=>`
+    <div class="panel" style="margin-bottom:12px;">
+      <div class="snippet-head">
+        <div>
+          <h4 style="font-family:var(--mono);font-size:12.5px;">${esc(p.url)}</h4>
+          <div style="margin-top:6px;">
+            <span class="tag tag-grey">${esc(etiquetaWebProyecto(p.proyecto))}</span>
+            <span class="tag ${ESTADO_SEO_TAG[p.estado]||'tag-grey'}" style="margin-left:4px;">${esc(ESTADO_SEO_LABEL[p.estado]||p.estado)}</span>
+          </div>
+        </div>
+        <div class="btn-row" style="margin-top:0;">
+          <span class="btn-ghost" onclick="editarPaginaSEO('${p.id}')"><i class="fa-solid fa-pen"></i></span>
+          <span class="btn-ghost" onclick="eliminarPaginaSEO('${p.id}')"><i class="fa-solid fa-trash"></i></span>
+        </div>
+      </div>
+      <div style="font-size:12.5px;color:var(--ink-700);margin-top:10px;line-height:1.7;">
+        ${p.title?`<div><strong>Title:</strong> ${esc(p.title)}</div>`:''}
+        ${p.meta?`<div><strong>Meta description:</strong> ${esc(p.meta)}</div>`:''}
+        ${p.h1?`<div><strong>H1:</strong> ${esc(p.h1)}</div>`:''}
+        ${p.keyword?`<div><strong>Keyword objetivo:</strong> ${esc(p.keyword)}</div>`:''}
+        ${p.enlaces?`<div><strong>Enlaces internos:</strong> ${esc(p.enlaces)}</div>`:''}
+        ${p.alt?`<div><strong>Alt imágenes:</strong> ${esc(p.alt)}</div>`:''}
+        <div><strong>Última revisión:</strong> ${p.revision?fmtFecha(p.revision):'—'}</div>
+      </div>
+    </div>`).join('');
+}
+
+/* --- Auditoría --- */
+const SUGERENCIAS_AUDITORIA_SEO = [
+  'Sitemap.xml actualizado y enviado a Search Console',
+  'robots.txt correcto',
+  'HTTPS activo y certificado SSL en vigor',
+  'Velocidad de carga y Core Web Vitals',
+  'Enlaces internos y externos rotos',
+  'Datos estructurados (schema.org)',
+  'Etiquetas Open Graph para redes sociales',
+  'URLs canónicas correctas',
+  'Compatibilidad y usabilidad móvil'
+];
+
+function renderSugerenciasAuditoriaSEO(){
+  document.getElementById('sugerenciasAuditoriaSEO').innerHTML = SUGERENCIAS_AUDITORIA_SEO.map((s,i)=>
+    `<button class="btn btn-secondary" onclick="añadirTareaAuditoriaRapida(${i})"><i class="fa-solid fa-plus"></i> ${esc(s)}</button>`
+  ).join('');
+}
+
+function añadirTareaAuditoriaRapida(i){
+  const tarea = SUGERENCIAS_AUDITORIA_SEO[i];
+  const proyecto = document.getElementById('auditProyecto').value;
+  const periodo = document.getElementById('auditPeriodo').value;
+  const items = getLS(LS.seoAuditoria);
+  items.unshift({ id: uid(), proyecto, tarea, periodo, done:false, ultima:null });
+  setLS(LS.seoAuditoria, items);
+  renderAuditoriaSEO();
+  showToast('Tarea añadida a la auditoría.');
+}
+
+function añadirTareaAuditoria(){
+  const proyecto = document.getElementById('auditProyecto').value;
+  const tarea = document.getElementById('auditTarea').value.trim();
+  const periodo = document.getElementById('auditPeriodo').value;
+  if (!tarea){ showToast('Describe la tarea de auditoría.'); return; }
+  const items = getLS(LS.seoAuditoria);
+  items.unshift({ id: uid(), proyecto, tarea, periodo, done:false, ultima:null });
+  setLS(LS.seoAuditoria, items);
+  document.getElementById('auditTarea').value = '';
+  renderAuditoriaSEO();
+  showToast('Tarea añadida a la auditoría.');
+}
+
+function toggleAuditoriaSEO(id){
+  const items = getLS(LS.seoAuditoria);
+  const t = items.find(x=>x.id===id);
+  if (!t) return;
+  t.done = !t.done;
+  t.ultima = t.done ? new Date().toISOString().slice(0,10) : t.ultima;
+  setLS(LS.seoAuditoria, items);
+  renderAuditoriaSEO();
+  updateDashboardStats();
+}
+
+function eliminarAuditoriaSEO(id){
+  setLS(LS.seoAuditoria, getLS(LS.seoAuditoria).filter(x=>x.id!==id));
+  renderAuditoriaSEO();
+  updateDashboardStats();
+}
+
+function renderAuditoriaSEO(){
+  const filtro = document.getElementById('auditFiltroProyecto').value;
+  const items = getLS(LS.seoAuditoria).filter(t=>coincideProyectoFiltro(t.proyecto, filtro));
+  const wrap = document.getElementById('listaAuditoriaSEO');
+  if (!items.length){
+    wrap.innerHTML = '<p class="muted small">No hay tareas todavía. Añade una desde el formulario o desde las sugerencias.</p>';
+    return;
+  }
+  wrap.innerHTML = items.map(t=>`
+    <div class="check-item ${t.done?'done':''}">
+      <input type="checkbox" ${t.done?'checked':''} onchange="toggleAuditoriaSEO('${t.id}')">
+      <div class="ctext">
+        ${esc(t.tarea)}
+        <div class="cmeta">${esc(etiquetaWebProyecto(t.proyecto))} · ${esc(t.periodo)}${t.ultima? ' · última revisión: '+fmtFecha(t.ultima) : ''}</div>
+      </div>
+      <span class="btn-ghost" onclick="eliminarAuditoriaSEO('${t.id}')">Eliminar</span>
+    </div>`).join('');
+}
+
+/* --- Contenidos --- */
+let contenidoEditId = null;
+const ESTADO_CONTENIDO_LABEL = { idea:'Idea', redaccion:'En redacción', publicado:'Publicado' };
+const ESTADO_CONTENIDO_TAG = { idea:'tag-grey', redaccion:'tag-orange', publicado:'tag-teal' };
+
+function getContenidosSEO(){ return getLS(LS.seoContenidos); }
+
+function guardarContenidoSEO(){
+  const titulo = document.getElementById('contTitulo').value.trim();
+  if (!titulo){ showToast('Indica el título del contenido.'); return; }
+  const data = {
+    proyecto: document.getElementById('contProyecto').value,
+    titulo,
+    tipo: document.getElementById('contTipo').value,
+    keyword: document.getElementById('contKeyword').value.trim(),
+    estado: document.getElementById('contEstado').value,
+    fecha: document.getElementById('contFecha').value,
+    url: document.getElementById('contUrl').value.trim()
+  };
+  const contenidos = getContenidosSEO();
+  if (contenidoEditId){
+    const idx = contenidos.findIndex(c=>c.id===contenidoEditId);
+    if (idx>-1) contenidos[idx] = {...contenidos[idx], ...data};
+  } else {
+    contenidos.unshift({ id: uid(), ...data });
+  }
+  setLS(LS.seoContenidos, contenidos);
+  cancelarEdicionContenidoSEO();
+  renderContenidosSEO();
+  showToast('Contenido guardado.');
+}
+
+function editarContenidoSEO(id){
+  const c = getContenidosSEO().find(x=>x.id===id);
+  if (!c) return;
+  contenidoEditId = id;
+  poblarSelectProyectoSEOForm('contProyecto', c.proyecto);
+  document.getElementById('contTitulo').value = c.titulo;
+  document.getElementById('contTipo').value = c.tipo||'Artículo de blog';
+  document.getElementById('contKeyword').value = c.keyword||'';
+  document.getElementById('contEstado').value = c.estado||'idea';
+  document.getElementById('contFecha').value = c.fecha||'';
+  document.getElementById('contUrl').value = c.url||'';
+  document.getElementById('contenidoFormTitulo').textContent = 'Editar contenido';
+  document.getElementById('cancelarEdicionContenidoBtn').style.display = 'inline-flex';
+}
+
+function cancelarEdicionContenidoSEO(){
+  contenidoEditId = null;
+  ['contTitulo','contKeyword','contFecha','contUrl'].forEach(id=>document.getElementById(id).value='');
+  poblarSelectProyectoSEOForm('contProyecto','');
+  document.getElementById('contTipo').value = 'Artículo de blog';
+  document.getElementById('contEstado').value = 'idea';
+  document.getElementById('contenidoFormTitulo').textContent = 'Añadir contenido';
+  document.getElementById('cancelarEdicionContenidoBtn').style.display = 'none';
+}
+
+function eliminarContenidoSEO(id){
+  setLS(LS.seoContenidos, getContenidosSEO().filter(c=>c.id!==id));
+  if (contenidoEditId===id) cancelarEdicionContenidoSEO();
+  renderContenidosSEO();
+}
+
+function renderContenidosSEO(){
+  const filtroProyecto = document.getElementById('contFiltroProyecto').value;
+  const filtroEstado = document.getElementById('contFiltroEstado').value;
+  const contenidos = getContenidosSEO().filter(c=>
+    coincideProyectoFiltro(c.proyecto, filtroProyecto) && (!filtroEstado || c.estado===filtroEstado)
+  );
+  const wrap = document.getElementById('listaContenidosSEO');
+  if (!contenidos.length){
+    wrap.innerHTML = '<p class="muted small">No hay contenidos que coincidan. Añade el primero con el formulario.</p>';
+    return;
+  }
+  wrap.innerHTML = contenidos.map(c=>`
+    <div class="panel" style="margin-bottom:12px;">
+      <div class="snippet-head">
+        <div>
+          <h4>${esc(c.titulo)}</h4>
+          <div style="margin-top:6px;">
+            <span class="tag tag-grey">${esc(etiquetaWebProyecto(c.proyecto))}</span>
+            <span class="tag tag-teal" style="margin-left:4px;">${esc(c.tipo)}</span>
+            <span class="tag ${ESTADO_CONTENIDO_TAG[c.estado]||'tag-grey'}" style="margin-left:4px;">${esc(ESTADO_CONTENIDO_LABEL[c.estado]||c.estado)}</span>
+          </div>
+        </div>
+        <div class="btn-row" style="margin-top:0;">
+          <span class="btn-ghost" onclick="editarContenidoSEO('${c.id}')"><i class="fa-solid fa-pen"></i></span>
+          <span class="btn-ghost" onclick="eliminarContenidoSEO('${c.id}')"><i class="fa-solid fa-trash"></i></span>
+        </div>
+      </div>
+      <div style="font-size:12.5px;color:var(--ink-700);margin-top:8px;">
+        ${c.keyword?`<strong>Keyword objetivo:</strong> ${esc(c.keyword)}<br>`:''}
+        ${c.fecha?`<strong>Publicación:</strong> ${fmtFecha(c.fecha)}<br>`:''}
+        ${c.url?`<a href="${esc(c.url.match(/^https?:\/\//i)?c.url:'https://'+c.url)}" target="_blank" rel="noopener" style="color:var(--teal-700);font-weight:600;">Ver contenido publicado</a>`:''}
+      </div>
     </div>`).join('');
 }
 
@@ -3575,6 +4250,11 @@ function getNotificaciones(){
     notifs.push({ tipo:'info', icon:'fa-screwdriver-wrench', texto:`${pendientesMant.length} tarea(s) de mantenimiento pendientes`, meta:'Checklist de webs de proyecto', view:'webs', tab:'mantenimiento' });
   }
 
+  const pendientesAuditoriaSEO = getLS(LS.seoAuditoria).filter(t=>!t.done);
+  if (pendientesAuditoriaSEO.length){
+    notifs.push({ tipo:'info', icon:'fa-magnifying-glass-chart', texto:`${pendientesAuditoriaSEO.length} tarea(s) de auditoría SEO pendientes`, meta:'Módulo SEO', view:'seo', tab:'auditoria' });
+  }
+
   getLS(LS.calendario).filter(e=>e.fecha===hoyStr).forEach(e=>{
     notifs.push({ tipo:'aviso', icon:'fa-share-nodes', texto:`Publicación programada hoy: ${e.titulo}`, meta:e.plataforma, view:'redes', tab:'lista' });
   });
@@ -3677,6 +4357,21 @@ function buscarGlobal(query){
       resultados.push({ tipo:'Mantenimiento', icon:'fa-screwdriver-wrench', titulo:m.tarea, meta:m.sitio||'', view:'webs', tab:'mantenimiento' });
     }
   });
+  getKeywordsSEO().forEach(k=>{
+    if ((`${k.keyword} ${k.url||''}`).toLowerCase().includes(q)){
+      resultados.push({ tipo:'Keyword SEO', icon:'fa-magnifying-glass-chart', titulo:k.keyword, meta:etiquetaWebProyecto(k.proyecto), view:'seo', tab:'keywords' });
+    }
+  });
+  getPaginasSEO().forEach(p=>{
+    if ((`${p.url} ${p.title||''} ${p.keyword||''}`).toLowerCase().includes(q)){
+      resultados.push({ tipo:'Página SEO', icon:'fa-file-lines', titulo:p.url, meta:etiquetaWebProyecto(p.proyecto), view:'seo', tab:'paginas' });
+    }
+  });
+  getContenidosSEO().forEach(c=>{
+    if ((`${c.titulo} ${c.keyword||''}`).toLowerCase().includes(q)){
+      resultados.push({ tipo:'Contenido SEO', icon:'fa-pen-nib', titulo:c.titulo, meta:etiquetaWebProyecto(c.proyecto), view:'seo', tab:'contenidos' });
+    }
+  });
 
   if (!resultados.length){
     resultsWrap.innerHTML = `<div class="gs-empty">Sin resultados para "${esc(query.trim())}".</div>`;
@@ -3742,6 +4437,13 @@ function init(){
   renderEstructuraWeb();
   renderSugerenciasMantenimiento();
   renderMantenimiento();
+
+  poblarSelectsProyectoSEO();
+  renderSugerenciasAuditoriaSEO();
+  renderKeywords();
+  renderPaginasSEO();
+  renderAuditoriaSEO();
+  renderContenidosSEO();
 
   actualizarPreviewEmail();
   renderUTMHistorial();
