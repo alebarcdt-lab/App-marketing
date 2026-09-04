@@ -270,6 +270,17 @@
   .stat-num{font-size:32px;font-weight:800;color:var(--ink-900);line-height:1;}
   .stat-label{font-size:12.5px;color:var(--ink-500);margin-top:6px;}
   .stat-block.accent .stat-num{color:var(--teal-700);}
+  .stat-text{font-size:14px;font-weight:700;color:var(--teal-700);line-height:1.3;}
+
+  /* ---------- Checkboxes en fila (redes sociales del proyecto) ---------- */
+  .checkbox-row{display:flex;gap:16px;flex-wrap:wrap;margin-top:4px;}
+  .checkbox-row label{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--ink-700);cursor:pointer;margin-bottom:0;}
+  .checkbox-row input[type=checkbox]{width:auto;margin:0;accent-color:var(--teal-500);}
+
+  /* ---------- Cabeceras de tabla ordenables ---------- */
+  th.th-sortable{cursor:pointer;user-select:none;white-space:nowrap;}
+  th.th-sortable:hover{color:var(--teal-700);}
+  th.th-sortable i{margin-left:4px;font-size:9.5px;}
 
   /* ---------- Toast ---------- */
   #toast{
@@ -739,6 +750,16 @@
               <div class="field">
                 <label for="proyWeb">Web del proyecto (opcional)</label>
                 <input type="text" id="proyWeb" placeholder="https://proyectoresilient.es">
+              </div>
+              <div class="field">
+                <label>Redes sociales del proyecto (opcional)</label>
+                <div class="checkbox-row">
+                  <label><input type="checkbox" class="proyRedCheckbox" value="linkedin"> LinkedIn</label>
+                  <label><input type="checkbox" class="proyRedCheckbox" value="x"> X</label>
+                  <label><input type="checkbox" class="proyRedCheckbox" value="instagram"> Instagram</label>
+                  <label><input type="checkbox" class="proyRedCheckbox" value="youtube"> YouTube</label>
+                </div>
+                <div class="hint">Si no marcas ninguna, se podrán usar las cuatro al registrar publicaciones de este proyecto.</div>
               </div>
               <div class="field">
                 <label for="proyEstado">Estado</label>
@@ -1536,6 +1557,7 @@
           <button class="tab-btn" data-tab="ideas" onclick="switchTab('redes','ideas')">Banco de ideas</button>
           <button class="tab-btn" data-tab="calendario" onclick="switchTab('redes','calendario')">Calendario editorial</button>
           <button class="tab-btn" data-tab="lista" onclick="switchTab('redes','lista')">Publicaciones programadas</button>
+          <button class="tab-btn" data-tab="analitica" onclick="switchTab('redes','analitica')">Analítica de Redes Sociales</button>
         </div>
 
         <!-- Previsualizador -->
@@ -1650,6 +1672,177 @@
             <div class="table-wrap">
               <table id="tablaPublicaciones">
                 <thead><tr><th>Fecha</th><th>Contenido</th><th>Etiqueta</th><th>Plataforma</th><th></th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Analítica de Redes Sociales -->
+        <div class="tab-pane" id="redes-analitica">
+          <div class="panel">
+            <div class="panel-title">Filtros de análisis</div>
+            <div class="panel-subtitle">Estos filtros acotan el panel, los gráficos y la tabla de publicaciones de más abajo.</div>
+            <div class="filter-row">
+              <div class="field">
+                <label for="anaFiltroProyecto">Proyecto</label>
+                <select id="anaFiltroProyecto" onchange="renderAnalyticsRedes()"><option value="">Todos los proyectos</option></select>
+              </div>
+              <div class="field">
+                <label for="anaFiltroRed">Red social</label>
+                <select id="anaFiltroRed" onchange="renderAnalyticsRedes()">
+                  <option value="">Todas las redes</option>
+                  <option value="linkedin">LinkedIn</option>
+                  <option value="x">X</option>
+                  <option value="instagram">Instagram</option>
+                  <option value="youtube">YouTube</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="anaFiltroAnio">Año</label>
+                <select id="anaFiltroAnio" onchange="renderAnalyticsRedes()"><option value="">Todos los años</option></select>
+              </div>
+              <div class="field">
+                <label for="anaFiltroMes">Mes</label>
+                <select id="anaFiltroMes" onchange="renderAnalyticsRedes()">
+                  <option value="">Todos los meses</option>
+                  <option value="enero">Enero</option>
+                  <option value="febrero">Febrero</option>
+                  <option value="marzo">Marzo</option>
+                  <option value="abril">Abril</option>
+                  <option value="mayo">Mayo</option>
+                  <option value="junio">Junio</option>
+                  <option value="julio">Julio</option>
+                  <option value="agosto">Agosto</option>
+                  <option value="septiembre">Septiembre</option>
+                  <option value="octubre">Octubre</option>
+                  <option value="noviembre">Noviembre</option>
+                  <option value="diciembre">Diciembre</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="anaFiltroDiaSemana">Día de la semana</label>
+                <select id="anaFiltroDiaSemana" onchange="renderAnalyticsRedes()">
+                  <option value="">Todos</option>
+                  <option>Lunes</option>
+                  <option>Martes</option>
+                  <option>Miércoles</option>
+                  <option>Jueves</option>
+                  <option>Viernes</option>
+                  <option>Sábado</option>
+                  <option>Domingo</option>
+                </select>
+              </div>
+              <div class="btn-row" style="margin-top:0;">
+                <button class="btn btn-secondary" onclick="limpiarFiltrosAnalyticsRedes()">Quitar filtros</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="kpi-grid" style="margin-bottom:20px;">
+            <div class="panel panel-accent"><div class="stat-block accent"><div class="stat-num" id="anaStatTotalPubs">0</div><div class="stat-label">Publicaciones</div></div></div>
+            <div class="panel panel-accent"><div class="stat-block accent"><div class="stat-num" id="anaStatImpresiones">0</div><div class="stat-label">Impresiones totales</div></div></div>
+            <div class="panel panel-accent"><div class="stat-block accent"><div class="stat-num" id="anaStatInteracciones">0</div><div class="stat-label">Interacciones totales</div></div></div>
+            <div class="panel panel-accent"><div class="stat-block accent"><div class="stat-num" id="anaStatAlcance">0</div><div class="stat-label">Alcance total</div></div></div>
+            <div class="panel panel-accent"><div class="stat-block accent"><div class="stat-num" id="anaStatClics">0</div><div class="stat-label">Clics totales</div></div></div>
+            <div class="panel panel-accent"><div class="stat-block accent"><div class="stat-num" id="anaStatTasaMedia">0 %</div><div class="stat-label">Tasa media de interacción</div></div></div>
+            <div class="panel panel-accent"><div class="stat-block accent"><div class="stat-num" id="anaStatMediaImpresiones">0</div><div class="stat-label">Media de impresiones / publicación</div></div></div>
+            <div class="panel panel-accent"><div class="stat-block accent"><div class="stat-num" id="anaStatMediaInteracciones">0</div><div class="stat-label">Media de interacciones / publicación</div></div></div>
+            <div class="panel panel-accent"><div class="stat-block accent"><div class="stat-text" id="anaStatMejorPub">—</div><div class="stat-label">Publicación con mejores resultados</div></div></div>
+            <div class="panel panel-accent"><div class="stat-block accent"><div class="stat-text" id="anaStatMejorRed">—</div><div class="stat-label">Red social con mejor rendimiento</div></div></div>
+          </div>
+
+          <div class="panel" id="anaResumenProyecto" style="display:none;">
+            <div class="panel-title">Resumen del proyecto seleccionado</div>
+            <div id="anaResumenProyectoBody"></div>
+          </div>
+
+          <div class="grid-2 section-gap">
+            <div class="panel">
+              <div class="panel-title">Evolución mensual de impresiones</div>
+              <canvas id="chartAnaImpresiones" height="200"></canvas>
+            </div>
+            <div class="panel">
+              <div class="panel-title">Evolución mensual de interacciones</div>
+              <canvas id="chartAnaInteracciones" height="200"></canvas>
+            </div>
+          </div>
+          <div class="grid-2 section-gap">
+            <div class="panel">
+              <div class="panel-title">Publicaciones por mes</div>
+              <canvas id="chartAnaPublicacionesMes" height="200"></canvas>
+            </div>
+            <div class="panel">
+              <div class="panel-title">Comparativa entre redes sociales</div>
+              <div class="panel-subtitle">Interacciones totales por red, según los filtros aplicados.</div>
+              <canvas id="chartAnaRedes" height="200"></canvas>
+            </div>
+          </div>
+          <div class="grid-2 section-gap">
+            <div class="panel">
+              <div class="panel-title">Publicaciones por día de la semana</div>
+              <canvas id="chartAnaDiaSemana" height="200"></canvas>
+            </div>
+            <div class="panel">
+              <div class="panel-title">Publicaciones por hora de publicación</div>
+              <canvas id="chartAnaHora" height="200"></canvas>
+            </div>
+          </div>
+
+          <div class="panel section-gap">
+            <div class="panel-title" id="pubFormTitulo">Registrar publicación</div>
+            <div class="panel-subtitle">Elige primero el proyecto y la red social: el formulario mostrará solo las métricas correspondientes.</div>
+            <div class="field">
+              <label for="pubProyecto">Proyecto</label>
+              <select id="pubProyecto" onchange="onCambioProyectoPublicacion()"><option value="">Ninguno / General</option></select>
+            </div>
+            <div class="platform-tabs" id="pubPlatformTabs">
+              <div class="platform-tab active" data-platform="linkedin" onclick="setPubRed('linkedin')"><i class="fa-brands fa-linkedin"></i> LinkedIn</div>
+              <div class="platform-tab" data-platform="x" onclick="setPubRed('x')"><i class="fa-brands fa-x-twitter"></i> X</div>
+              <div class="platform-tab" data-platform="instagram" onclick="setPubRed('instagram')"><i class="fa-brands fa-instagram"></i> Instagram</div>
+              <div class="platform-tab" data-platform="youtube" onclick="setPubRed('youtube')"><i class="fa-brands fa-youtube"></i> YouTube</div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="pubTitulo">Título de la publicación</label>
+                <input type="text" id="pubTitulo" placeholder="Ej. Vídeo resumen del taller RESILIENT">
+              </div>
+              <div class="field">
+                <label for="pubEnlace">Enlace a la publicación</label>
+                <input type="text" id="pubEnlace" placeholder="https://...">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="pubFecha">Fecha de publicación</label>
+                <input type="date" id="pubFecha" onchange="onCambioFechaPublicacion()">
+              </div>
+              <div class="field">
+                <label for="pubHora">Hora de publicación</label>
+                <input type="time" id="pubHora">
+              </div>
+            </div>
+            <div class="muted small" id="pubFechaCalculada" style="margin:-8px 0 16px 0;"></div>
+            <div id="pubCamposMetricas"></div>
+            <div class="btn-row">
+              <button class="btn" onclick="guardarPublicacionRed()"><i class="fa-solid fa-floppy-disk"></i> Guardar publicación</button>
+              <button class="btn btn-secondary" id="cancelarEdicionPubBtn" style="display:none;" onclick="cancelarEdicionPublicacionRed()">Cancelar edición</button>
+            </div>
+          </div>
+
+          <div class="panel section-gap">
+            <div class="flex-between">
+              <div>
+                <div class="panel-title" style="margin-bottom:4px;">Publicaciones registradas</div>
+                <div class="panel-subtitle" style="margin-bottom:0;">Usa los filtros de arriba para acotar por proyecto, red, año, mes o día. Haz clic en Fecha, Impresiones o Interacciones para ordenar.</div>
+              </div>
+              <div class="field" style="min-width:220px;margin-bottom:0;">
+                <input type="text" id="pubBuscar" placeholder="Buscar por título..." oninput="renderTablaPublicacionesRed()">
+              </div>
+            </div>
+            <div class="table-wrap" style="margin-top:16px;">
+              <table id="tablaPublicacionesRed">
+                <thead id="tablaPublicacionesRedHead"></thead>
                 <tbody></tbody>
               </table>
             </div>
@@ -1879,7 +2072,8 @@ const LS = {
   seoKeywords: 'cidautHub_seoKeywords',
   seoPaginas: 'cidautHub_seoPaginas',
   seoAuditoria: 'cidautHub_seoAuditoria',
-  seoContenidos: 'cidautHub_seoContenidos'
+  seoContenidos: 'cidautHub_seoContenidos',
+  publicacionesRedes: 'cidautHub_publicacionesRedes'
 };
 
 function getLS(key){ try{ return JSON.parse(localStorage.getItem(key)) || []; }catch(e){ return []; } }
@@ -1944,6 +2138,7 @@ function switchTab(module, tabName){
   const view = document.getElementById('view-'+module);
   view.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tabName));
   view.querySelectorAll('.tab-pane').forEach(p=>p.classList.toggle('active', p.id === module+'-'+tabName));
+  if (module==='redes' && tabName==='analitica') renderAnalyticsRedes();
 }
 
 function goTo(view, tab){
@@ -1999,6 +2194,8 @@ function refrescarSelectsProyecto(){
   poblarMemoriaProyectoFilter();
   poblarSelectProyectoIdea();
   poblarSelectsProyectoSEO();
+  poblarSelectProyectoPublicacion();
+  poblarFiltrosAnalyticsRedes();
 }
 
 function guardarProyecto(){
@@ -2020,6 +2217,7 @@ function guardarProyecto(){
     fechaInicio,
     fechaFin,
     web: document.getElementById('proyWeb').value.trim(),
+    redesSociales: getProyRedesSeleccionadas(),
     estado: document.getElementById('proyEstado').value,
     descripcion: document.getElementById('proyDescripcion').value.trim()
   };
@@ -2046,6 +2244,7 @@ function editarProyecto(id){
   document.getElementById('proyFechaInicio').value = p.fechaInicio||'';
   document.getElementById('proyFechaFin').value = p.fechaFin||'';
   document.getElementById('proyWeb').value = p.web||'';
+  document.querySelectorAll('#config-proyectos .proyRedCheckbox').forEach(c=>{ c.checked = (p.redesSociales||[]).includes(c.value); });
   document.getElementById('proyEstado').value = p.estado||'Activo';
   document.getElementById('proyDescripcion').value = p.descripcion||'';
   document.getElementById('proyectoFormTitulo').textContent = 'Editar proyecto';
@@ -2057,6 +2256,7 @@ function cancelarEdicionProyecto(){
   proyectoEditId = null;
   ['proyNombre','proyAcronimo','proyFechaInicio','proyFechaFin','proyWeb','proyDescripcion'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('proyPrograma').value = '';
+  document.querySelectorAll('#config-proyectos .proyRedCheckbox').forEach(c=>c.checked=false);
   document.getElementById('proyEstado').value = 'Activo';
   document.getElementById('proyectoFormTitulo').textContent = 'Registrar proyecto';
   document.getElementById('cancelarEdicionProyectoBtn').style.display = 'none';
@@ -2087,6 +2287,7 @@ function renderProyectos(){
           <div style="margin-top:6px;">
             ${p.programa?`<span class="tag tag-teal">${esc(p.programa)}</span>`:''}
             <span class="tag ${p.estado==='Finalizado'?'tag-grey':'tag-orange'}" style="margin-left:4px;">${esc(p.estado||'Activo')}</span>
+            ${(p.redesSociales&&p.redesSociales.length) ? p.redesSociales.map(r=>`<span class="tag tag-grey" style="margin-left:4px;">${REDES_CONFIG[r]?REDES_CONFIG[r].label:esc(r)}</span>`).join(''):''}
           </div>
         </div>
         <div class="btn-row" style="margin-top:0;">
@@ -3755,6 +3956,524 @@ function renderIdeas(){
         </select>
       </div>
     </div>`).join('');
+}
+
+/* =======================================================================
+   ANALÍTICA DE REDES SOCIALES
+   ======================================================================= */
+const REDES_CONFIG = {
+  linkedin: {
+    label: 'LinkedIn',
+    campos: [
+      { key:'impresiones', label:'Impresiones' },
+      { key:'interacciones', label:'Interacciones' },
+      { key:'clics', label:'Clics' },
+      { key:'reacciones', label:'Reacciones' },
+      { key:'comentarios', label:'Comentarios' },
+      { key:'compartidos', label:'Compartidos' }
+    ],
+    calculadas: [
+      { key:'tasaInteraccion', label:'Tasa de interacción', calc:m => m.impresiones ? (m.interacciones/m.impresiones*100) : null },
+      { key:'tasaClics', label:'Tasa de clics', calc:m => m.impresiones ? (m.clics/m.impresiones*100) : null }
+    ],
+    tablaCols: ['impresiones','interacciones','tasaInteraccion','clics','tasaClics','reacciones','comentarios','compartidos']
+  },
+  x: {
+    label: 'X',
+    campos: [
+      { key:'meGusta', label:'Me gusta' },
+      { key:'retweets', label:'Retweets / republicaciones' },
+      { key:'comentarios', label:'Comentarios' },
+      { key:'impresiones', label:'Impresiones' },
+      { key:'interacciones', label:'Interacciones' },
+      { key:'visitasPerfil', label:'Visitas al perfil' },
+      { key:'clicsEnlace', label:'Clics en el enlace' }
+    ],
+    calculadas: [],
+    tablaCols: ['impresiones','interacciones','meGusta','retweets','comentarios','visitasPerfil','clicsEnlace']
+  },
+  instagram: {
+    label: 'Instagram',
+    campos: [
+      { key:'meGusta', label:'Me gusta' },
+      { key:'comentarios', label:'Comentarios' },
+      { key:'visualizaciones', label:'Visualizaciones' },
+      { key:'pctSeguidores', label:'% visualizaciones de seguidores', step:'0.1' },
+      { key:'pctNoSeguidores', label:'% visualizaciones de no seguidores', step:'0.1' },
+      { key:'cuentasAlcanzadas', label:'Cuentas alcanzadas' },
+      { key:'interacciones', label:'Interacciones' },
+      { key:'visitasPerfil', label:'Visitas al perfil' }
+    ],
+    calculadas: [],
+    tablaCols: ['visualizaciones','interacciones','cuentasAlcanzadas','meGusta','comentarios','visitasPerfil']
+  },
+  youtube: {
+    label: 'YouTube',
+    /* Estructura abierta: añade aquí nuevas métricas de YouTube en el futuro
+       sin tener que tocar el resto del módulo. */
+    campos: [
+      { key:'meGusta', label:'Me gusta' },
+      { key:'tiempoVisualizacionHoras', label:'Tiempo de visualización (horas)', step:'0.1' }
+    ],
+    calculadas: [],
+    tablaCols: ['meGusta','tiempoVisualizacionHoras']
+  }
+};
+const COLORES_RED = { linkedin:'#0a66c2', x:'#111111', instagram:'#c1338d', youtube:'#ff0000' };
+const DIAS_SEMANA = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const DIAS_SEMANA_ORDEN = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+const MESES_CAP = MESES.map(m => m.charAt(0).toUpperCase()+m.slice(1));
+
+let pubRedActual = 'linkedin';
+let publicacionEditId = null;
+let pubSortCampo = 'fecha';
+let pubSortDir = 'desc';
+let chartAnaImpresionesRef=null, chartAnaInteraccionesRef=null, chartAnaPublicacionesMesRef=null, chartAnaRedesRef=null, chartAnaDiaSemanaRef=null, chartAnaHoraRef=null;
+
+function sum(arr){ return arr.filter(v=>v!=null && !isNaN(v)).reduce((a,b)=>a+b,0); }
+function numOrNull(v){ return (v===undefined || v===null || v==='') ? null : Number(v); }
+function fmtNum(n){ return Math.round(n||0).toLocaleString('es-ES'); }
+function setText(id, val){ const el = document.getElementById(id); if (el) el.textContent = val; }
+
+function calcularCamposFecha(fechaISO){
+  if (!fechaISO) return { diaSemana:'', diaMes:'', mes:'', anio:'' };
+  const [y,m,d] = fechaISO.split('-').map(Number);
+  const fechaObj = new Date(y, m-1, d);
+  return { diaSemana: DIAS_SEMANA[fechaObj.getDay()], diaMes: d, mes: MESES[m-1], anio: y };
+}
+
+/* Normaliza las métricas de cada red a un pequeño conjunto común
+   (impresiones, interacciones, alcance, clics) para poder agregarlas
+   en el dashboard y los gráficos comparativos entre redes. */
+function metricasNormalizadas(pub){
+  const m = pub.metricas || {};
+  let impresiones=null, interacciones=null, alcance=null, clics=null;
+  if (pub.red==='linkedin'){ impresiones=m.impresiones; interacciones=m.interacciones; clics=m.clics; }
+  else if (pub.red==='x'){ impresiones=m.impresiones; interacciones=m.interacciones; clics=m.clicsEnlace; }
+  else if (pub.red==='instagram'){ impresiones=m.visualizaciones; interacciones=m.interacciones; alcance=m.cuentasAlcanzadas; }
+  else if (pub.red==='youtube'){ interacciones=m.meGusta; }
+  return { impresiones: numOrNull(impresiones), interacciones: numOrNull(interacciones), alcance: numOrNull(alcance), clics: numOrNull(clics) };
+}
+
+function getProyRedesSeleccionadas(){
+  return Array.from(document.querySelectorAll('#config-proyectos .proyRedCheckbox:checked')).map(c=>c.value);
+}
+
+/* --- Formulario de registro de publicaciones --- */
+function poblarSelectProyectoPublicacion(){
+  const sel = document.getElementById('pubProyecto');
+  if (!sel) return;
+  const proyectos = getProyectosNombres();
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">Ninguno / General</option>' + proyectos.map(p=>`<option>${esc(p)}</option>`).join('');
+  if (proyectos.includes(prev)) sel.value = prev;
+  onCambioProyectoPublicacion();
+}
+
+function onCambioProyectoPublicacion(){
+  const sel = document.getElementById('pubProyecto');
+  const tabs = document.getElementById('pubPlatformTabs');
+  if (!sel || !tabs) return;
+  const proyecto = getProyectos().find(p=>p.nombre===sel.value);
+  const activas = (proyecto && proyecto.redesSociales && proyecto.redesSociales.length) ? proyecto.redesSociales : Object.keys(REDES_CONFIG);
+  let redActualVisible = false;
+  tabs.querySelectorAll('.platform-tab').forEach(t=>{
+    const disponible = activas.includes(t.dataset.platform);
+    t.style.display = disponible ? '' : 'none';
+    if (disponible && t.dataset.platform===pubRedActual) redActualVisible = true;
+  });
+  if (!redActualVisible) setPubRed(activas[0] || 'linkedin');
+}
+
+function setPubRed(red, valores){
+  pubRedActual = red;
+  document.querySelectorAll('#pubPlatformTabs .platform-tab').forEach(t=>t.classList.toggle('active', t.dataset.platform===red));
+  renderCamposMetricasPublicacion(red, valores || {});
+}
+
+function renderCamposMetricasPublicacion(red, valores){
+  const cfg = REDES_CONFIG[red];
+  const cont = document.getElementById('pubCamposMetricas');
+  if (!cfg || !cont) return;
+  let filas = '';
+  for (let i=0; i<cfg.campos.length; i+=2){
+    const par = cfg.campos.slice(i, i+2);
+    filas += `<div class="field-row">${par.map(c=>`
+      <div class="field">
+        <label for="pubM_${c.key}">${c.label}</label>
+        <input type="number" id="pubM_${c.key}" min="0" ${c.step?`step="${c.step}"`:''} value="${valores[c.key]!=null?valores[c.key]:''}" oninput="actualizarCalculadasPublicacion()">
+      </div>`).join('')}</div>`;
+  }
+  cont.innerHTML = filas + '<div class="muted small" id="pubCalculadasPreview" style="margin:-6px 0 16px 0;"></div>';
+  actualizarCalculadasPublicacion();
+}
+
+function actualizarCalculadasPublicacion(){
+  const cfg = REDES_CONFIG[pubRedActual];
+  if (!cfg) return;
+  const vals = {};
+  cfg.campos.forEach(c=>{ const el = document.getElementById('pubM_'+c.key); vals[c.key] = el ? (parseFloat(el.value)||0) : 0; });
+  const partes = [];
+  cfg.calculadas.forEach(c=>{
+    const v = c.calc(vals);
+    if (v!=null && isFinite(v)) partes.push(`${c.label}: ${v.toFixed(1)} %`);
+  });
+  if (pubRedActual==='instagram' && (vals.pctSeguidores || vals.pctNoSeguidores)){
+    const sumaPct = (vals.pctSeguidores||0) + (vals.pctNoSeguidores||0);
+    partes.push(`Suma seguidores/no seguidores: ${sumaPct.toFixed(1)} %${Math.abs(sumaPct-100)>3?' (revisa que sume ~100%)':''}`);
+  }
+  const el = document.getElementById('pubCalculadasPreview');
+  if (el) el.textContent = partes.join('   ·   ');
+}
+
+function onCambioFechaPublicacion(){
+  const f = calcularCamposFecha(document.getElementById('pubFecha').value);
+  const el = document.getElementById('pubFechaCalculada');
+  if (el) el.textContent = f.diaSemana ? `${f.diaSemana}, día ${f.diaMes} de ${MESES_CAP[MESES.indexOf(f.mes)]} de ${f.anio}` : '';
+}
+
+function guardarPublicacionRed(){
+  const titulo = document.getElementById('pubTitulo').value.trim();
+  const fecha = document.getElementById('pubFecha').value;
+  if (!titulo){ showToast('Indica el título de la publicación.'); return; }
+  if (!fecha){ showToast('Indica la fecha de publicación.'); return; }
+  const cfg = REDES_CONFIG[pubRedActual];
+  const metricas = {};
+  cfg.campos.forEach(c=>{
+    const raw = document.getElementById('pubM_'+c.key).value;
+    metricas[c.key] = raw==='' ? null : Number(raw);
+  });
+  cfg.calculadas.forEach(c=>{
+    const v = c.calc(metricas);
+    metricas[c.key] = (v!=null && isFinite(v)) ? Number(v.toFixed(2)) : null;
+  });
+  const fc = calcularCamposFecha(fecha);
+  const data = {
+    titulo,
+    enlace: document.getElementById('pubEnlace').value.trim(),
+    proyecto: document.getElementById('pubProyecto').value,
+    red: pubRedActual,
+    fecha,
+    hora: document.getElementById('pubHora').value,
+    diaSemana: fc.diaSemana,
+    diaMes: fc.diaMes,
+    mes: fc.mes,
+    anio: fc.anio,
+    metricas
+  };
+  const publicaciones = getLS(LS.publicacionesRedes);
+  if (publicacionEditId){
+    const idx = publicaciones.findIndex(x=>x.id===publicacionEditId);
+    if (idx>-1) publicaciones[idx] = {...publicaciones[idx], ...data};
+  } else {
+    publicaciones.unshift({ id: uid(), ...data });
+  }
+  setLS(LS.publicacionesRedes, publicaciones);
+  cancelarEdicionPublicacionRed();
+  poblarFiltrosAnalyticsRedes();
+  renderAnalyticsRedes();
+  showToast('Publicación guardada.');
+}
+
+function editarPublicacionRed(id){
+  const pub = getLS(LS.publicacionesRedes).find(x=>x.id===id);
+  if (!pub) return;
+  publicacionEditId = id;
+  document.getElementById('pubProyecto').value = pub.proyecto || '';
+  onCambioProyectoPublicacion();
+  setPubRed(pub.red, pub.metricas);
+  document.getElementById('pubTitulo').value = pub.titulo;
+  document.getElementById('pubEnlace').value = pub.enlace || '';
+  document.getElementById('pubFecha').value = pub.fecha;
+  document.getElementById('pubHora').value = pub.hora || '';
+  onCambioFechaPublicacion();
+  document.getElementById('pubFormTitulo').textContent = 'Editar publicación';
+  document.getElementById('cancelarEdicionPubBtn').style.display = 'inline-flex';
+  goTo('redes','analitica');
+}
+
+function cancelarEdicionPublicacionRed(){
+  publicacionEditId = null;
+  ['pubTitulo','pubEnlace','pubFecha','pubHora'].forEach(id=>{ const el=document.getElementById(id); if (el) el.value=''; });
+  document.getElementById('pubProyecto').value = '';
+  const fc = document.getElementById('pubFechaCalculada'); if (fc) fc.textContent = '';
+  onCambioProyectoPublicacion();
+  setPubRed('linkedin');
+  document.getElementById('pubFormTitulo').textContent = 'Registrar publicación';
+  document.getElementById('cancelarEdicionPubBtn').style.display = 'none';
+}
+
+function eliminarPublicacionRed(id){
+  setLS(LS.publicacionesRedes, getLS(LS.publicacionesRedes).filter(x=>x.id!==id));
+  if (publicacionEditId===id) cancelarEdicionPublicacionRed();
+  poblarFiltrosAnalyticsRedes();
+  renderAnalyticsRedes();
+}
+
+/* --- Filtros y dashboard de analítica --- */
+function poblarFiltrosAnalyticsRedes(){
+  const selProy = document.getElementById('anaFiltroProyecto');
+  if (!selProy) return;
+  const prevProy = selProy.value;
+  const proyectos = getProyectosNombres();
+  selProy.innerHTML = '<option value="">Todos los proyectos</option>' + proyectos.map(p=>`<option>${esc(p)}</option>`).join('');
+  if (proyectos.includes(prevProy)) selProy.value = prevProy;
+
+  const publicaciones = getLS(LS.publicacionesRedes);
+  const anios = [...new Set(publicaciones.map(p=>p.anio).filter(Boolean))].sort((a,b)=>b-a);
+  const selAnio = document.getElementById('anaFiltroAnio');
+  const prevAnio = selAnio.value;
+  selAnio.innerHTML = '<option value="">Todos los años</option>' + anios.map(a=>`<option>${a}</option>`).join('');
+  if (anios.map(String).includes(prevAnio)) selAnio.value = prevAnio;
+}
+
+function limpiarFiltrosAnalyticsRedes(){
+  ['anaFiltroProyecto','anaFiltroRed','anaFiltroAnio','anaFiltroMes','anaFiltroDiaSemana'].forEach(id=>{ const el=document.getElementById(id); if (el) el.value=''; });
+  renderAnalyticsRedes();
+}
+
+function publicacionesFiltradasAnalytics(){
+  const proyecto = document.getElementById('anaFiltroProyecto').value;
+  const red = document.getElementById('anaFiltroRed').value;
+  const anio = document.getElementById('anaFiltroAnio').value;
+  const mes = document.getElementById('anaFiltroMes').value;
+  const diaSemana = document.getElementById('anaFiltroDiaSemana').value;
+  return getLS(LS.publicacionesRedes).filter(p=>{
+    if (proyecto && p.proyecto!==proyecto) return false;
+    if (red && p.red!==red) return false;
+    if (anio && String(p.anio)!==String(anio)) return false;
+    if (mes && p.mes!==mes) return false;
+    if (diaSemana && p.diaSemana!==diaSemana) return false;
+    return true;
+  });
+}
+
+function renderAnalyticsRedes(){
+  if (!document.getElementById('anaFiltroProyecto')) return;
+  const pubs = publicacionesFiltradasAnalytics();
+  renderKpisAnalyticsRedes(pubs);
+  renderResumenProyectoAnalytics(pubs);
+  renderGraficosAnalyticsRedes(pubs);
+  renderTablaPublicacionesRed();
+}
+
+function renderKpisAnalyticsRedes(pubs){
+  const norm = pubs.map(p=>({ p, n: metricasNormalizadas(p) }));
+  const totalImpresiones = sum(norm.map(x=>x.n.impresiones));
+  const totalInteracciones = sum(norm.map(x=>x.n.interacciones));
+  const totalAlcance = sum(norm.map(x=>x.n.alcance));
+  const totalClics = sum(norm.map(x=>x.n.clics));
+  const conImpresiones = norm.filter(x=>x.n.impresiones!=null);
+  const conInteracciones = norm.filter(x=>x.n.interacciones!=null);
+  const mediaImpresiones = conImpresiones.length ? sum(conImpresiones.map(x=>x.n.impresiones))/conImpresiones.length : 0;
+  const mediaInteracciones = conInteracciones.length ? sum(conInteracciones.map(x=>x.n.interacciones))/conInteracciones.length : 0;
+  const tasas = norm.filter(x=>x.n.impresiones && x.n.interacciones!=null).map(x=>x.n.interacciones/x.n.impresiones*100);
+  const tasaMedia = tasas.length ? sum(tasas)/tasas.length : 0;
+
+  let mejorPub = null, mejorScore = -1;
+  norm.forEach(x=>{ const score = x.n.interacciones || 0; if (score>mejorScore){ mejorScore=score; mejorPub=x.p; } });
+
+  const porRed = {};
+  norm.forEach(x=>{
+    const r = x.p.red;
+    if (!porRed[r]) porRed[r] = { interacciones:0, tasaSum:0, tasaCount:0 };
+    porRed[r].interacciones += (x.n.interacciones||0);
+    if (x.n.impresiones && x.n.interacciones!=null){ porRed[r].tasaSum += x.n.interacciones/x.n.impresiones*100; porRed[r].tasaCount++; }
+  });
+  let mejorRed = null, mejorRedValor = -1;
+  Object.keys(porRed).forEach(r=>{
+    const d = porRed[r];
+    const valor = d.tasaCount ? d.tasaSum/d.tasaCount : d.interacciones;
+    if (valor>mejorRedValor){ mejorRedValor=valor; mejorRed=r; }
+  });
+
+  setText('anaStatTotalPubs', pubs.length);
+  setText('anaStatImpresiones', fmtNum(totalImpresiones));
+  setText('anaStatInteracciones', fmtNum(totalInteracciones));
+  setText('anaStatAlcance', fmtNum(totalAlcance));
+  setText('anaStatClics', fmtNum(totalClics));
+  setText('anaStatTasaMedia', tasaMedia.toFixed(1)+' %');
+  setText('anaStatMediaImpresiones', mediaImpresiones.toFixed(1));
+  setText('anaStatMediaInteracciones', mediaInteracciones.toFixed(1));
+  setText('anaStatMejorPub', mejorPub ? mejorPub.titulo : '—');
+  setText('anaStatMejorRed', mejorRed ? REDES_CONFIG[mejorRed].label : '—');
+}
+
+function renderResumenProyectoAnalytics(pubs){
+  const proyecto = document.getElementById('anaFiltroProyecto').value;
+  const panel = document.getElementById('anaResumenProyecto');
+  if (!proyecto){ panel.style.display = 'none'; return; }
+  panel.style.display = 'block';
+
+  const redesUsadas = [...new Set(pubs.map(p=>p.red))];
+  const porRedCount = {};
+  pubs.forEach(p=>{ porRedCount[p.red] = (porRedCount[p.red]||0)+1; });
+  let redMasActiva = null, maxCount = -1;
+  Object.keys(porRedCount).forEach(r=>{ if (porRedCount[r]>maxCount){ maxCount=porRedCount[r]; redMasActiva=r; } });
+
+  const porMes = {};
+  pubs.forEach(p=>{ const clave = `${p.anio}-${String(MESES.indexOf(p.mes)+1).padStart(2,'0')}`; porMes[clave]=(porMes[clave]||0)+1; });
+  let mejorMesClave = null, mejorMesCount = -1;
+  Object.keys(porMes).forEach(k=>{ if (porMes[k]>mejorMesCount){ mejorMesCount=porMes[k]; mejorMesClave=k; } });
+  let mejorMesTexto = '';
+  if (mejorMesClave){
+    const [y,m] = mejorMesClave.split('-');
+    mejorMesTexto = `${MESES_CAP[Number(m)-1]} ${y}`;
+  }
+
+  const norm = pubs.map(p=>metricasNormalizadas(p));
+  const totalImpresiones = sum(norm.map(n=>n.impresiones));
+  const totalInteracciones = sum(norm.map(n=>n.interacciones));
+
+  let mejorPub = null, mejorScore = -1;
+  pubs.forEach(p=>{ const n = metricasNormalizadas(p); const score = n.interacciones||0; if (score>mejorScore){ mejorScore=score; mejorPub=p; } });
+
+  document.getElementById('anaResumenProyectoBody').innerHTML = `
+    <div class="grid-3">
+      <div><div class="stat-num" style="font-size:22px;">${pubs.length}</div><div class="stat-label">Publicaciones</div></div>
+      <div><div class="stat-num" style="font-size:22px;">${fmtNum(totalImpresiones)}</div><div class="stat-label">Impresiones acumuladas</div></div>
+      <div><div class="stat-num" style="font-size:22px;">${fmtNum(totalInteracciones)}</div><div class="stat-label">Interacciones acumuladas</div></div>
+    </div>
+    <div style="margin-top:16px;">
+      ${redesUsadas.length ? redesUsadas.map(r=>`<span class="tag tag-teal" style="margin-right:4px;">${REDES_CONFIG[r].label}</span>`).join('') : '<span class="muted small">Todavía no hay publicaciones registradas para este proyecto.</span>'}
+    </div>
+    ${(redMasActiva||mejorPub||mejorMesTexto) ? `<div class="small muted" style="margin-top:12px;">
+      ${redMasActiva?`Red con mayor actividad: <strong>${REDES_CONFIG[redMasActiva].label}</strong>. `:''}
+      ${mejorPub?`Mejor publicación: <strong>${esc(mejorPub.titulo)}</strong>. `:''}
+      ${mejorMesTexto?`Mejor mes: <strong>${mejorMesTexto}</strong> (${mejorMesCount} publicación${mejorMesCount===1?'':'es'}).`:''}
+    </div>` : ''}`;
+}
+
+function dibujarLineChart(canvasId, ref, labels, data, label){
+  const ctx = document.getElementById(canvasId);
+  if (!ctx) return ref;
+  if (ref) ref.destroy();
+  return new Chart(ctx, {
+    type:'line',
+    data:{ labels, datasets:[{ label, data, borderColor:'#1bb8a6', backgroundColor:'rgba(27,184,166,0.12)', fill:true, tension:0.25, pointRadius:3 }] },
+    options:{ responsive:true, plugins:{ legend:{display:false} }, scales:{ y:{ beginAtZero:true, ticks:{precision:0} } } }
+  });
+}
+
+function dibujarBarChart(canvasId, ref, labels, data, label, colores){
+  const ctx = document.getElementById(canvasId);
+  if (!ctx) return ref;
+  if (ref) ref.destroy();
+  return new Chart(ctx, {
+    type:'bar',
+    data:{ labels, datasets:[{ label, data, backgroundColor: colores || '#1bb8a6' }] },
+    options:{ responsive:true, plugins:{ legend:{display:false} }, scales:{ y:{ beginAtZero:true, ticks:{precision:0} } } }
+  });
+}
+
+function renderGraficosAnalyticsRedes(pubs){
+  if (!document.getElementById('chartAnaImpresiones')) return;
+  const claveMes = p => `${p.anio}-${String(MESES.indexOf(p.mes)+1).padStart(2,'0')}`;
+  const claves = [...new Set(pubs.map(claveMes))].sort();
+  const labelsMes = claves.map(c=>{ const [y,m]=c.split('-'); return `${MESES_CAP[Number(m)-1].slice(0,3)} ${y}`; });
+  const impresionesPorMes = claves.map(c=> sum(pubs.filter(p=>claveMes(p)===c).map(p=>metricasNormalizadas(p).impresiones)));
+  const interaccionesPorMes = claves.map(c=> sum(pubs.filter(p=>claveMes(p)===c).map(p=>metricasNormalizadas(p).interacciones)));
+  const cantidadPorMes = claves.map(c=> pubs.filter(p=>claveMes(p)===c).length);
+
+  chartAnaImpresionesRef = dibujarLineChart('chartAnaImpresiones', chartAnaImpresionesRef, labelsMes, impresionesPorMes, 'Impresiones');
+  chartAnaInteraccionesRef = dibujarLineChart('chartAnaInteracciones', chartAnaInteraccionesRef, labelsMes, interaccionesPorMes, 'Interacciones');
+  chartAnaPublicacionesMesRef = dibujarBarChart('chartAnaPublicacionesMes', chartAnaPublicacionesMesRef, labelsMes, cantidadPorMes, 'Publicaciones');
+
+  const redesKeys = Object.keys(REDES_CONFIG);
+  const interaccionesPorRed = redesKeys.map(r=> sum(pubs.filter(p=>p.red===r).map(p=>metricasNormalizadas(p).interacciones)));
+  chartAnaRedesRef = dibujarBarChart('chartAnaRedes', chartAnaRedesRef, redesKeys.map(r=>REDES_CONFIG[r].label), interaccionesPorRed, 'Interacciones', redesKeys.map(r=>COLORES_RED[r]));
+
+  const cantidadPorDia = DIAS_SEMANA_ORDEN.map(d=> pubs.filter(p=>p.diaSemana===d).length);
+  chartAnaDiaSemanaRef = dibujarBarChart('chartAnaDiaSemana', chartAnaDiaSemanaRef, DIAS_SEMANA_ORDEN, cantidadPorDia, 'Publicaciones');
+
+  const horas = Array.from({length:24}, (_,i)=>i);
+  const cantidadPorHora = horas.map(h=> pubs.filter(p=> p.hora && Number(p.hora.split(':')[0])===h).length);
+  chartAnaHoraRef = dibujarBarChart('chartAnaHora', chartAnaHoraRef, horas.map(h=>`${h}h`), cantidadPorHora, 'Publicaciones');
+}
+
+/* --- Tabla general de publicaciones --- */
+function ordenarTablaPublicaciones(campo){
+  if (pubSortCampo===campo){ pubSortDir = pubSortDir==='asc' ? 'desc' : 'asc'; }
+  else { pubSortCampo = campo; pubSortDir = 'desc'; }
+  renderTablaPublicacionesRed();
+}
+
+function renderTablaPublicacionesRed(){
+  const thead = document.getElementById('tablaPublicacionesRedHead');
+  const tbody = document.querySelector('#tablaPublicacionesRed tbody');
+  if (!thead || !tbody) return;
+  const redFiltro = document.getElementById('anaFiltroRed').value;
+  const busqueda = (document.getElementById('pubBuscar').value||'').toLowerCase().trim();
+  let pubs = publicacionesFiltradasAnalytics();
+  if (busqueda) pubs = pubs.filter(p=> p.titulo.toLowerCase().includes(busqueda));
+
+  const flechaOrden = campo => pubSortCampo===campo ? `<i class="fa-solid fa-arrow-${pubSortDir==='asc'?'up':'down'}"></i>` : '';
+
+  let columnas;
+  if (redFiltro && REDES_CONFIG[redFiltro]){
+    const cfg = REDES_CONFIG[redFiltro];
+    const todosCampos = cfg.campos.concat(cfg.calculadas);
+    columnas = cfg.tablaCols.map(k=>{
+      const c = todosCampos.find(x=>x.key===k);
+      return { key:k, label: c ? c.label : k };
+    });
+  } else {
+    columnas = [
+      { key:'impresiones', label:'Impresiones' },
+      { key:'interacciones', label:'Interacciones' },
+      { key:'alcance', label:'Alcance' },
+      { key:'clics', label:'Clics' }
+    ];
+  }
+
+  thead.innerHTML = `<tr>
+    <th class="th-sortable" onclick="ordenarTablaPublicaciones('fecha')">Fecha ${flechaOrden('fecha')}</th>
+    <th>Título</th>
+    <th>Proyecto</th>
+    ${!redFiltro?'<th>Red</th>':''}
+    ${columnas.map(c=>{
+      const esOrdenable = c.key==='impresiones' || c.key==='interacciones';
+      return `<th ${esOrdenable?`class="th-sortable" onclick="ordenarTablaPublicaciones('${c.key}')"`:''}>${c.label} ${esOrdenable?flechaOrden(c.key):''}</th>`;
+    }).join('')}
+    <th></th>
+  </tr>`;
+
+  if (!pubs.length){
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="${4+(!redFiltro?1:0)+columnas.length}">Todavía no hay publicaciones registradas con estos filtros.</td></tr>`;
+    return;
+  }
+
+  const filas = pubs.map(p=>({ p, n: metricasNormalizadas(p) }));
+  filas.sort((a,b)=>{
+    let va, vb;
+    if (pubSortCampo==='fecha'){ va = a.p.fecha||''; vb = b.p.fecha||''; }
+    else { va = a.n[pubSortCampo]; va = va==null?-Infinity:va; vb = b.n[pubSortCampo]; vb = vb==null?-Infinity:vb; }
+    if (va<vb) return pubSortDir==='asc' ? -1 : 1;
+    if (va>vb) return pubSortDir==='asc' ? 1 : -1;
+    return 0;
+  });
+
+  tbody.innerHTML = filas.map(({p})=>{
+    const cols = columnas.map(c=>{
+      let val;
+      if (!redFiltro){ val = metricasNormalizadas(p)[c.key]; }
+      else { val = p.metricas ? p.metricas[c.key] : null; }
+      if (val==null || val===''){ return '<td>—</td>'; }
+      if (c.key.toLowerCase().startsWith('tasa') || c.key.toLowerCase().startsWith('pct')) return `<td>${Number(val).toFixed(1)} %</td>`;
+      return `<td>${fmtNum(Number(val))}</td>`;
+    }).join('');
+    return `<tr>
+      <td>${fmtFecha(p.fecha)}${p.hora?` <span class="muted small">${esc(p.hora)}</span>`:''}</td>
+      <td>${p.enlace?`<a href="${esc(p.enlace)}" target="_blank" rel="noopener">${esc(p.titulo)}</a>`:esc(p.titulo)}</td>
+      <td>${p.proyecto?esc(p.proyecto):'<span class="muted">—</span>'}</td>
+      ${!redFiltro?`<td><span class="tag tag-teal">${REDES_CONFIG[p.red]?REDES_CONFIG[p.red].label:esc(p.red)}</span></td>`:''}
+      ${cols}
+      <td>
+        <span class="btn-ghost" onclick="editarPublicacionRed('${p.id}')"><i class="fa-solid fa-pen"></i></span>
+        <span class="btn-ghost" onclick="eliminarPublicacionRed('${p.id}')"><i class="fa-solid fa-trash"></i></span>
+      </td>
+    </tr>`;
+  }).join('');
 }
 
 /* =======================================================================
