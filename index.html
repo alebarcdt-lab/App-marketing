@@ -394,6 +394,92 @@
 
   /* ---------- Misc ---------- */
   .section-gap{margin-top:30px;}
+
+  /* ---------- Dashboard: saludo, KPIs, actividad ---------- */
+  .hero-greeting{
+    display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;
+    padding:6px 0 26px 0;margin-bottom:8px;
+    border-bottom:1px solid var(--line);
+  }
+  .hero-greeting h2{font-size:34px;font-weight:800;margin:0;color:var(--ink-900);letter-spacing:-0.3px;}
+  .hero-fecha{font-size:13px;color:var(--ink-500);margin-top:6px;text-transform:capitalize;}
+  .hero-resumen{font-size:13px;color:var(--teal-700);background:var(--teal-100);padding:11px 18px;border-radius:8px;max-width:340px;line-height:1.5;}
+
+  .kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;}
+  @media (max-width:1200px){.kpi-grid{grid-template-columns:repeat(3,1fr);}}
+  @media (max-width:600px){.kpi-grid{grid-template-columns:repeat(2,1fr);}}
+  .kpi-grid .stat-num{font-size:26px;}
+
+  .activity-list{display:flex;flex-direction:column;}
+  .activity-item{display:flex;align-items:flex-start;gap:11px;padding:10px 0;border-bottom:1px solid var(--line);}
+  .activity-item:last-child{border-bottom:none;}
+  .activity-item .ai-icon{width:28px;height:28px;border-radius:50%;background:var(--teal-100);color:var(--teal-700);display:flex;align-items:center;justify-content:center;font-size:11.5px;flex-shrink:0;}
+  .activity-item .ai-body{flex:1;min-width:0;}
+  .activity-item .ai-title{font-size:12.5px;color:var(--ink-900);font-weight:600;}
+  .activity-item .ai-meta{font-size:11.5px;color:var(--ink-500);margin-top:3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .activity-item .ai-link{font-size:11.5px;font-weight:600;color:var(--teal-700);flex-shrink:0;text-decoration:none;cursor:pointer;background:none;border:none;}
+  .activity-item .ai-link:hover{text-decoration:underline;}
+
+  .quick-actions-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  @media (max-width:900px){.quick-actions-grid{grid-template-columns:repeat(2,1fr);}}
+  .quick-action{
+    display:flex;flex-direction:column;align-items:flex-start;gap:10px;
+    border:1px solid var(--line);border-radius:8px;padding:14px 16px;
+    background:#fff;cursor:pointer;text-align:left;font-family:inherit;
+    transition:border-color .15s ease, transform .15s ease;
+  }
+  .quick-action:hover{border-color:var(--teal-500);transform:translateY(-2px);}
+  .quick-action i{font-size:16px;color:var(--teal-700);}
+  .quick-action span{font-size:12.5px;font-weight:600;color:var(--ink-900);line-height:1.4;}
+
+  /* ---------- Topbar: búsqueda global y notificaciones ---------- */
+  .topbar-actions{display:flex;align-items:center;gap:12px;flex:1;justify-content:flex-end;flex-wrap:wrap;}
+  .global-search{position:relative;width:280px;max-width:100%;}
+  .global-search i.fa-magnifying-glass{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--ink-300);font-size:12px;}
+  .global-search input{width:100%;padding:9px 12px 9px 32px;border:1px solid var(--line-strong);border-radius:20px;font-size:12.5px;font-family:inherit;background:#fff;}
+  .global-search input:focus{outline:none;border-color:var(--teal-500);}
+  .gs-results{
+    position:absolute;top:calc(100% + 8px);left:0;width:340px;max-width:80vw;max-height:420px;overflow-y:auto;
+    background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:0 10px 26px rgba(0,0,0,0.14);
+    display:none;z-index:60;padding:6px;
+  }
+  .gs-results.open{display:block;}
+  .gs-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:6px;cursor:pointer;}
+  .gs-item:hover{background:var(--canvas);}
+  .gs-icon{width:26px;height:26px;border-radius:50%;background:var(--teal-100);color:var(--teal-700);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;}
+  .gs-title{font-size:12.5px;font-weight:600;color:var(--ink-900);}
+  .gs-meta{font-size:11px;color:var(--ink-500);margin-top:1px;}
+  .gs-empty{padding:14px 10px;font-size:12.5px;color:var(--ink-500);text-align:center;}
+
+  .notif-wrap{position:relative;}
+  .notif-bell{
+    position:relative;width:36px;height:36px;border-radius:50%;border:1px solid var(--line-strong);
+    background:#fff;color:var(--ink-700);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;flex-shrink:0;
+  }
+  .notif-bell:hover{border-color:var(--teal-500);}
+  .notif-badge{
+    position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;padding:0 4px;border-radius:10px;
+    background:var(--orange-500);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;
+  }
+  .notif-panel{
+    position:absolute;top:calc(100% + 8px);right:0;width:320px;max-height:420px;overflow-y:auto;
+    background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:0 10px 26px rgba(0,0,0,0.14);
+    display:none;z-index:60;padding:6px;
+  }
+  .notif-panel.open{display:block;}
+  .notif-item{display:flex;align-items:flex-start;gap:10px;padding:10px;border-radius:6px;cursor:pointer;}
+  .notif-item:hover{background:var(--canvas);}
+  .notif-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11.5px;flex-shrink:0;background:var(--teal-100);color:var(--teal-700);}
+  .notif-item.notif-urgente .notif-icon{background:var(--orange-100);color:#b1521a;}
+  .notif-item.notif-aviso .notif-icon{background:#fdf3d8;color:#8a6b0a;}
+  .notif-text{font-size:12.5px;font-weight:600;color:var(--ink-900);}
+  .notif-meta{font-size:11px;color:var(--ink-500);margin-top:2px;}
+  .notif-empty{padding:16px 10px;font-size:12.5px;color:var(--ink-500);text-align:center;}
+  @media (max-width:960px){
+    .topbar{flex-wrap:wrap;}
+    .topbar-actions{width:100%;justify-content:flex-start;}
+    .global-search{width:100%;}
+  }
   .divider{height:1px;background:var(--line);margin:24px 0;}
   .muted{color:var(--ink-500);}
   .small{font-size:12px;}
@@ -436,6 +522,7 @@
       <div class="nav-item" data-view="email"><i class="fa-solid fa-envelope-open-text"></i> Email marketing y CRM</div>
       <div class="nav-item" data-view="redes"><i class="fa-solid fa-share-nodes"></i> Redes sociales</div>
       <div class="nav-item" data-view="propios"><i class="fa-solid fa-clipboard-list"></i> Organizador de eventos propios</div>
+      <div class="nav-item" data-view="enlaces"><i class="fa-solid fa-link"></i> Enlaces</div>
       <div class="nav-item" data-view="config"><i class="fa-solid fa-gear"></i> Configuración</div>
     </div>
     <div class="sidebar-foot">Uso interno — Comunicación y Marketing</div>
@@ -447,6 +534,20 @@
       <div>
         <h1 id="topbarTitle">Inicio</h1>
         <div class="desc" id="topbarDesc">Resumen general de la actividad de marketing registrada en el hub.</div>
+      </div>
+      <div class="topbar-actions">
+        <div class="global-search" id="globalSearchWrap">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="globalSearchInput" placeholder="Buscar en todo el hub..." oninput="buscarGlobal(this.value)" onfocus="if(this.value) buscarGlobal(this.value)" autocomplete="off">
+          <div class="gs-results" id="globalSearchResults"></div>
+        </div>
+        <div class="notif-wrap" id="notifWrap">
+          <button class="notif-bell" onclick="toggleNotificaciones(event)" aria-label="Notificaciones">
+            <i class="fa-solid fa-bell"></i>
+            <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+          </button>
+          <div class="notif-panel" id="notifPanel"></div>
+        </div>
       </div>
       <div class="topbar-mobile-toggle" id="mobileToggle"><i class="fa-solid fa-bars"></i></div>
     </div>
@@ -551,6 +652,42 @@
         </div>
       </section>
 
+      <!-- ============ ENLACES ============ -->
+      <section class="module-view" id="view-enlaces">
+        <div class="panel">
+          <div class="panel-title">Añadir enlace o ruta</div>
+          <div class="panel-subtitle">Guarda accesos rápidos a webs o a carpetas y archivos del ordenador.</div>
+          <div class="field-row">
+            <div class="field" style="flex:2;">
+              <label for="enlaceTitulo">Título</label>
+              <input type="text" id="enlaceTitulo" placeholder="Ej. Carpeta de fotos del evento anual">
+            </div>
+            <div class="field">
+              <label for="enlaceTipo">Tipo</label>
+              <select id="enlaceTipo">
+                <option value="web">Web</option>
+                <option value="ordenador">Ordenador</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="enlaceUrl">URL o ruta</label>
+            <input type="text" id="enlaceUrl" placeholder="https://... o C:\Usuarios\...\Carpeta">
+          </div>
+          <button class="btn" onclick="guardarEnlace()"><i class="fa-solid fa-plus"></i> Guardar</button>
+        </div>
+
+        <div class="panel">
+          <div class="flex-between">
+            <div class="panel-title" style="margin-bottom:0;">Enlaces guardados</div>
+            <div class="field" style="min-width:220px;margin-bottom:0;">
+              <input type="text" id="enlaceSearch" placeholder="Buscar..." oninput="renderEnlaces()">
+            </div>
+          </div>
+        </div>
+        <div id="listaEnlaces"></div>
+      </section>
+
       <!-- ============ CONFIGURACIÓN ============ -->
       <section class="module-view" id="view-config">
         <div class="tabbar">
@@ -574,16 +711,30 @@
                   <input type="text" id="proyAcronimo" placeholder="Ej. RESILIENT">
                 </div>
                 <div class="field">
-                  <label for="proyPrograma">Programa de financiación</label>
+                  <label for="proyPrograma">Programa</label>
                   <select id="proyPrograma">
                     <option value="">Sin especificar</option>
-                    <option>FEDER</option>
-                    <option>Horizonte Europa</option>
+                    <option>Europeo</option>
                     <option>Nacional</option>
-                    <option>Interno / propio</option>
+                    <option>Regional</option>
+                    <option>Interno</option>
                     <option>Otro</option>
                   </select>
                 </div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="proyFechaInicio">Fecha de inicio</label>
+                  <input type="date" id="proyFechaInicio">
+                </div>
+                <div class="field">
+                  <label for="proyFechaFin">Fecha de fin</label>
+                  <input type="date" id="proyFechaFin">
+                </div>
+              </div>
+              <div class="field">
+                <label for="proyWeb">Web del proyecto (opcional)</label>
+                <input type="text" id="proyWeb" placeholder="https://proyectoresilient.es">
               </div>
               <div class="field">
                 <label for="proyEstado">Estado</label>
@@ -634,7 +785,15 @@
 
       <!-- ============ INICIO ============ -->
       <section class="module-view active" id="view-inicio">
-        <div class="grid-3">
+        <div class="hero-greeting">
+          <div>
+            <h2 id="heroSaludo">Buenos días</h2>
+            <div class="hero-fecha" id="heroFecha"></div>
+          </div>
+          <div class="hero-resumen" id="heroResumen"></div>
+        </div>
+
+        <div class="kpi-grid">
           <div class="panel panel-accent">
             <div class="stat-block accent">
               <div class="stat-num" id="statEventos">0</div>
@@ -643,36 +802,80 @@
           </div>
           <div class="panel panel-accent">
             <div class="stat-block accent">
+              <div class="stat-num" id="statTareasPendientes">0</div>
+              <div class="stat-label">Tareas pendientes</div>
+            </div>
+          </div>
+          <div class="panel panel-accent">
+            <div class="stat-block accent">
               <div class="stat-num" id="statMantenimiento">0</div>
-              <div class="stat-label">Tareas de mantenimiento pendientes</div>
+              <div class="stat-label">Mantenimiento pendiente</div>
+            </div>
+          </div>
+          <div class="panel panel-accent">
+            <div class="stat-block accent">
+              <div class="stat-num" id="statProximasPublicaciones">0</div>
+              <div class="stat-label">Publicaciones en 7 días</div>
             </div>
           </div>
           <div class="panel panel-accent">
             <div class="stat-block accent">
               <div class="stat-num" id="statInscritos">0</div>
-              <div class="stat-label">Inscritos totales en eventos propios</div>
+              <div class="stat-label">Inscritos en eventos propios</div>
             </div>
+          </div>
+          <div class="panel panel-accent">
+            <div class="stat-block accent">
+              <div class="stat-num" id="statProyectosActivos">0</div>
+              <div class="stat-label">Proyectos activos</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2 section-gap">
+          <div class="panel">
+            <div class="panel-title">Tareas más urgentes</div>
+            <div class="panel-subtitle">Las tuyas pendientes, ordenadas por fecha límite.</div>
+            <div class="activity-list" id="listaTareasUrgentes"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Próximas publicaciones</div>
+            <div class="panel-subtitle">Calendario editorial en los próximos 7 días.</div>
+            <div class="activity-list" id="listaProximasPublicaciones"></div>
+          </div>
+        </div>
+
+        <div class="grid-2 section-gap">
+          <div class="panel">
+            <div class="panel-title">Actividad reciente</div>
+            <div class="panel-subtitle">Lo último añadido en cada área del hub.</div>
+            <div class="activity-list" id="listaActividadReciente"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-title">Mantenimiento de webs</div>
+            <div class="panel-subtitle">Progreso del checklist periódico.</div>
+            <div id="progresoMantenimiento"></div>
           </div>
         </div>
 
         <div class="panel section-gap">
           <div class="panel-title">Accesos directos</div>
           <div class="panel-subtitle">Ir directamente a una tarea habitual.</div>
-          <div class="btn-row">
-            <button class="btn btn-secondary" onclick="goTo('config','proyectos')"><i class="fa-solid fa-diagram-project"></i> Registrar un proyecto</button>
-            <button class="btn btn-secondary" onclick="goTo('tareas','lista')"><i class="fa-solid fa-list-check"></i> Añadir una tarea</button>
-            <button class="btn btn-secondary" onclick="goTo('eventos','registro')"><i class="fa-solid fa-plus"></i> Registrar asistencia a un evento</button>
-            <button class="btn btn-secondary" onclick="goTo('webs','snippets')"><i class="fa-solid fa-code"></i> Copiar un snippet de web</button>
-            <button class="btn btn-secondary" onclick="goTo('webs','estructura')"><i class="fa-solid fa-sitemap"></i> Definir estructura de una web de proyecto</button>
-            <button class="btn btn-secondary" onclick="goTo('email','utm')"><i class="fa-solid fa-link"></i> Generar un enlace UTM</button>
-            <button class="btn btn-secondary" onclick="goTo('email','seguimiento')"><i class="fa-solid fa-paper-plane"></i> Registrar un envío de email</button>
-            <button class="btn btn-secondary" onclick="goTo('redes','calendario')"><i class="fa-solid fa-calendar-days"></i> Abrir calendario editorial</button>
+          <div class="quick-actions-grid">
+            <button class="quick-action" onclick="goTo('config','proyectos')"><i class="fa-solid fa-diagram-project"></i><span>Registrar un proyecto</span></button>
+            <button class="quick-action" onclick="goTo('config','sectores')"><i class="fa-solid fa-industry"></i><span>Añadir un sector</span></button>
+            <button class="quick-action" onclick="goTo('tareas','lista')"><i class="fa-solid fa-list-check"></i><span>Añadir una tarea</span></button>
+            <button class="quick-action" onclick="goTo('eventos','registro')"><i class="fa-solid fa-plus"></i><span>Registrar asistencia a un evento</span></button>
+            <button class="quick-action" onclick="goTo('webs','snippets')"><i class="fa-solid fa-code"></i><span>Copiar un snippet de web</span></button>
+            <button class="quick-action" onclick="goTo('webs','estructura')"><i class="fa-solid fa-sitemap"></i><span>Definir estructura de una web</span></button>
+            <button class="quick-action" onclick="goTo('email','utm')"><i class="fa-solid fa-link"></i><span>Generar un enlace UTM</span></button>
+            <button class="quick-action" onclick="goTo('email','seguimiento')"><i class="fa-solid fa-paper-plane"></i><span>Registrar un envío de email</span></button>
           </div>
         </div>
 
         <div class="panel section-gap">
           <div class="panel-title">Sobre este hub</div>
-          <div class="panel-subtitle" style="margin-bottom:0;">Esta herramienta centraliza cinco áreas de trabajo del equipo de Comunicación y Marketing: memoria anual de eventos, gestión de las webs de proyecto, email marketing, planificación de redes sociales y organización de eventos propios. Los datos introducidos se guardan en este mismo navegador.</div>
+          <div class="panel-subtitle" style="margin-bottom:0;">Esta herramienta centraliza el trabajo del equipo de Comunicación y Marketing: tareas, memoria anual de eventos, gestión de las webs de proyecto, email marketing, planificación de redes sociales y organización de eventos propios, con proyectos y sectores compartidos desde Configuración. Los datos introducidos se guardan en este mismo navegador.</div>
         </div>
       </section>
 
@@ -1061,6 +1264,7 @@
       <section class="module-view" id="view-redes">
         <div class="tabbar">
           <button class="tab-btn active" data-tab="preview" onclick="switchTab('redes','preview')">Previsualizador de posts</button>
+          <button class="tab-btn" data-tab="ideas" onclick="switchTab('redes','ideas')">Banco de ideas</button>
           <button class="tab-btn" data-tab="calendario" onclick="switchTab('redes','calendario')">Calendario editorial</button>
           <button class="tab-btn" data-tab="lista" onclick="switchTab('redes','lista')">Publicaciones programadas</button>
         </div>
@@ -1096,6 +1300,59 @@
               <div class="panel-title">Previsualización</div>
               <div class="panel-subtitle" id="postPreviewLabel">Así se verá en LinkedIn.</div>
               <div id="postPreviewMock"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Banco de ideas -->
+        <div class="tab-pane" id="redes-ideas">
+          <div class="grid-2">
+            <div class="panel">
+              <div class="panel-title" id="ideaFormTitulo">Añadir idea</div>
+              <div class="panel-subtitle">Guarda ocurrencias de contenido para tenerlas listas cuando toque planificar.</div>
+              <div class="field">
+                <label for="ideaTitulo">Título</label>
+                <input type="text" id="ideaTitulo" placeholder="Ej. Vídeo corto explicando el proyecto RESILIENT">
+              </div>
+              <div class="field">
+                <label for="ideaDescripcion">Desarrollo (opcional)</label>
+                <textarea id="ideaDescripcion" placeholder="Formato, mensaje clave, referencias..."></textarea>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="ideaPlataforma">Plataforma</label>
+                  <select id="ideaPlataforma">
+                    <option value="">Cualquiera</option>
+                    <option>LinkedIn</option>
+                    <option>X</option>
+                    <option>Instagram</option>
+                    <option>YouTube</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="ideaProyecto">Proyecto relacionado (opcional)</label>
+                  <select id="ideaProyecto"><option value="">Ninguno / General</option></select>
+                </div>
+              </div>
+              <div class="btn-row">
+                <button class="btn" onclick="guardarIdea()"><i class="fa-solid fa-floppy-disk"></i> Guardar idea</button>
+                <button class="btn btn-secondary" id="cancelarEdicionIdeaBtn" style="display:none;" onclick="cancelarEdicionIdea()">Cancelar edición</button>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="flex-between">
+                <div class="panel-title" style="margin-bottom:0;">Ideas guardadas</div>
+                <div class="field" style="min-width:180px;margin-bottom:0;">
+                  <select id="ideaFiltroEstado" onchange="renderIdeas()">
+                    <option value="">Todos los estados</option>
+                    <option>Idea</option>
+                    <option>En preparación</option>
+                    <option>Usada</option>
+                  </select>
+                </div>
+              </div>
+              <div id="listaIdeas" style="margin-top:14px;"></div>
             </div>
           </div>
         </div>
@@ -1347,7 +1604,9 @@ const LS = {
   estructuraWebs: 'cidautHub_estructuraWebs',
   emailsEnviados: 'cidautHub_emailsEnviados',
   tareas: 'cidautHub_tareas',
-  sectores: 'cidautHub_sectores'
+  sectores: 'cidautHub_sectores',
+  ideas: 'cidautHub_ideas',
+  enlaces: 'cidautHub_enlaces'
 };
 
 function getLS(key){ try{ return JSON.parse(localStorage.getItem(key)) || []; }catch(e){ return []; } }
@@ -1393,6 +1652,7 @@ const TOPBAR_TEXT = {
   email:    ['Email marketing y CRM', 'Previsualiza el HTML de tus newsletters, genera enlaces UTM y lleva el seguimiento de los envíos realizados.'],
   redes:    ['Redes sociales', 'Simula cómo se verán tus publicaciones y planifica el calendario editorial del equipo.'],
   propios:  ['Organizador de eventos propios', 'Checklist de logística por fases y control de inscritos para los eventos organizados por CIDAUT.'],
+  enlaces:  ['Enlaces', 'Accesos rápidos guardados a webs y a carpetas o archivos del ordenador.'],
   config:   ['Configuración', 'Gestiona los proyectos y los sectores compartidos en todo el hub.']
 };
 
@@ -1463,6 +1723,7 @@ function refrescarSelectsProyecto(){
   poblarSelectProyectoRegistro();
   poblarSelectProyectoEnvio();
   poblarMemoriaProyectoFilter();
+  poblarSelectProyectoIdea();
 }
 
 function guardarProyecto(){
@@ -1471,10 +1732,19 @@ function guardarProyecto(){
   const proyectos = getProyectos();
   const duplicado = proyectos.some(p=>p.nombre===nombre && p.id!==proyectoEditId);
   if (duplicado){ showToast('Ya existe un proyecto con ese nombre.'); return; }
+  const fechaInicio = document.getElementById('proyFechaInicio').value;
+  const fechaFin = document.getElementById('proyFechaFin').value;
+  if (fechaInicio && fechaFin && fechaFin < fechaInicio){
+    showToast('La fecha de fin no puede ser anterior a la fecha de inicio.');
+    return;
+  }
   const data = {
     nombre,
     acronimo: document.getElementById('proyAcronimo').value.trim(),
     programa: document.getElementById('proyPrograma').value,
+    fechaInicio,
+    fechaFin,
+    web: document.getElementById('proyWeb').value.trim(),
     estado: document.getElementById('proyEstado').value,
     descripcion: document.getElementById('proyDescripcion').value.trim()
   };
@@ -1498,6 +1768,9 @@ function editarProyecto(id){
   document.getElementById('proyNombre').value = p.nombre;
   document.getElementById('proyAcronimo').value = p.acronimo||'';
   document.getElementById('proyPrograma').value = p.programa||'';
+  document.getElementById('proyFechaInicio').value = p.fechaInicio||'';
+  document.getElementById('proyFechaFin').value = p.fechaFin||'';
+  document.getElementById('proyWeb').value = p.web||'';
   document.getElementById('proyEstado').value = p.estado||'Activo';
   document.getElementById('proyDescripcion').value = p.descripcion||'';
   document.getElementById('proyectoFormTitulo').textContent = 'Editar proyecto';
@@ -1507,7 +1780,7 @@ function editarProyecto(id){
 
 function cancelarEdicionProyecto(){
   proyectoEditId = null;
-  ['proyNombre','proyAcronimo','proyDescripcion'].forEach(id=>document.getElementById(id).value='');
+  ['proyNombre','proyAcronimo','proyFechaInicio','proyFechaFin','proyWeb','proyDescripcion'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('proyPrograma').value = '';
   document.getElementById('proyEstado').value = 'Activo';
   document.getElementById('proyectoFormTitulo').textContent = 'Registrar proyecto';
@@ -1526,9 +1799,12 @@ function renderProyectos(){
   const wrap = document.getElementById('listaProyectos');
   if (!proyectos.length){
     wrap.innerHTML = '<p class="muted small">Todavía no hay proyectos registrados. Añade el primero con el formulario.</p>';
+    updateDashboardStats();
     return;
   }
-  wrap.innerHTML = proyectos.map(p=>`
+  wrap.innerHTML = proyectos.map(p=>{
+    const rango = (p.fechaInicio || p.fechaFin) ? fmtRangoFecha({fecha:p.fechaInicio, fechaFin:p.fechaFin}) : '';
+    return `
     <div class="panel" style="margin-bottom:12px;">
       <div class="snippet-head">
         <div>
@@ -1543,8 +1819,14 @@ function renderProyectos(){
           <span class="btn-ghost" onclick="eliminarProyecto('${p.id}')"><i class="fa-solid fa-trash"></i></span>
         </div>
       </div>
+      <div class="small muted" style="margin-top:8px;">
+        ${rango?`<span><i class="fa-regular fa-calendar"></i> ${rango}</span>`:''}
+        ${p.web?`<span style="margin-left:${rango?'14px':'0'};"><i class="fa-solid fa-globe"></i> <a href="${esc(p.web)}" target="_blank" rel="noopener">${esc(p.web)}</a></span>`:''}
+      </div>
       ${p.descripcion?`<p style="font-size:12.5px;color:var(--ink-700);white-space:pre-wrap;margin-top:10px;">${esc(p.descripcion)}</p>`:''}
-    </div>`).join('');
+    </div>`;
+  }).join('');
+  updateDashboardStats();
 }
 
 function poblarSelectProyectoRegistro(){
@@ -1736,6 +2018,7 @@ function renderTareas(){
   renderKanban();
   renderCalendarTareas();
   renderGanttTareas();
+  updateDashboardStats();
 }
 
 function fmtRangoTarea(t){
@@ -2430,6 +2713,7 @@ function renderEnviosEmail(){
   const tbody = document.querySelector('#tablaEnviosEmail tbody');
   if (!envios.length){
     tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Todavía no se ha registrado ningún envío.</td></tr>';
+    updateDashboardStats();
     return;
   }
   tbody.innerHTML = envios.map(e=>`
@@ -2441,6 +2725,7 @@ function renderEnviosEmail(){
       <td>${esc(e.notas)||'—'}</td>
       <td><span class="btn-ghost" onclick="eliminarEnvioEmail('${e.id}')">Eliminar</span></td>
     </tr>`).join('');
+  updateDashboardStats();
 }
 
 /* =======================================================================
@@ -2657,6 +2942,7 @@ function guardarEntradaCalendario(){
   cerrarModalCal();
   renderCalendar();
   renderListaPublicaciones();
+  updateDashboardStats();
   showToast('Calendario actualizado.');
 }
 
@@ -2666,6 +2952,7 @@ function borrarEntradaCalendario(){
   cerrarModalCal();
   renderCalendar();
   renderListaPublicaciones();
+  updateDashboardStats();
 }
 
 function renderListaPublicaciones(){
@@ -2689,6 +2976,162 @@ function renderListaPublicaciones(){
       <td><span class="btn-ghost" onclick="abrirModalCal('${e.fecha}','${e.id}')">Editar</span></td>
     </tr>`;
   }).join('');
+}
+
+/* --- Banco de ideas --- */
+let ideaEditId = null;
+
+function poblarSelectProyectoIdea(){
+  const proyectos = getProyectosNombres();
+  const sel = document.getElementById('ideaProyecto');
+  if (!sel) return;
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">Ninguno / General</option>' + proyectos.map(p=>`<option>${esc(p)}</option>`).join('');
+  if (proyectos.includes(prev)) sel.value = prev;
+}
+
+function guardarIdea(){
+  const titulo = document.getElementById('ideaTitulo').value.trim();
+  if (!titulo){ showToast('Indica el título de la idea.'); return; }
+  const data = {
+    titulo,
+    descripcion: document.getElementById('ideaDescripcion').value.trim(),
+    plataforma: document.getElementById('ideaPlataforma').value,
+    proyecto: document.getElementById('ideaProyecto').value
+  };
+  const ideas = getLS(LS.ideas);
+  if (ideaEditId){
+    const idx = ideas.findIndex(x=>x.id===ideaEditId);
+    if (idx>-1) ideas[idx] = {...ideas[idx], ...data};
+  } else {
+    ideas.unshift({ id: uid(), estado:'Idea', ...data });
+  }
+  setLS(LS.ideas, ideas);
+  cancelarEdicionIdea();
+  renderIdeas();
+  showToast('Idea guardada.');
+}
+
+function editarIdea(id){
+  const idea = getLS(LS.ideas).find(x=>x.id===id);
+  if (!idea) return;
+  ideaEditId = id;
+  document.getElementById('ideaTitulo').value = idea.titulo;
+  document.getElementById('ideaDescripcion').value = idea.descripcion||'';
+  document.getElementById('ideaPlataforma').value = idea.plataforma||'';
+  document.getElementById('ideaProyecto').value = idea.proyecto||'';
+  document.getElementById('ideaFormTitulo').textContent = 'Editar idea';
+  document.getElementById('cancelarEdicionIdeaBtn').style.display = 'inline-flex';
+}
+
+function cancelarEdicionIdea(){
+  ideaEditId = null;
+  ['ideaTitulo','ideaDescripcion'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('ideaPlataforma').value = '';
+  document.getElementById('ideaProyecto').value = '';
+  document.getElementById('ideaFormTitulo').textContent = 'Añadir idea';
+  document.getElementById('cancelarEdicionIdeaBtn').style.display = 'none';
+}
+
+function eliminarIdea(id){
+  setLS(LS.ideas, getLS(LS.ideas).filter(x=>x.id!==id));
+  renderIdeas();
+}
+
+function cambiarEstadoIdea(id, estado){
+  const ideas = getLS(LS.ideas);
+  const idea = ideas.find(x=>x.id===id);
+  if (!idea) return;
+  idea.estado = estado;
+  setLS(LS.ideas, ideas);
+  renderIdeas();
+}
+
+function renderIdeas(){
+  const filtro = document.getElementById('ideaFiltroEstado').value;
+  const ideas = getLS(LS.ideas).filter(i => !filtro || i.estado===filtro);
+  const wrap = document.getElementById('listaIdeas');
+  if (!ideas.length){
+    wrap.innerHTML = '<p class="muted small">Todavía no hay ideas guardadas.</p>';
+    return;
+  }
+  wrap.innerHTML = ideas.map(i=>`
+    <div class="panel" style="margin-bottom:12px;">
+      <div class="snippet-head">
+        <div>
+          <h4>${esc(i.titulo)}</h4>
+          <div style="margin-top:6px;">
+            ${i.plataforma?`<span class="tag tag-teal">${esc(i.plataforma)}</span>`:''}
+            ${i.proyecto?`<span class="tag tag-orange" style="margin-left:4px;">${esc(i.proyecto)}</span>`:''}
+          </div>
+        </div>
+        <div class="btn-row" style="margin-top:0;">
+          <span class="btn-ghost" onclick="editarIdea('${i.id}')"><i class="fa-solid fa-pen"></i></span>
+          <span class="btn-ghost" onclick="eliminarIdea('${i.id}')"><i class="fa-solid fa-trash"></i></span>
+        </div>
+      </div>
+      ${i.descripcion?`<p style="font-size:12.5px;color:var(--ink-700);white-space:pre-wrap;margin-top:10px;">${esc(i.descripcion)}</p>`:''}
+      <div class="field" style="margin-top:10px;margin-bottom:0;max-width:200px;">
+        <select onchange="cambiarEstadoIdea('${i.id}', this.value)">
+          <option ${i.estado==='Idea'?'selected':''}>Idea</option>
+          <option ${i.estado==='En preparación'?'selected':''}>En preparación</option>
+          <option ${i.estado==='Usada'?'selected':''}>Usada</option>
+        </select>
+      </div>
+    </div>`).join('');
+}
+
+/* =======================================================================
+   ENLACES — centro de rutas del ordenador y accesos a webs
+   ======================================================================= */
+function guardarEnlace(){
+  const titulo = document.getElementById('enlaceTitulo').value.trim();
+  const tipo = document.getElementById('enlaceTipo').value;
+  const url = document.getElementById('enlaceUrl').value.trim();
+  if (!titulo || !url){ showToast('Indica un título y una URL o ruta.'); return; }
+  const enlaces = getLS(LS.enlaces);
+  enlaces.unshift({ id: uid(), titulo, tipo, url });
+  setLS(LS.enlaces, enlaces);
+  document.getElementById('enlaceTitulo').value = '';
+  document.getElementById('enlaceUrl').value = '';
+  renderEnlaces();
+  showToast('Enlace guardado.');
+}
+
+function eliminarEnlace(id){
+  setLS(LS.enlaces, getLS(LS.enlaces).filter(x=>x.id!==id));
+  renderEnlaces();
+}
+
+function copiarEnlace(id){
+  const e = getLS(LS.enlaces).find(x=>x.id===id);
+  if (!e) return;
+  navigator.clipboard.writeText(e.url).then(()=> showToast('Ruta copiada al portapapeles.'));
+}
+
+function renderEnlaces(){
+  const q = (document.getElementById('enlaceSearch').value||'').trim().toLowerCase();
+  const enlaces = getLS(LS.enlaces).filter(e => !q || e.titulo.toLowerCase().includes(q) || e.url.toLowerCase().includes(q));
+  const wrap = document.getElementById('listaEnlaces');
+  if (!enlaces.length){
+    wrap.innerHTML = '<div class="panel"><p class="muted">Todavía no hay enlaces guardados.</p></div>';
+    return;
+  }
+  wrap.innerHTML = enlaces.map(e=>`
+    <div class="panel snippet-card">
+      <div class="snippet-head">
+        <div>
+          <h4>${esc(e.titulo)}</h4>
+          <div class="snippet-desc">${esc(e.url)}</div>
+        </div>
+        <div class="btn-row" style="margin-top:0;">
+          ${e.tipo==='web' ? `<a class="btn btn-secondary" href="${esc(e.url)}" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir</a>` : ''}
+          <button class="btn btn-secondary" onclick="copiarEnlace('${e.id}')"><i class="fa-solid fa-copy"></i> Copiar</button>
+          <span class="btn-ghost" onclick="eliminarEnlace('${e.id}')"><i class="fa-solid fa-trash"></i></span>
+        </div>
+      </div>
+      <span class="tag ${e.tipo==='web'?'tag-teal':'tag-grey'}" style="margin-top:8px;display:inline-block;">${e.tipo==='web'?'Web':'Ordenador'}</span>
+    </div>`).join('');
 }
 
 /* =======================================================================
@@ -2911,16 +3354,364 @@ function renderInscritos(){
 /* =======================================================================
    DASHBOARD (INICIO)
    ======================================================================= */
+const USUARIO_NOMBRE = 'Alejandro';
+
+function saludoPorHora(){
+  const h = new Date().getHours();
+  if (h >= 6 && h < 14) return 'Buenos días';
+  if (h >= 14 && h < 21) return 'Buenas tardes';
+  return 'Buenas noches';
+}
+
+function formatearFechaHoy(){
+  const f = new Intl.DateTimeFormat('es-ES', { weekday:'long', day:'numeric', month:'long', year:'numeric' }).format(new Date());
+  return f.charAt(0).toUpperCase() + f.slice(1);
+}
+
+function renderSaludo(){
+  const saludoEl = document.getElementById('heroSaludo');
+  const fechaEl = document.getElementById('heroFecha');
+  if (saludoEl) saludoEl.textContent = `${saludoPorHora()}, ${USUARIO_NOMBRE}`;
+  if (fechaEl) fechaEl.textContent = formatearFechaHoy();
+}
+
+function renderResumenHero(){
+  const el = document.getElementById('heroResumen');
+  if (!el) return;
+  const tareasPendientes = getTareas().filter(t=>t.estado!=='hecha').length;
+  const hoyStr = new Date().toISOString().slice(0,10);
+  const limite = new Date(); limite.setDate(limite.getDate()+7);
+  const limiteStr = limite.toISOString().slice(0,10);
+  const publicacionesSemana = getLS(LS.calendario).filter(e=> e.fecha>=hoyStr && e.fecha<=limiteStr).length;
+
+  if (!tareasPendientes && !publicacionesSemana){
+    el.textContent = 'No tienes tareas pendientes ni publicaciones programadas esta semana.';
+    return;
+  }
+  const partes = [];
+  if (tareasPendientes) partes.push(`${tareasPendientes} tarea${tareasPendientes===1?'':'s'} pendiente${tareasPendientes===1?'':'s'}`);
+  if (publicacionesSemana) partes.push(`${publicacionesSemana} publicación${publicacionesSemana===1?'':'es'} esta semana`);
+  el.textContent = `Tienes ${partes.join(' y ')}.`;
+}
+
 function updateDashboardStats(){
   const anioActual = String(new Date().getFullYear());
   const eventosEsteAnio = getLS(LS.eventos).filter(r=> r.fecha && r.fecha.slice(0,4)===anioActual).length;
   const mantenimientoPendiente = getLS(LS.mantenimiento).filter(t=>!t.done).length;
   const inscritosTotales = getLS(LS.inscritos).length;
+  const tareasPendientes = getTareas().filter(t=>t.estado!=='hecha').length;
+  const proyectosActivos = getProyectos().filter(p=>(p.estado||'Activo')==='Activo').length;
+
+  const hoyStr = new Date().toISOString().slice(0,10);
+  const limite = new Date(); limite.setDate(limite.getDate()+7);
+  const limiteStr = limite.toISOString().slice(0,10);
+  const proximasPublicaciones = getLS(LS.calendario).filter(e=> e.fecha>=hoyStr && e.fecha<=limiteStr).length;
 
   document.getElementById('statEventos').textContent = eventosEsteAnio;
   document.getElementById('statMantenimiento').textContent = mantenimientoPendiente;
   document.getElementById('statInscritos').textContent = inscritosTotales;
+  document.getElementById('statTareasPendientes').textContent = tareasPendientes;
+  document.getElementById('statProyectosActivos').textContent = proyectosActivos;
+  document.getElementById('statProximasPublicaciones').textContent = proximasPublicaciones;
+
+  renderSaludo();
+  renderResumenHero();
+  renderTareasUrgentes();
+  renderActividadReciente();
+  renderProximasPublicaciones();
+  renderProgresoMantenimiento();
+  renderNotificaciones();
 }
+
+function renderTareasUrgentes(){
+  const wrap = document.getElementById('listaTareasUrgentes');
+  if (!wrap) return;
+  const hoyStr = new Date().toISOString().slice(0,10);
+  const pendientes = getTareas()
+    .filter(t=>t.estado!=='hecha')
+    .sort((a,b)=>{
+      const fa = a.fechaFin || a.fechaInicio || '9999-99-99';
+      const fb = b.fechaFin || b.fechaInicio || '9999-99-99';
+      return fa.localeCompare(fb);
+    })
+    .slice(0,5);
+
+  if (!pendientes.length){
+    wrap.innerHTML = '<p class="muted small">No tienes tareas pendientes.</p>';
+    return;
+  }
+  wrap.innerHTML = pendientes.map(t=>{
+    const vencida = !!(t.fechaFin && t.fechaFin < hoyStr);
+    return `
+    <div class="activity-item">
+      <div class="ai-icon" style="${vencida?'background:var(--orange-100);color:#b1521a;':''}"><i class="fa-solid ${vencida?'fa-triangle-exclamation':'fa-list-check'}"></i></div>
+      <div class="ai-body">
+        <div class="ai-title">${esc(t.titulo)}</div>
+        <div class="ai-meta">
+          <span class="tag ${PRIORIDAD_TAG[t.prioridad]||'tag-grey'}">${PRIORIDAD_LABEL[t.prioridad]||t.prioridad}</span>
+          ${t.fechaFin ? (vencida ? 'Vencida el '+fmtFecha(t.fechaFin) : 'Vence el '+fmtFecha(t.fechaFin)) : 'Sin fecha límite'}
+        </div>
+      </div>
+      <button class="ai-link" onclick="abrirModalTarea('${t.id}')">Abrir</button>
+    </div>`;
+  }).join('');
+}
+
+function renderActividadReciente(){
+  const wrap = document.getElementById('listaActividadReciente');
+  if (!wrap) return;
+  const items = [];
+
+  const eventos = getLS(LS.eventos);
+  if (eventos.length){
+    const e = eventos[0];
+    items.push({ icon:'fa-calendar-check', title:`${e.nombre} — ${e.evento}`, meta:`Evento registrado · ${fmtFecha(e.fecha)}`, view:'eventos', tab:'registro' });
+  }
+  const tareas = getTareas();
+  if (tareas.length){
+    const t = tareas[0];
+    items.push({ icon:'fa-list-check', title:t.titulo, meta:`Tarea · ${ESTADO_LABEL[t.estado]||t.estado}`, view:'tareas', tab:'lista' });
+  }
+  const proyectos = getProyectos();
+  if (proyectos.length){
+    const p = proyectos[0];
+    items.push({ icon:'fa-diagram-project', title:p.nombre, meta:'Proyecto registrado', view:'config', tab:'proyectos' });
+  }
+  const calendario = getLS(LS.calendario);
+  if (calendario.length){
+    const c = calendario[calendario.length-1];
+    items.push({ icon:'fa-share-nodes', title:c.titulo, meta:`Publicación programada · ${fmtFecha(c.fecha)}`, view:'redes', tab:'lista' });
+  }
+  const envios = getLS(LS.emailsEnviados);
+  if (envios.length){
+    const em = envios[0];
+    items.push({ icon:'fa-envelope-open-text', title:em.nombre, meta:`Envío registrado · ${fmtFecha(em.fecha)}`, view:'email', tab:'seguimiento' });
+  }
+  const inscritos = getLS(LS.inscritos);
+  if (inscritos.length){
+    const i = inscritos[inscritos.length-1];
+    items.push({ icon:'fa-user-plus', title:`${i.nombre} — ${i.evento}`, meta:`Inscrito añadido · ${fmtFecha(i.fecha)}`, view:'propios', tab:'inscritos' });
+  }
+
+  if (!items.length){
+    wrap.innerHTML = '<p class="muted small">Todavía no hay actividad registrada en el hub.</p>';
+    return;
+  }
+  wrap.innerHTML = items.map(it=>`
+    <div class="activity-item">
+      <div class="ai-icon"><i class="fa-solid ${it.icon}"></i></div>
+      <div class="ai-body">
+        <div class="ai-title">${esc(it.title)}</div>
+        <div class="ai-meta">${esc(it.meta)}</div>
+      </div>
+      <button class="ai-link" onclick="goTo('${it.view}','${it.tab}')">Ver</button>
+    </div>`).join('');
+}
+
+function renderProximasPublicaciones(){
+  const wrap = document.getElementById('listaProximasPublicaciones');
+  if (!wrap) return;
+  const hoyStr = new Date().toISOString().slice(0,10);
+  const limite = new Date(); limite.setDate(limite.getDate()+7);
+  const limiteStr = limite.toISOString().slice(0,10);
+  const proximas = getLS(LS.calendario)
+    .filter(e=> e.fecha>=hoyStr && e.fecha<=limiteStr)
+    .sort((a,b)=> (a.fecha||'').localeCompare(b.fecha||''));
+
+  if (!proximas.length){
+    wrap.innerHTML = '<p class="muted small">No hay publicaciones programadas para los próximos 7 días.</p>';
+    return;
+  }
+  wrap.innerHTML = proximas.map(e=>{
+    const etiquetaTxt = e.etiqueta==='proyecto' ? (e.proyecto || 'Proyecto') : 'CIDAUT';
+    return `
+    <div class="activity-item">
+      <div class="ai-icon"><i class="fa-solid fa-share-nodes"></i></div>
+      <div class="ai-body">
+        <div class="ai-title">${esc(e.titulo)}</div>
+        <div class="ai-meta">${fmtFecha(e.fecha)} · ${esc(etiquetaTxt)} · ${esc(e.plataforma)}</div>
+      </div>
+      <button class="ai-link" onclick="abrirModalCal('${e.fecha}','${e.id}')">Editar</button>
+    </div>`;
+  }).join('');
+}
+
+function renderProgresoMantenimiento(){
+  const wrap = document.getElementById('progresoMantenimiento');
+  if (!wrap) return;
+  const tareas = getLS(LS.mantenimiento);
+  if (!tareas.length){
+    wrap.innerHTML = '<p class="muted small">No hay tareas de mantenimiento registradas todavía.</p>';
+    return;
+  }
+  const hechas = tareas.filter(t=>t.done).length;
+  const pct = Math.round((hechas/tareas.length)*100);
+  wrap.innerHTML = `
+    <div style="font-size:12.5px;color:var(--ink-500);margin-bottom:6px;">${hechas} de ${tareas.length} tareas completadas (${pct}%)</div>
+    <div class="progress-bar"><div class="progress-bar-fill" style="width:${pct}%;"></div></div>
+    <button class="ai-link" onclick="goTo('webs','mantenimiento')">Ver checklist completo</button>`;
+}
+
+/* ---------------------------------------------------------------------
+   NOTIFICACIONES GLOBALES
+   --------------------------------------------------------------------- */
+function getNotificaciones(){
+  const notifs = [];
+  const hoyStr = new Date().toISOString().slice(0,10);
+  const en3dias = new Date(); en3dias.setDate(en3dias.getDate()+3);
+  const en3diasStr = en3dias.toISOString().slice(0,10);
+
+  getTareas().forEach(t=>{
+    if (t.estado==='hecha' || !t.fechaFin) return;
+    if (t.fechaFin < hoyStr){
+      notifs.push({ tipo:'urgente', icon:'fa-triangle-exclamation', texto:`Tarea vencida: ${t.titulo}`, meta:`Debía terminar el ${fmtFecha(t.fechaFin)}`, view:'tareas', tab:'lista' });
+    } else if (t.fechaFin <= en3diasStr){
+      notifs.push({ tipo:'aviso', icon:'fa-clock', texto:`Tarea próxima a vencer: ${t.titulo}`, meta:`Fecha límite ${fmtFecha(t.fechaFin)}`, view:'tareas', tab:'lista' });
+    }
+  });
+
+  const pendientesMant = getLS(LS.mantenimiento).filter(m=>!m.done);
+  if (pendientesMant.length){
+    notifs.push({ tipo:'info', icon:'fa-screwdriver-wrench', texto:`${pendientesMant.length} tarea(s) de mantenimiento pendientes`, meta:'Checklist de webs de proyecto', view:'webs', tab:'mantenimiento' });
+  }
+
+  getLS(LS.calendario).filter(e=>e.fecha===hoyStr).forEach(e=>{
+    notifs.push({ tipo:'aviso', icon:'fa-share-nodes', texto:`Publicación programada hoy: ${e.titulo}`, meta:e.plataforma, view:'redes', tab:'lista' });
+  });
+
+  const orden = { urgente:0, aviso:1, info:2 };
+  return notifs.sort((a,b)=>orden[a.tipo]-orden[b.tipo]);
+}
+
+function renderNotificaciones(){
+  const badge = document.getElementById('notifBadge');
+  const panel = document.getElementById('notifPanel');
+  if (!badge || !panel) return;
+  const notifs = getNotificaciones();
+
+  if (notifs.length){
+    badge.style.display = 'flex';
+    badge.textContent = notifs.length > 9 ? '9+' : notifs.length;
+  } else {
+    badge.style.display = 'none';
+  }
+
+  if (!notifs.length){
+    panel.innerHTML = '<div class="notif-empty">No tienes avisos pendientes.</div>';
+    return;
+  }
+  panel.innerHTML = notifs.map(n=>`
+    <div class="notif-item notif-${n.tipo}" onclick="goTo('${n.view}','${n.tab}'); cerrarNotificaciones();">
+      <div class="notif-icon"><i class="fa-solid ${n.icon}"></i></div>
+      <div>
+        <div class="notif-text">${esc(n.texto)}</div>
+        <div class="notif-meta">${esc(n.meta)}</div>
+      </div>
+    </div>`).join('');
+}
+
+function toggleNotificaciones(ev){
+  if (ev) ev.stopPropagation();
+  cerrarBusquedaGlobal();
+  document.getElementById('notifPanel').classList.toggle('open');
+}
+
+function cerrarNotificaciones(){
+  const panel = document.getElementById('notifPanel');
+  if (panel) panel.classList.remove('open');
+}
+
+/* ---------------------------------------------------------------------
+   BÚSQUEDA GLOBAL
+   --------------------------------------------------------------------- */
+function buscarGlobal(query){
+  const q = query.trim().toLowerCase();
+  const resultsWrap = document.getElementById('globalSearchResults');
+  if (!resultsWrap) return;
+  if (!q){ resultsWrap.classList.remove('open'); resultsWrap.innerHTML = ''; return; }
+
+  const resultados = [];
+
+  getLS(LS.eventos).forEach(e=>{
+    if ((`${e.nombre} ${e.evento} ${e.depto||''}`).toLowerCase().includes(q)){
+      resultados.push({ tipo:'Evento', icon:'fa-calendar-check', titulo:`${e.nombre} — ${e.evento}`, meta:fmtFecha(e.fecha), view:'eventos', tab:'registro' });
+    }
+  });
+  getTareas().forEach(t=>{
+    if ((`${t.titulo} ${t.descripcion||''} ${t.responsable||''}`).toLowerCase().includes(q)){
+      resultados.push({ tipo:'Tarea', icon:'fa-list-check', titulo:t.titulo, meta:ESTADO_LABEL[t.estado]||t.estado, view:'tareas', tab:'lista' });
+    }
+  });
+  getProyectos().forEach(p=>{
+    if ((`${p.nombre} ${p.acronimo||''}`).toLowerCase().includes(q)){
+      resultados.push({ tipo:'Proyecto', icon:'fa-diagram-project', titulo:p.nombre, meta:p.programa||'', view:'config', tab:'proyectos' });
+    }
+  });
+  getLS(LS.snippets).forEach(s=>{
+    if ((`${s.title} ${s.desc||''}`).toLowerCase().includes(q)){
+      resultados.push({ tipo:'Snippet', icon:'fa-code', titulo:s.title, meta:'Biblioteca de snippets', view:'webs', tab:'snippets' });
+    }
+  });
+  getLS(LS.emailsEnviados).forEach(em=>{
+    if (em.nombre.toLowerCase().includes(q)){
+      resultados.push({ tipo:'Envío de email', icon:'fa-envelope-open-text', titulo:em.nombre, meta:fmtFecha(em.fecha), view:'email', tab:'seguimiento' });
+    }
+  });
+  getLS(LS.calendario).forEach(c=>{
+    if (c.titulo.toLowerCase().includes(q)){
+      resultados.push({ tipo:'Publicación', icon:'fa-share-nodes', titulo:c.titulo, meta:fmtFecha(c.fecha), view:'redes', tab:'lista' });
+    }
+  });
+  getLS(LS.inscritos).forEach(i=>{
+    if ((`${i.nombre} ${i.empresa||''}`).toLowerCase().includes(q)){
+      resultados.push({ tipo:'Inscrito', icon:'fa-user-plus', titulo:i.empresa?`${i.nombre} — ${i.empresa}`:i.nombre, meta:fmtFecha(i.fecha), view:'propios', tab:'inscritos' });
+    }
+  });
+  getSectores().forEach(s=>{
+    if (s.nombre.toLowerCase().includes(q)){
+      resultados.push({ tipo:'Sector', icon:'fa-industry', titulo:s.nombre, meta:'Configuración', view:'config', tab:'sectores' });
+    }
+  });
+  getLS(LS.mantenimiento).forEach(m=>{
+    if ((`${m.tarea} ${m.sitio||''}`).toLowerCase().includes(q)){
+      resultados.push({ tipo:'Mantenimiento', icon:'fa-screwdriver-wrench', titulo:m.tarea, meta:m.sitio||'', view:'webs', tab:'mantenimiento' });
+    }
+  });
+
+  if (!resultados.length){
+    resultsWrap.innerHTML = `<div class="gs-empty">Sin resultados para "${esc(query.trim())}".</div>`;
+    resultsWrap.classList.add('open');
+    return;
+  }
+  resultsWrap.innerHTML = resultados.slice(0,20).map(r=>`
+    <div class="gs-item" onclick="irDesdeGlobalSearch('${r.view}','${r.tab}')">
+      <div class="gs-icon"><i class="fa-solid ${r.icon}"></i></div>
+      <div>
+        <div class="gs-title">${esc(r.titulo)}</div>
+        <div class="gs-meta">${esc(r.tipo)}${r.meta?' · '+esc(r.meta):''}</div>
+      </div>
+    </div>`).join('');
+  resultsWrap.classList.add('open');
+}
+
+function irDesdeGlobalSearch(view, tab){
+  goTo(view, tab);
+  cerrarBusquedaGlobal();
+  const input = document.getElementById('globalSearchInput');
+  if (input) input.value = '';
+}
+
+function cerrarBusquedaGlobal(){
+  const wrap = document.getElementById('globalSearchResults');
+  if (wrap) wrap.classList.remove('open');
+}
+
+document.addEventListener('click', (ev)=>{
+  const notifWrap = document.getElementById('notifWrap');
+  if (notifWrap && !notifWrap.contains(ev.target)) cerrarNotificaciones();
+  const searchWrap = document.getElementById('globalSearchWrap');
+  if (searchWrap && !searchWrap.contains(ev.target)) cerrarBusquedaGlobal();
+});
 
 /* =======================================================================
    INICIALIZACIÓN
@@ -2957,8 +3748,12 @@ function init(){
   renderEnviosEmail();
 
   renderPostPreview();
+  poblarSelectProyectoIdea();
+  renderIdeas();
   renderCalendar();
   renderListaPublicaciones();
+
+  renderEnlaces();
 
   populateEventoSelects();
   renderLogistica();
