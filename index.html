@@ -188,6 +188,7 @@
   .field input[type=text],
   .field input[type=email],
   .field input[type=date],
+  .field input[type=time],
   .field input[type=url],
   .field input[type=number],
   .field select,
@@ -201,6 +202,15 @@
   }
   .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--teal-500);box-shadow:0 0 0 3px var(--teal-100);}
   .field textarea{resize:vertical;min-height:80px;}
+  #emailHtmlInput{
+    padding:9px 11px;
+    border:1px solid var(--line-strong);
+    border-radius:6px;
+    background:#fff;
+    outline:none;
+    resize:vertical;
+  }
+  #emailHtmlInput:focus{border-color:var(--teal-500);box-shadow:0 0 0 3px var(--teal-100);}
   .field-row{display:flex;gap:14px;}
   .field-row .field{flex:1;}
   .file-drop{
@@ -529,7 +539,7 @@
       <div class="sub">Hub de Marketing</div>
     </div>
     <div class="sidebar-nav" id="sidebarNav">
-      <div class="nav-item" data-view="inicio"><i class="fa-solid fa-house"></i> Inicio</div>
+      <div class="nav-item active" data-view="inicio"><i class="fa-solid fa-house"></i> Inicio</div>
       <div class="nav-item" data-view="tareas"><i class="fa-solid fa-list-check"></i> Tareas</div>
       <div class="nav-item" data-view="eventos"><i class="fa-solid fa-calendar-check"></i> Eventos y memoria anual</div>
       <div class="nav-item" data-view="webs"><i class="fa-solid fa-code"></i> Gestor de webs de proyectos</div>
@@ -1855,6 +1865,7 @@
         <div class="tabbar">
           <button class="tab-btn active" data-tab="logistica" onclick="switchTab('propios','logistica')">Checklist de logística</button>
           <button class="tab-btn" data-tab="inscritos" onclick="switchTab('propios','inscritos')">Control de inscritos</button>
+          <button class="tab-btn" data-tab="calendario" onclick="switchTab('propios','calendario')">Calendario de comunicación</button>
         </div>
 
         <!-- Logística -->
@@ -1934,6 +1945,41 @@
             </div>
           </div>
         </div>
+
+        <!-- Calendario de comunicación del evento -->
+        <div class="tab-pane" id="propios-calendario">
+          <div class="panel">
+            <div class="field" style="max-width:320px;">
+              <label for="eventoComunicacion">Evento</label>
+              <select id="eventoComunicacion" onchange="renderCalendarioComunicacion()"></select>
+            </div>
+            <div class="panel-subtitle" style="margin-bottom:0;">Planifica aquí las publicaciones en redes sociales y los mailings que se van a enviar para promocionar y acompañar este evento.</div>
+          </div>
+
+          <div class="panel">
+            <div class="cal-head">
+              <button class="btn btn-secondary" onclick="cambiarMesComunicacion(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+              <h3 id="calComMesLabel"></h3>
+              <button class="btn btn-secondary" onclick="cambiarMesComunicacion(1)"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+            <div style="margin-bottom:14px;">
+              <span class="tag tag-teal">Redes sociales</span>
+              <span class="tag tag-orange" style="margin-left:6px;">Mailing</span>
+            </div>
+            <div class="cal-grid" id="calComGrid"></div>
+          </div>
+
+          <div class="panel section-gap">
+            <div class="panel-title">Planificación del evento</div>
+            <div class="panel-subtitle">Publicaciones y mailings programados para este evento, ordenados por fecha.</div>
+            <div class="table-wrap">
+              <table id="tablaComunicacionEvento">
+                <thead><tr><th>Fecha</th><th>Tipo</th><th>Contenido / asunto</th><th>Plataforma</th><th>Estado</th><th></th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </section>
 
       <!-- ============ MODALS ============ -->
@@ -1976,6 +2022,48 @@
           <div class="btn-row">
             <button class="btn" onclick="guardarEntradaCalendario()"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
             <button class="btn btn-danger" id="calDeleteBtn" style="display:none;" onclick="borrarEntradaCalendario()">Eliminar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal de comunicación de evento propio -->
+      <div class="modal-overlay" id="comModal">
+        <div class="modal-box">
+          <span class="modal-close" onclick="cerrarModalCom()"><i class="fa-solid fa-xmark"></i></span>
+          <h3>Planificar comunicación del evento</h3>
+          <div class="field">
+            <label for="comFecha">Fecha</label>
+            <input type="date" id="comFecha">
+          </div>
+          <div class="field">
+            <label for="comTipo">Tipo</label>
+            <select id="comTipo" onchange="toggleComPlataformaField()">
+              <option value="social">Publicación en redes sociales</option>
+              <option value="mailing">Mailing</option>
+            </select>
+          </div>
+          <div class="field" id="comPlataformaField">
+            <label for="comPlataforma">Plataforma</label>
+            <select id="comPlataforma">
+              <option>LinkedIn</option>
+              <option>X</option>
+              <option>Instagram</option>
+              <option>YouTube</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="comTitulo" id="comTituloLabel">Contenido del post</label>
+            <textarea id="comTitulo" placeholder="Breve descripción del contenido..."></textarea>
+          </div>
+          <div class="field">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:0;">
+              <input type="checkbox" id="comHecho" style="width:auto;margin:0;accent-color:var(--teal-500);">
+              <span id="comHechoLabel">Ya publicado</span>
+            </label>
+          </div>
+          <div class="btn-row">
+            <button class="btn" onclick="guardarComunicacionEvento()"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+            <button class="btn btn-danger" id="comDeleteBtn" style="display:none;" onclick="borrarComunicacionEvento()">Eliminar</button>
           </div>
         </div>
       </div>
@@ -2073,7 +2161,8 @@ const LS = {
   seoPaginas: 'cidautHub_seoPaginas',
   seoAuditoria: 'cidautHub_seoAuditoria',
   seoContenidos: 'cidautHub_seoContenidos',
-  publicacionesRedes: 'cidautHub_publicacionesRedes'
+  publicacionesRedes: 'cidautHub_publicacionesRedes',
+  comunicacionEventos: 'cidautHub_comunicacionEventos'
 };
 
 function getLS(key){ try{ return JSON.parse(localStorage.getItem(key)) || []; }catch(e){ return []; } }
@@ -2139,6 +2228,7 @@ function switchTab(module, tabName){
   view.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tabName));
   view.querySelectorAll('.tab-pane').forEach(p=>p.classList.toggle('active', p.id === module+'-'+tabName));
   if (module==='redes' && tabName==='analitica') renderAnalyticsRedes();
+  if (module==='propios' && tabName==='calendario') renderCalendarioComunicacion();
 }
 
 function goTo(view, tab){
@@ -4580,8 +4670,10 @@ function crearEventoPropio(){
   populateEventoSelects();
   document.getElementById('eventoActivo').value = nombre;
   document.getElementById('eventoInscritosSelect').value = nombre;
+  document.getElementById('eventoComunicacion').value = nombre;
   renderLogistica();
   renderInscritos();
+  renderCalendarioComunicacion();
   showToast('Evento creado con la checklist estándar.');
 }
 
@@ -4594,7 +4686,7 @@ function getLogisticaObj(){
 function populateEventoSelects(){
   const eventos = getEventosPropios();
   const opciones = eventos.length ? eventos.map(e=>`<option>${esc(e)}</option>`).join('') : '<option value="">Crea un evento primero</option>';
-  ['eventoActivo','eventoInscritosSelect'].forEach(id=>{
+  ['eventoActivo','eventoInscritosSelect','eventoComunicacion'].forEach(id=>{
     const sel = document.getElementById(id);
     const prev = sel.value;
     sel.innerHTML = opciones;
@@ -4744,6 +4836,150 @@ function renderInscritos(){
       scales:{ y:{ beginAtZero:true, ticks:{ precision:0 } } }
     }
   });
+}
+
+/* --- Calendario de comunicación por evento propio --- */
+let calComDate = new Date();
+let calComEditId = null;
+
+function cambiarMesComunicacion(delta){
+  calComDate.setMonth(calComDate.getMonth()+delta);
+  renderCalendarioComunicacion();
+}
+
+function getComunicacionEvento(evento){
+  return getLS(LS.comunicacionEventos).filter(c=>c.evento===evento);
+}
+
+function renderCalendarioComunicacion(){
+  const selEvento = document.getElementById('eventoComunicacion');
+  const grid = document.getElementById('calComGrid');
+  const tbody = document.querySelector('#tablaComunicacionEvento tbody');
+  if (!selEvento || !grid || !tbody) return;
+  const evento = selEvento.value;
+  const mesLabel = document.getElementById('calComMesLabel');
+  if (mesLabel) mesLabel.textContent = `${MESES_CAP[calComDate.getMonth()]} ${calComDate.getFullYear()}`;
+
+  if (!evento){
+    grid.innerHTML = '';
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Crea o selecciona un evento propio para planificar su comunicación.</td></tr>';
+    return;
+  }
+
+  const year = calComDate.getFullYear(), month = calComDate.getMonth();
+  const firstDay = new Date(year, month, 1);
+  let startOffset = firstDay.getDay()-1; if (startOffset<0) startOffset=6;
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const daysInPrevMonth = new Date(year, month, 0).getDate();
+  const entradas = getComunicacionEvento(evento);
+  const todayStr = new Date().toISOString().slice(0,10);
+
+  let cells = DOWS.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  for (let i=startOffset; i>0; i--){
+    cells += `<div class="cal-day other-month"><div class="dnum">${daysInPrevMonth-i+1}</div></div>`;
+  }
+  for (let day=1; day<=daysInMonth; day++){
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const dayEntries = entradas.filter(e=>e.fecha===dateStr);
+    const entryHtml = dayEntries.map(e=>{
+      const label = e.tipo==='mailing' ? `Mailing: ${e.titulo}` : `${e.plataforma}: ${e.titulo}`;
+      return `<div class="entry ${e.tipo==='mailing'?'proyecto':''}" onclick="abrirModalCom('${dateStr}','${e.id}')" title="${esc(label)}">${esc(label)}</div>`;
+    }).join('');
+    cells += `<div class="cal-day" style="${dateStr===todayStr?'box-shadow:inset 0 0 0 2px var(--teal-500);':''}">
+      <div class="dnum">${day}</div>
+      <span class="add-btn" onclick="abrirModalCom('${dateStr}')"><i class="fa-solid fa-plus"></i></span>
+      ${entryHtml}
+    </div>`;
+  }
+  const totalCells = startOffset + daysInMonth;
+  const remaining = (7 - (totalCells % 7)) % 7;
+  for (let i=1; i<=remaining; i++){
+    cells += `<div class="cal-day other-month"><div class="dnum">${i}</div></div>`;
+  }
+  grid.innerHTML = cells;
+
+  if (!entradas.length){
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Todavía no hay comunicación planificada para este evento.</td></tr>';
+    return;
+  }
+  const ordenadas = entradas.slice().sort((a,b)=>(a.fecha||'').localeCompare(b.fecha||''));
+  tbody.innerHTML = ordenadas.map(e=>`
+    <tr>
+      <td>${fmtFecha(e.fecha)}</td>
+      <td><span class="tag ${e.tipo==='mailing'?'tag-orange':'tag-teal'}">${e.tipo==='mailing'?'Mailing':'Redes sociales'}</span></td>
+      <td>${esc(e.titulo)}</td>
+      <td>${e.tipo==='social'?esc(e.plataforma):'—'}</td>
+      <td>${e.hecho?`<span class="tag tag-grey">${e.tipo==='mailing'?'Enviado':'Publicado'}</span>`:'<span class="tag tag-orange">Pendiente</span>'}</td>
+      <td><span class="btn-ghost" onclick="abrirModalCom('${e.fecha}','${e.id}')"><i class="fa-solid fa-pen"></i></span></td>
+    </tr>`).join('');
+}
+
+function toggleComPlataformaField(){
+  const esSocial = document.getElementById('comTipo').value === 'social';
+  document.getElementById('comPlataformaField').style.display = esSocial ? 'block' : 'none';
+  document.getElementById('comTituloLabel').textContent = esSocial ? 'Contenido del post' : 'Asunto del mailing';
+  document.getElementById('comHechoLabel').textContent = esSocial ? 'Ya publicado' : 'Ya enviado';
+}
+
+function abrirModalCom(dateStr, entryId){
+  if (!document.getElementById('eventoComunicacion').value){ showToast('Crea o selecciona primero un evento propio.'); return; }
+  calComEditId = entryId || null;
+  document.getElementById('comFecha').value = dateStr;
+  if (entryId){
+    const e = getLS(LS.comunicacionEventos).find(x=>x.id===entryId);
+    document.getElementById('comTipo').value = e.tipo;
+    document.getElementById('comPlataforma').value = e.plataforma || 'LinkedIn';
+    document.getElementById('comTitulo').value = e.titulo;
+    document.getElementById('comHecho').checked = !!e.hecho;
+    document.getElementById('comDeleteBtn').style.display = 'inline-flex';
+  } else {
+    document.getElementById('comTipo').value = 'social';
+    document.getElementById('comPlataforma').value = 'LinkedIn';
+    document.getElementById('comTitulo').value = '';
+    document.getElementById('comHecho').checked = false;
+    document.getElementById('comDeleteBtn').style.display = 'none';
+  }
+  toggleComPlataformaField();
+  document.getElementById('comModal').classList.add('active');
+}
+
+function cerrarModalCom(){
+  document.getElementById('comModal').classList.remove('active');
+}
+
+function guardarComunicacionEvento(){
+  const evento = document.getElementById('eventoComunicacion').value;
+  if (!evento){ showToast('Selecciona primero un evento.'); return; }
+  const fecha = document.getElementById('comFecha').value;
+  const titulo = document.getElementById('comTitulo').value.trim();
+  if (!fecha || !titulo){ showToast('Indica fecha y contenido.'); return; }
+  const tipo = document.getElementById('comTipo').value;
+  const data = {
+    evento,
+    fecha,
+    tipo,
+    titulo,
+    plataforma: tipo==='social' ? document.getElementById('comPlataforma').value : '',
+    hecho: document.getElementById('comHecho').checked
+  };
+  const entries = getLS(LS.comunicacionEventos);
+  if (calComEditId){
+    const idx = entries.findIndex(x=>x.id===calComEditId);
+    if (idx>-1) entries[idx] = {...entries[idx], ...data};
+  } else {
+    entries.push({ id: uid(), ...data });
+  }
+  setLS(LS.comunicacionEventos, entries);
+  cerrarModalCom();
+  renderCalendarioComunicacion();
+  showToast('Planificación guardada.');
+}
+
+function borrarComunicacionEvento(){
+  if (!calComEditId) return;
+  setLS(LS.comunicacionEventos, getLS(LS.comunicacionEventos).filter(x=>x.id!==calComEditId));
+  cerrarModalCom();
+  renderCalendarioComunicacion();
 }
 
 /* =======================================================================
@@ -5174,12 +5410,16 @@ function init(){
   renderIdeas();
   renderCalendar();
   renderListaPublicaciones();
+  poblarSelectProyectoPublicacion();
+  poblarFiltrosAnalyticsRedes();
+  renderAnalyticsRedes();
 
   renderEnlaces();
 
   populateEventoSelects();
   renderLogistica();
   renderInscritos();
+  renderCalendarioComunicacion();
 
   updateDashboardStats();
 }
