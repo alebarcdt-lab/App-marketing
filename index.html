@@ -361,6 +361,31 @@
   .kanban-card .kt-title{font-size:12.5px;font-weight:600;color:var(--ink-900);margin-bottom:5px;}
   .kanban-card .kt-meta{font-size:11px;color:var(--ink-500);display:flex;gap:7px;align-items:center;flex-wrap:wrap;}
 
+  /* ---------- Hub de eventos propios ---------- */
+  .event-cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;margin-top:16px;}
+  .event-card{
+    border:1px solid var(--line);border-radius:8px;padding:16px;background:#fff;
+    cursor:pointer;transition:border-color 0.15s ease,transform 0.15s ease;display:flex;flex-direction:column;gap:10px;
+  }
+  .event-card:hover{border-color:var(--teal-500);transform:translateY(-2px);}
+  .event-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+  .event-card-title{font-size:14.5px;font-weight:700;color:var(--ink-900);line-height:1.3;}
+  .event-card-meta{font-size:12px;color:var(--ink-500);display:flex;flex-direction:column;gap:4px;}
+  .event-card-meta span{display:flex;align-items:center;gap:6px;}
+  .event-card-meta i{width:13px;color:var(--ink-300);}
+  .event-card-stats{display:flex;gap:14px;font-size:11.5px;color:var(--ink-700);border-top:1px solid var(--line);padding-top:10px;margin-top:2px;}
+  .event-card-stats b{color:var(--ink-900);}
+  .event-card-actions{display:flex;justify-content:flex-end;gap:4px;}
+  .event-card-actions .btn-ghost{padding:4px 6px;}
+  .event-detail-header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;}
+  .event-detail-title{font-size:19px;font-weight:800;color:var(--ink-900);margin-bottom:6px;}
+  .event-detail-meta{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--ink-500);}
+  .event-detail-meta span{display:flex;align-items:center;gap:6px;}
+  .event-detail-meta i{color:var(--ink-300);}
+  .event-detail-actions{display:flex;gap:8px;flex-shrink:0;}
+  .back-link{background:none;border:none;color:var(--teal-700);font-weight:600;font-size:13px;cursor:pointer;padding:0;margin-bottom:16px;display:inline-flex;align-items:center;gap:7px;}
+  .back-link:hover{text-decoration:underline;}
+
   /* ---------- Gantt (tareas) ---------- */
   .gantt-wrap{overflow-x:auto;}
   .gantt-axis{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-500);margin:0 0 10px 190px;}
@@ -1888,125 +1913,175 @@
 
       <!-- ============ MÓDULO 5: ORGANIZADOR DE EVENTOS PROPIOS ============ -->
       <section class="module-view" id="view-propios">
-        <div class="tabbar">
-          <button class="tab-btn active" data-tab="logistica" onclick="switchTab('propios','logistica')">Checklist de logística</button>
-          <button class="tab-btn" data-tab="inscritos" onclick="switchTab('propios','inscritos')">Control de inscritos</button>
-          <button class="tab-btn" data-tab="calendario" onclick="switchTab('propios','calendario')">Calendario de comunicación</button>
+
+        <!-- HUB DE EVENTOS -->
+        <div id="propiosHubView">
+          <div class="panel">
+            <div class="event-card-top">
+              <div>
+                <div class="panel-title">Eventos propios</div>
+                <div class="panel-subtitle" style="margin-bottom:0;">Abre un evento para gestionar su checklist de logística, sus inscritos y su calendario de comunicación.</div>
+              </div>
+              <button class="btn" style="flex-shrink:0;" onclick="abrirModalEventoPropio()"><i class="fa-solid fa-plus"></i> Nuevo evento</button>
+            </div>
+          </div>
+          <div class="event-cards-grid" id="eventosHubGrid"></div>
         </div>
 
-        <!-- Logística -->
-        <div class="tab-pane active" id="propios-logistica">
-          <div class="panel">
-            <div class="field-row" style="align-items:flex-end;">
-              <div class="field" style="flex:2;">
-                <label for="eventoActivo">Evento</label>
-                <select id="eventoActivo" onchange="renderLogistica()"></select>
+        <!-- FICHA DE DETALLE DE UN EVENTO -->
+        <div id="propiosDetalleView" style="display:none;">
+          <button class="back-link" onclick="volverAlHubEventos()"><i class="fa-solid fa-arrow-left"></i> Volver al hub de eventos</button>
+
+          <div class="panel" id="eventoDetalleHeader"></div>
+
+          <div class="tabbar">
+            <button class="tab-btn active" data-tab="logistica" onclick="switchTab('propios','logistica')">Checklist de logística</button>
+            <button class="tab-btn" data-tab="inscritos" onclick="switchTab('propios','inscritos')">Control de inscritos</button>
+            <button class="tab-btn" data-tab="calendario" onclick="switchTab('propios','calendario')">Calendario de comunicación</button>
+          </div>
+
+          <!-- Logística -->
+          <div class="tab-pane active" id="propios-logistica">
+            <div class="grid-3" id="logisticaFases"></div>
+          </div>
+
+          <!-- Inscritos -->
+          <div class="tab-pane" id="propios-inscritos">
+            <div class="grid-2">
+              <div class="panel">
+                <div class="panel-title">Añadir inscrito</div>
+                <div class="field">
+                  <label for="insNombre">Nombre</label>
+                  <input type="text" id="insNombre">
+                </div>
+                <div class="field">
+                  <label for="insEmail">Email</label>
+                  <input type="email" id="insEmail">
+                </div>
+                <div class="field-row">
+                  <div class="field">
+                    <label for="insCargo">Cargo</label>
+                    <input type="text" id="insCargo" placeholder="Ej. Directora de Innovación">
+                  </div>
+                  <div class="field">
+                    <label for="insEmpresa">Empresa</label>
+                    <input type="text" id="insEmpresa" placeholder="Ej. Grupo Antolin">
+                  </div>
+                </div>
+                <div class="field-row">
+                  <div class="field">
+                    <label for="insSector">Sector</label>
+                    <select id="insSector"><option value="">Sin especificar</option></select>
+                  </div>
+                  <div class="field">
+                    <label for="insFecha">Fecha de inscripción</label>
+                    <input type="date" id="insFecha">
+                  </div>
+                </div>
+                <button class="btn" onclick="añadirInscrito()"><i class="fa-solid fa-plus"></i> Añadir inscrito</button>
+
+                <div class="divider"></div>
+                <div class="panel-title" style="font-size:13px;">Evolución de inscritos</div>
+                <canvas id="chartInscritos" height="160"></canvas>
               </div>
-              <div class="field" style="flex:2;">
-                <label for="nuevoEventoNombre">Crear nuevo evento propio</label>
-                <input type="text" id="nuevoEventoNombre" placeholder="Nombre del evento">
+
+              <div class="panel">
+                <div class="panel-title">Listado de inscritos</div>
+                <div class="table-wrap">
+                  <table id="tablaInscritos">
+                    <thead><tr><th>Nombre</th><th>Email</th><th>Empresa</th><th>Cargo</th><th>Sector</th><th>Fecha</th><th></th></tr></thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
               </div>
-              <button class="btn" style="margin-bottom:15px;" onclick="crearEventoPropio()"><i class="fa-solid fa-plus"></i> Crear</button>
             </div>
           </div>
 
-          <div class="grid-3" id="logisticaFases"></div>
-        </div>
-
-        <!-- Inscritos -->
-        <div class="tab-pane" id="propios-inscritos">
-          <div class="panel">
-            <div class="field" style="max-width:320px;">
-              <label for="eventoInscritosSelect">Evento</label>
-              <select id="eventoInscritosSelect" onchange="renderInscritos()"></select>
-            </div>
-          </div>
-
-          <div class="grid-2">
+          <!-- Calendario de comunicación del evento -->
+          <div class="tab-pane" id="propios-calendario">
             <div class="panel">
-              <div class="panel-title">Añadir inscrito</div>
-              <div class="field">
-                <label for="insNombre">Nombre</label>
-                <input type="text" id="insNombre">
-              </div>
-              <div class="field">
-                <label for="insEmail">Email</label>
-                <input type="email" id="insEmail">
-              </div>
-              <div class="field-row">
-                <div class="field">
-                  <label for="insCargo">Cargo</label>
-                  <input type="text" id="insCargo" placeholder="Ej. Directora de Innovación">
-                </div>
-                <div class="field">
-                  <label for="insEmpresa">Empresa</label>
-                  <input type="text" id="insEmpresa" placeholder="Ej. Grupo Antolin">
-                </div>
-              </div>
-              <div class="field-row">
-                <div class="field">
-                  <label for="insSector">Sector</label>
-                  <select id="insSector"><option value="">Sin especificar</option></select>
-                </div>
-                <div class="field">
-                  <label for="insFecha">Fecha de inscripción</label>
-                  <input type="date" id="insFecha">
-                </div>
-              </div>
-              <button class="btn" onclick="añadirInscrito()"><i class="fa-solid fa-plus"></i> Añadir inscrito</button>
-
-              <div class="divider"></div>
-              <div class="panel-title" style="font-size:13px;">Evolución de inscritos</div>
-              <canvas id="chartInscritos" height="160"></canvas>
+              <div class="panel-subtitle" style="margin-bottom:0;">Planifica aquí las publicaciones en redes sociales y los mailings que se van a enviar para promocionar y acompañar este evento.</div>
             </div>
 
             <div class="panel">
-              <div class="panel-title">Listado de inscritos</div>
+              <div class="cal-head">
+                <button class="btn btn-secondary" onclick="cambiarMesComunicacion(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+                <h3 id="calComMesLabel"></h3>
+                <button class="btn btn-secondary" onclick="cambiarMesComunicacion(1)"><i class="fa-solid fa-chevron-right"></i></button>
+              </div>
+              <div style="margin-bottom:14px;">
+                <span class="tag tag-teal">Redes sociales</span>
+                <span class="tag tag-orange" style="margin-left:6px;">Mailing</span>
+              </div>
+              <div class="cal-grid" id="calComGrid"></div>
+            </div>
+
+            <div class="panel section-gap">
+              <div class="panel-title">Planificación del evento</div>
+              <div class="panel-subtitle">Publicaciones y mailings programados para este evento, ordenados por fecha.</div>
               <div class="table-wrap">
-                <table id="tablaInscritos">
-                  <thead><tr><th>Nombre</th><th>Email</th><th>Empresa</th><th>Cargo</th><th>Sector</th><th>Fecha</th><th></th></tr></thead>
+                <table id="tablaComunicacionEvento">
+                  <thead><tr><th>Fecha</th><th>Tipo</th><th>Contenido / asunto</th><th>Plataforma</th><th>Estado</th><th></th></tr></thead>
                   <tbody></tbody>
                 </table>
               </div>
             </div>
           </div>
         </div>
+      </section>
 
-        <!-- Calendario de comunicación del evento -->
-        <div class="tab-pane" id="propios-calendario">
-          <div class="panel">
-            <div class="field" style="max-width:320px;">
-              <label for="eventoComunicacion">Evento</label>
-              <select id="eventoComunicacion" onchange="renderCalendarioComunicacion()"></select>
-            </div>
-            <div class="panel-subtitle" style="margin-bottom:0;">Planifica aquí las publicaciones en redes sociales y los mailings que se van a enviar para promocionar y acompañar este evento.</div>
+      <!-- Modal de creación / edición de evento propio -->
+      <div class="modal-overlay" id="eventoPropioModal">
+        <div class="modal-box">
+          <span class="modal-close" onclick="cerrarModalEventoPropio()"><i class="fa-solid fa-xmark"></i></span>
+          <h3 id="eventoPropioModalTitulo">Nuevo evento propio</h3>
+          <div class="field">
+            <label for="epNombre">Nombre del evento</label>
+            <input type="text" id="epNombre" placeholder="Ej. Jornada de innovación en movilidad">
           </div>
-
-          <div class="panel">
-            <div class="cal-head">
-              <button class="btn btn-secondary" onclick="cambiarMesComunicacion(-1)"><i class="fa-solid fa-chevron-left"></i></button>
-              <h3 id="calComMesLabel"></h3>
-              <button class="btn btn-secondary" onclick="cambiarMesComunicacion(1)"><i class="fa-solid fa-chevron-right"></i></button>
-            </div>
-            <div style="margin-bottom:14px;">
-              <span class="tag tag-teal">Redes sociales</span>
-              <span class="tag tag-orange" style="margin-left:6px;">Mailing</span>
-            </div>
-            <div class="cal-grid" id="calComGrid"></div>
+          <div class="field">
+            <label for="epUrl">URL del evento</label>
+            <input type="url" id="epUrl" placeholder="https://...">
           </div>
-
-          <div class="panel section-gap">
-            <div class="panel-title">Planificación del evento</div>
-            <div class="panel-subtitle">Publicaciones y mailings programados para este evento, ordenados por fecha.</div>
-            <div class="table-wrap">
-              <table id="tablaComunicacionEvento">
-                <thead><tr><th>Fecha</th><th>Tipo</th><th>Contenido / asunto</th><th>Plataforma</th><th>Estado</th><th></th></tr></thead>
-                <tbody></tbody>
-              </table>
+          <div class="field-row">
+            <div class="field">
+              <label for="epFechaInicio">Fecha de inicio</label>
+              <input type="date" id="epFechaInicio">
             </div>
+            <div class="field">
+              <label for="epFechaFin">Fecha de fin (opcional)</label>
+              <input type="date" id="epFechaFin">
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="epLugar">Lugar</label>
+              <input type="text" id="epLugar" placeholder="Ej. Sede CIDAUT, Boecillo">
+            </div>
+            <div class="field">
+              <label for="epEstado">Estado</label>
+              <select id="epEstado">
+                <option value="planificacion">En planificación</option>
+                <option value="confirmado">Confirmado</option>
+                <option value="finalizado">Finalizado</option>
+                <option value="cancelado">Cancelado</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="epProyecto">Proyecto relacionado (opcional)</label>
+            <select id="epProyecto"><option value="">Ninguno</option></select>
+          </div>
+          <div class="field">
+            <label for="epDescripcion">Notas (opcional)</label>
+            <textarea id="epDescripcion" placeholder="Objetivo del evento, aforo, observaciones..."></textarea>
+          </div>
+          <div class="btn-row">
+            <button class="btn" onclick="guardarEventoPropio()"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+            <button class="btn btn-danger" id="eventoPropioDeleteBtn" style="display:none;" onclick="eliminarEventoPropio()">Eliminar evento</button>
           </div>
         </div>
-      </section>
+      </div>
 
       <!-- ============ MODALS ============ -->
       <div class="modal-overlay" id="calModal">
@@ -2357,8 +2432,13 @@ function switchTab(module, tabName){
   if (module==='propios' && tabName==='calendario') renderCalendarioComunicacion();
 }
 
-function goTo(view, tab){
+function goTo(view, tab, evento){
   setActiveNav(view);
+  if (view==='propios' && evento){
+    abrirEventoDetalle(evento);
+    if (tab) switchTab('propios', tab);
+    return;
+  }
   if (tab) switchTab(view, tab);
 }
 
@@ -4913,34 +4993,225 @@ const PLANTILLA_LOGISTICA = {
 };
 const FASE_LABEL = { pre:'Pre-evento', durante:'Durante el evento', post:'Post-evento' };
 
+const ESTADO_EVENTO_LABEL = { planificacion:'En planificación', confirmado:'Confirmado', finalizado:'Finalizado', cancelado:'Cancelado' };
+const ESTADO_EVENTO_TAG = { planificacion:'tag-orange', confirmado:'tag-teal', finalizado:'tag-grey', cancelado:'tag-grey' };
+
 function getEventosPropios(){ return getLS(LS.eventosPropios); }
+function getEventoPropioPorNombre(nombre){ return getEventosPropios().find(e=>e.nombre===nombre); }
 
-function crearEventoPropio(){
-  const nombre = document.getElementById('nuevoEventoNombre').value.trim();
-  if (!nombre){ showToast('Escribe un nombre para el nuevo evento.'); return; }
+/* Compatibilidad con hubs guardados antes de que los eventos propios
+   tuvieran más datos que el nombre (guardado como simple lista de textos). */
+function migrarEventosPropiosLegacy(){
   const eventos = getEventosPropios();
-  if (eventos.includes(nombre)){ showToast('Ya existe un evento con ese nombre.'); return; }
-  eventos.push(nombre);
-  setLS(LS.eventosPropios, eventos);
+  if (!eventos.length || typeof eventos[0] !== 'string') return;
+  const migrados = eventos.map(nombre=>({
+    id: uid(), nombre, url:'', fechaInicio:'', fechaFin:'', lugar:'', estado:'planificacion', proyecto:'', descripcion:''
+  }));
+  setLS(LS.eventosPropios, migrados);
+}
 
-  const logistica = getLS(LS.logistica);
-  const obj = Array.isArray(logistica) ? {} : logistica;
-  obj[nombre] = {
-    pre: PLANTILLA_LOGISTICA.pre.map(t=>({id:uid(), texto:t, done:false})),
-    durante: PLANTILLA_LOGISTICA.durante.map(t=>({id:uid(), texto:t, done:false})),
-    post: PLANTILLA_LOGISTICA.post.map(t=>({id:uid(), texto:t, done:false}))
+let eventoPropioEditNombre = null; // nombre del evento que se está editando en el modal (null = creando uno nuevo)
+let eventoDetalleActual = null;    // nombre del evento abierto en la ficha de detalle
+
+function fmtRangoEventoPropio(ev){
+  if (!ev.fechaInicio) return 'Sin fecha';
+  if (ev.fechaFin && ev.fechaFin !== ev.fechaInicio) return `${fmtFecha(ev.fechaInicio)} – ${fmtFecha(ev.fechaFin)}`;
+  return fmtFecha(ev.fechaInicio);
+}
+
+function poblarSelectProyectoEventoPropio(){
+  const sel = document.getElementById('epProyecto');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">Ninguno</option>' + getProyectosNombres().map(n=>`<option>${esc(n)}</option>`).join('');
+  sel.value = prev;
+}
+
+function abrirModalEventoPropio(nombre){
+  eventoPropioEditNombre = nombre || null;
+  poblarSelectProyectoEventoPropio();
+  const deleteBtn = document.getElementById('eventoPropioDeleteBtn');
+  if (nombre){
+    const ev = getEventoPropioPorNombre(nombre);
+    if (!ev) return;
+    document.getElementById('eventoPropioModalTitulo').textContent = 'Editar evento propio';
+    document.getElementById('epNombre').value = ev.nombre || '';
+    document.getElementById('epUrl').value = ev.url || '';
+    document.getElementById('epFechaInicio').value = ev.fechaInicio || '';
+    document.getElementById('epFechaFin').value = ev.fechaFin || '';
+    document.getElementById('epLugar').value = ev.lugar || '';
+    document.getElementById('epEstado').value = ev.estado || 'planificacion';
+    document.getElementById('epProyecto').value = ev.proyecto || '';
+    document.getElementById('epDescripcion').value = ev.descripcion || '';
+    deleteBtn.style.display = 'inline-flex';
+  } else {
+    document.getElementById('eventoPropioModalTitulo').textContent = 'Nuevo evento propio';
+    ['epNombre','epUrl','epFechaInicio','epFechaFin','epLugar','epDescripcion'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('epEstado').value = 'planificacion';
+    document.getElementById('epProyecto').value = '';
+    deleteBtn.style.display = 'none';
+  }
+  document.getElementById('eventoPropioModal').classList.add('active');
+}
+
+function cerrarModalEventoPropio(){
+  document.getElementById('eventoPropioModal').classList.remove('active');
+  eventoPropioEditNombre = null;
+}
+
+function guardarEventoPropio(){
+  const nombre = document.getElementById('epNombre').value.trim();
+  if (!nombre){ showToast('Escribe un nombre para el evento.'); return; }
+  const eventos = getEventosPropios();
+  const duplicado = eventos.some(e=>e.nombre===nombre && e.nombre!==eventoPropioEditNombre);
+  if (duplicado){ showToast('Ya existe un evento con ese nombre.'); return; }
+
+  const datos = {
+    nombre,
+    url: document.getElementById('epUrl').value.trim(),
+    fechaInicio: document.getElementById('epFechaInicio').value,
+    fechaFin: document.getElementById('epFechaFin').value,
+    lugar: document.getElementById('epLugar').value.trim(),
+    estado: document.getElementById('epEstado').value,
+    proyecto: document.getElementById('epProyecto').value,
+    descripcion: document.getElementById('epDescripcion').value.trim()
   };
-  localStorage.setItem(LS.logistica, JSON.stringify(obj));
 
-  document.getElementById('nuevoEventoNombre').value = '';
-  populateEventoSelects();
-  document.getElementById('eventoActivo').value = nombre;
-  document.getElementById('eventoInscritosSelect').value = nombre;
-  document.getElementById('eventoComunicacion').value = nombre;
+  if (eventoPropioEditNombre){
+    // Edición de un evento existente (puede incluir un cambio de nombre)
+    const idx = eventos.findIndex(e=>e.nombre===eventoPropioEditNombre);
+    if (idx>-1) eventos[idx] = { ...eventos[idx], ...datos };
+    setLS(LS.eventosPropios, eventos);
+    if (nombre !== eventoPropioEditNombre) renombrarEventoPropioEnDatos(eventoPropioEditNombre, nombre);
+    if (eventoDetalleActual === eventoPropioEditNombre) eventoDetalleActual = nombre;
+    cerrarModalEventoPropio();
+    renderEventosHub();
+    if (eventoDetalleActual === nombre) abrirEventoDetalle(nombre);
+    showToast('Evento actualizado.');
+  } else {
+    // Creación de un evento nuevo, con su checklist de logística estándar
+    eventos.push({ id: uid(), ...datos });
+    setLS(LS.eventosPropios, eventos);
+    const logistica = getLogisticaObj();
+    logistica[nombre] = {
+      pre: PLANTILLA_LOGISTICA.pre.map(t=>({id:uid(), texto:t, done:false})),
+      durante: PLANTILLA_LOGISTICA.durante.map(t=>({id:uid(), texto:t, done:false})),
+      post: PLANTILLA_LOGISTICA.post.map(t=>({id:uid(), texto:t, done:false}))
+    };
+    localStorage.setItem(LS.logistica, JSON.stringify(logistica));
+    cerrarModalEventoPropio();
+    renderEventosHub();
+    abrirEventoDetalle(nombre);
+    showToast('Evento creado con la checklist estándar.');
+  }
+}
+
+/* Cuando se cambia el nombre de un evento hay que actualizar la clave
+   que lo referencia en la logística, los inscritos y el calendario de
+   comunicación, que se guardan enlazados por el nombre del evento. */
+function renombrarEventoPropioEnDatos(nombreAnterior, nombreNuevo){
+  const logistica = getLogisticaObj();
+  if (logistica[nombreAnterior]){
+    logistica[nombreNuevo] = logistica[nombreAnterior];
+    delete logistica[nombreAnterior];
+    localStorage.setItem(LS.logistica, JSON.stringify(logistica));
+  }
+  const inscritos = getLS(LS.inscritos).map(i=> i.evento===nombreAnterior ? {...i, evento:nombreNuevo} : i);
+  setLS(LS.inscritos, inscritos);
+  const comunicacion = getLS(LS.comunicacionEventos).map(c=> c.evento===nombreAnterior ? {...c, evento:nombreNuevo} : c);
+  setLS(LS.comunicacionEventos, comunicacion);
+}
+
+function eliminarEventoPropio(nombreParam){
+  const nombre = nombreParam || eventoPropioEditNombre;
+  if (!nombre) return;
+  if (!confirm(`¿Eliminar el evento "${nombre}"? También se eliminará su checklist de logística, sus inscritos y su calendario de comunicación. Esta acción no se puede deshacer.`)) return;
+
+  setLS(LS.eventosPropios, getEventosPropios().filter(e=>e.nombre!==nombre));
+  const logistica = getLogisticaObj();
+  delete logistica[nombre];
+  localStorage.setItem(LS.logistica, JSON.stringify(logistica));
+  setLS(LS.inscritos, getLS(LS.inscritos).filter(i=>i.evento!==nombre));
+  setLS(LS.comunicacionEventos, getLS(LS.comunicacionEventos).filter(c=>c.evento!==nombre));
+
+  cerrarModalEventoPropio();
+  if (eventoDetalleActual === nombre) volverAlHubEventos();
+  renderEventosHub();
+  updateDashboardStats();
+  showToast('Evento eliminado.');
+}
+
+function renderEventosHub(){
+  const wrap = document.getElementById('eventosHubGrid');
+  if (!wrap) return;
+  const eventos = getEventosPropios().slice().sort((a,b)=>(b.fechaInicio||'').localeCompare(a.fechaInicio||''));
+  if (!eventos.length){
+    wrap.innerHTML = '<div class="panel"><p class="muted">Todavía no has creado ningún evento propio. Usa "Nuevo evento" para empezar.</p></div>';
+    return;
+  }
+  const logistica = getLogisticaObj();
+  const inscritos = getLS(LS.inscritos);
+  wrap.innerHTML = eventos.map(ev=>{
+    const tareas = logistica[ev.nombre] ? [...logistica[ev.nombre].pre,...logistica[ev.nombre].durante,...logistica[ev.nombre].post] : [];
+    const hechas = tareas.filter(t=>t.done).length;
+    const pct = tareas.length ? Math.round(hechas/tareas.length*100) : 0;
+    const numInscritos = inscritos.filter(i=>i.evento===ev.nombre).length;
+    return `
+    <div class="event-card" onclick="abrirEventoDetalle('${ev.nombre}')">
+      <div class="event-card-top">
+        <div class="event-card-title">${esc(ev.nombre)}</div>
+        <span class="tag ${ESTADO_EVENTO_TAG[ev.estado]||'tag-grey'}">${ESTADO_EVENTO_LABEL[ev.estado]||'—'}</span>
+      </div>
+      <div class="event-card-meta">
+        <span><i class="fa-solid fa-calendar-days"></i> ${fmtRangoEventoPropio(ev)}</span>
+        ${ev.lugar ? `<span><i class="fa-solid fa-location-dot"></i> ${esc(ev.lugar)}</span>` : ''}
+        ${ev.url ? `<span><i class="fa-solid fa-link"></i> <a href="${esc(ev.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation();">Ver web del evento</a></span>` : ''}
+      </div>
+      <div class="event-card-stats">
+        <span><b>${hechas}/${tareas.length}</b> tareas (${pct}%)</span>
+        <span><b>${numInscritos}</b> inscrito${numInscritos===1?'':'s'}</span>
+      </div>
+      <div class="event-card-actions">
+        <span class="btn-ghost" onclick="event.stopPropagation();abrirModalEventoPropio('${ev.nombre}')"><i class="fa-solid fa-pen"></i></span>
+        <span class="btn-ghost" onclick="event.stopPropagation();eliminarEventoPropio('${ev.nombre}')"><i class="fa-solid fa-trash"></i></span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function abrirEventoDetalle(nombre){
+  const ev = getEventoPropioPorNombre(nombre);
+  if (!ev){ showToast('Ese evento ya no existe.'); volverAlHubEventos(); return; }
+  eventoDetalleActual = nombre;
+  document.getElementById('propiosHubView').style.display = 'none';
+  document.getElementById('propiosDetalleView').style.display = 'block';
+  document.getElementById('eventoDetalleHeader').innerHTML = `
+    <div class="event-detail-header">
+      <div>
+        <div class="event-detail-title">${esc(ev.nombre)}</div>
+        <div class="event-detail-meta">
+          <span><i class="fa-solid fa-calendar-days"></i> ${fmtRangoEventoPropio(ev)}</span>
+          ${ev.lugar ? `<span><i class="fa-solid fa-location-dot"></i> ${esc(ev.lugar)}</span>` : ''}
+          ${ev.proyecto ? `<span><i class="fa-solid fa-diagram-project"></i> ${esc(ev.proyecto)}</span>` : ''}
+          ${ev.url ? `<span><i class="fa-solid fa-link"></i> <a href="${esc(ev.url)}" target="_blank" rel="noopener">${esc(ev.url)}</a></span>` : ''}
+          <span class="tag ${ESTADO_EVENTO_TAG[ev.estado]||'tag-grey'}">${ESTADO_EVENTO_LABEL[ev.estado]||'—'}</span>
+        </div>
+        ${ev.descripcion ? `<div class="panel-subtitle" style="margin:10px 0 0 0;">${esc(ev.descripcion)}</div>` : ''}
+      </div>
+      <div class="event-detail-actions">
+        <button class="btn btn-secondary" onclick="abrirModalEventoPropio('${ev.nombre}')"><i class="fa-solid fa-pen"></i> Editar datos</button>
+      </div>
+    </div>`;
+  switchTab('propios','logistica');
   renderLogistica();
   renderInscritos();
   renderCalendarioComunicacion();
-  showToast('Evento creado con la checklist estándar.');
+}
+
+function volverAlHubEventos(){
+  eventoDetalleActual = null;
+  document.getElementById('propiosDetalleView').style.display = 'none';
+  document.getElementById('propiosHubView').style.display = 'block';
+  renderEventosHub();
 }
 
 function getLogisticaObj(){
@@ -4949,22 +5220,12 @@ function getLogisticaObj(){
   try{ const parsed = JSON.parse(raw); return Array.isArray(parsed) ? {} : parsed; }catch(e){ return {}; }
 }
 
-function populateEventoSelects(){
-  const eventos = getEventosPropios();
-  const opciones = eventos.length ? eventos.map(e=>`<option>${esc(e)}</option>`).join('') : '<option value="">Crea un evento primero</option>';
-  ['eventoActivo','eventoInscritosSelect','eventoComunicacion'].forEach(id=>{
-    const sel = document.getElementById(id);
-    const prev = sel.value;
-    sel.innerHTML = opciones;
-    if (eventos.includes(prev)) sel.value = prev;
-  });
-}
-
 function renderLogistica(){
-  const evento = document.getElementById('eventoActivo').value;
+  const evento = eventoDetalleActual;
   const wrap = document.getElementById('logisticaFases');
+  if (!wrap) return;
   if (!evento){
-    wrap.innerHTML = '<div class="panel"><p class="muted">Crea un evento propio arriba para empezar su checklist de logística.</p></div>';
+    wrap.innerHTML = '<div class="panel"><p class="muted">Abre un evento propio desde el hub para ver su checklist de logística.</p></div>';
     return;
   }
   const logistica = getLogisticaObj();
@@ -5028,8 +5289,8 @@ function añadirTareaLogistica(evento, fase){
 let chartInscritosRef = null;
 
 function añadirInscrito(){
-  const evento = document.getElementById('eventoInscritosSelect').value;
-  if (!evento){ showToast('Crea o selecciona primero un evento.'); return; }
+  const evento = eventoDetalleActual;
+  if (!evento){ showToast('Abre primero un evento propio desde el hub.'); return; }
   const nombre = document.getElementById('insNombre').value.trim();
   const email = document.getElementById('insEmail').value.trim();
   const cargo = document.getElementById('insCargo').value.trim();
@@ -5060,11 +5321,12 @@ function eliminarInscrito(id){
 }
 
 function renderInscritos(){
-  const evento = document.getElementById('eventoInscritosSelect').value;
+  const evento = eventoDetalleActual;
   const todos = getLS(LS.inscritos).filter(i=>i.evento===evento);
   const tbody = document.querySelector('#tablaInscritos tbody');
+  if (!tbody) return;
   if (!evento){
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Selecciona o crea un evento propio.</td></tr>';
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Abre un evento propio desde el hub.</td></tr>';
   } else if (!todos.length){
     tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Todavía no hay inscritos para este evento.</td></tr>';
   } else {
@@ -5124,17 +5386,16 @@ function getComunicacionEvento(evento){
 }
 
 function renderCalendarioComunicacion(){
-  const selEvento = document.getElementById('eventoComunicacion');
   const grid = document.getElementById('calComGrid');
   const tbody = document.querySelector('#tablaComunicacionEvento tbody');
-  if (!selEvento || !grid || !tbody) return;
-  const evento = selEvento.value;
+  if (!grid || !tbody) return;
+  const evento = eventoDetalleActual;
   const mesLabel = document.getElementById('calComMesLabel');
   if (mesLabel) mesLabel.textContent = `${MESES_CAP[calComDate.getMonth()]} ${calComDate.getFullYear()}`;
 
   if (!evento){
     grid.innerHTML = '';
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Crea o selecciona un evento propio para planificar su comunicación.</td></tr>';
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Abre un evento propio desde el hub para planificar su comunicación.</td></tr>';
     return;
   }
 
@@ -5194,7 +5455,7 @@ function toggleComPlataformaField(){
 }
 
 function abrirModalCom(dateStr, entryId){
-  if (!document.getElementById('eventoComunicacion').value){ showToast('Crea o selecciona primero un evento propio.'); return; }
+  if (!eventoDetalleActual){ showToast('Abre primero un evento propio desde el hub.'); return; }
   calComEditId = entryId || null;
   document.getElementById('comFecha').value = dateStr;
   if (entryId){
@@ -5220,8 +5481,8 @@ function cerrarModalCom(){
 }
 
 function guardarComunicacionEvento(){
-  const evento = document.getElementById('eventoComunicacion').value;
-  if (!evento){ showToast('Selecciona primero un evento.'); return; }
+  const evento = eventoDetalleActual;
+  if (!evento){ showToast('Abre primero un evento propio desde el hub.'); return; }
   const fecha = document.getElementById('comFecha').value;
   const titulo = document.getElementById('comTitulo').value.trim();
   if (!fecha || !titulo){ showToast('Indica fecha y contenido.'); return; }
@@ -5396,7 +5657,7 @@ function renderActividadReciente(){
   const inscritos = getLS(LS.inscritos);
   if (inscritos.length){
     const i = inscritos[inscritos.length-1];
-    items.push({ icon:'fa-user-plus', title:`${i.nombre} — ${i.evento}`, meta:`Inscrito añadido · ${fmtFecha(i.fecha)}`, view:'propios', tab:'inscritos' });
+    items.push({ icon:'fa-user-plus', title:`${i.nombre} — ${i.evento}`, meta:`Inscrito añadido · ${fmtFecha(i.fecha)}`, view:'propios', tab:'inscritos', evento:i.evento });
   }
 
   if (!items.length){
@@ -5410,7 +5671,7 @@ function renderActividadReciente(){
         <div class="ai-title">${esc(it.title)}</div>
         <div class="ai-meta">${esc(it.meta)}</div>
       </div>
-      <button class="ai-link" onclick="goTo('${it.view}','${it.tab}')">Ver</button>
+      <button class="ai-link" onclick="goTo('${it.view}','${it.tab}','${it.evento||''}')">Ver</button>
     </div>`).join('');
 }
 
@@ -5575,7 +5836,7 @@ function buscarGlobal(query){
   });
   getLS(LS.inscritos).forEach(i=>{
     if ((`${i.nombre} ${i.empresa||''}`).toLowerCase().includes(q)){
-      resultados.push({ tipo:'Inscrito', icon:'fa-user-plus', titulo:i.empresa?`${i.nombre} — ${i.empresa}`:i.nombre, meta:fmtFecha(i.fecha), view:'propios', tab:'inscritos' });
+      resultados.push({ tipo:'Inscrito', icon:'fa-user-plus', titulo:i.empresa?`${i.nombre} — ${i.empresa}`:i.nombre, meta:fmtFecha(i.fecha), view:'propios', tab:'inscritos', evento:i.evento });
     }
   });
   getSectores().forEach(s=>{
@@ -5610,7 +5871,7 @@ function buscarGlobal(query){
     return;
   }
   resultsWrap.innerHTML = resultados.slice(0,20).map(r=>`
-    <div class="gs-item" onclick="irDesdeGlobalSearch('${r.view}','${r.tab}')">
+    <div class="gs-item" onclick="irDesdeGlobalSearch('${r.view}','${r.tab}','${r.evento||''}')">
       <div class="gs-icon"><i class="fa-solid ${r.icon}"></i></div>
       <div>
         <div class="gs-title">${esc(r.titulo)}</div>
@@ -5620,8 +5881,8 @@ function buscarGlobal(query){
   resultsWrap.classList.add('open');
 }
 
-function irDesdeGlobalSearch(view, tab){
-  goTo(view, tab);
+function irDesdeGlobalSearch(view, tab, evento){
+  goTo(view, tab, evento);
   cerrarBusquedaGlobal();
   const input = document.getElementById('globalSearchInput');
   if (input) input.value = '';
@@ -5644,6 +5905,7 @@ document.addEventListener('click', (ev)=>{
    ======================================================================= */
 function init(){
   migrarProyectosLegacy();
+  migrarEventosPropiosLegacy();
 
   document.getElementById('evFecha').valueAsDate = new Date();
   document.getElementById('insFecha').valueAsDate = new Date();
@@ -5691,10 +5953,7 @@ function init(){
 
   renderEnlaces();
 
-  populateEventoSelects();
-  renderLogistica();
-  renderInscritos();
-  renderCalendarioComunicacion();
+  renderEventosHub();
 
   actualizarBackupUltimaFecha();
 
