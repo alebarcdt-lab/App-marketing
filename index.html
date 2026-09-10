@@ -718,6 +718,7 @@
         <div class="tabbar">
           <button class="tab-btn active" data-tab="proyectos" onclick="switchTab('config','proyectos')">Proyectos</button>
           <button class="tab-btn" data-tab="sectores" onclick="switchTab('config','sectores')">Sectores</button>
+          <button class="tab-btn" data-tab="backup" onclick="switchTab('config','backup')">Copia de seguridad</button>
         </div>
 
         <!-- Proyectos -->
@@ -816,7 +817,31 @@
             </div>
           </div>
         </div>
+
+        <!-- Copia de seguridad -->
+        <div class="tab-pane" id="config-backup">
+          <div class="grid-2">
+            <div class="panel panel-accent">
+              <div class="panel-title">Descargar copia de seguridad</div>
+              <div class="panel-subtitle">Descarga un único archivo con todos los datos del hub: proyectos, tareas, eventos, memoria anual, webs, SEO, email, redes sociales, enlaces y eventos propios.</div>
+              <button class="btn" onclick="exportarBackupCompleto()"><i class="fa-solid fa-download"></i> Descargar copia de seguridad</button>
+              <div class="hint" style="margin-top:12px;">Última copia descargada en este navegador: <strong id="backupUltimaFecha">Nunca</strong></div>
+              <div class="hint" style="margin-top:4px;">Recomendado: descarga una copia de vez en cuando y guárdala fuera del navegador (por ejemplo, en tu carpeta de proyectos o en la nube).</div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-title">Restaurar copia de seguridad</div>
+              <div class="panel-subtitle">Sube un archivo de copia de seguridad descargado anteriormente. <strong>Esto sustituirá todos los datos actuales del hub</strong> en este navegador.</div>
+              <div class="file-drop" onclick="document.getElementById('backupFileInput').click()">
+                <i class="fa-solid fa-upload"></i> Haz clic para seleccionar el archivo de copia de seguridad (.json)
+                <input type="file" id="backupFileInput" accept="application/json,.json">
+              </div>
+              <div class="hint" style="margin-top:12px;">Se te pedirá confirmación antes de sustituir ningún dato.</div>
+            </div>
+          </div>
+        </div>
       </section>
+
 
       <!-- ============ INICIO ============ -->
       <section class="module-view active" id="view-inicio">
@@ -2198,6 +2223,106 @@ function resizeImage(file, maxDim, quality, cb){
 }
 
 /* ---------------------------------------------------------------------
+   COPIA DE SEGURIDAD — exportar / restaurar todo el hub
+   --------------------------------------------------------------------- */
+const LS_BACKUP_ULTIMA = 'cidautHub_backupUltimaFecha';
+
+function exportarBackupCompleto(){
+  const datos = {};
+  Object.values(LS).forEach(key=>{
+    const raw = localStorage.getItem(key);
+    if (raw !== null){
+      try{ datos[key] = JSON.parse(raw); }catch(e){ datos[key] = raw; }
+    }
+  });
+  const paquete = {
+    app: 'Hub de Marketing — CIDAUT',
+    generado: new Date().toISOString(),
+    datos
+  };
+  const blob = new Blob([JSON.stringify(paquete, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const hoy = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `backup_hub_marketing_cidaut_${hoy}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  localStorage.setItem(LS_BACKUP_ULTIMA, new Date().toISOString());
+  actualizarBackupUltimaFecha();
+  showToast('Copia de seguridad descargada.');
+}
+
+function actualizarBackupUltimaFecha(){
+  const el = document.getElementById('backupUltimaFecha');
+  if (!el) return;
+  const raw = localStorage.getItem(LS_BACKUP_ULTIMA);
+  if (!raw){ el.textContent = 'Nunca'; return; }
+  const d = new Date(raw);
+  if (isNaN(d.getTime())){ el.textContent = 'Nunca'; return; }
+  const fecha = fmtFecha(d.toISOString().slice(0,10));
+  const hora = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  el.textContent = `${fecha} a las ${hora}`;
+}
+
+function restaurarBackupCompleto(paqueteOplano){
+  // Admite tanto el formato nuevo ({app, generado, datos}) como un JSON plano con las claves directamente.
+  const datos = (paqueteOplano && typeof paqueteOplano==='object' && paqueteOplano.datos && typeof paqueteOplano.datos==='object')
+    ? paqueteOplano.datos
+    : paqueteOplano;
+
+  if (!datos || typeof datos !== 'object' || Array.isArray(datos)){
+    showToast('El archivo no tiene un formato de copia de seguridad válido.');
+    return false;
+  }
+
+  const clavesValidas = Object.values(LS);
+  const clavesEncontradas = Object.keys(datos).filter(k=>clavesValidas.includes(k));
+  if (!clavesEncontradas.length){
+    showToast('El archivo no contiene datos reconocibles del hub.');
+    return false;
+  }
+
+  const totalRegistros = clavesEncontradas.reduce((acc,k)=>{
+    const v = datos[k];
+    if (Array.isArray(v)) return acc + v.length;
+    if (v && typeof v==='object') return acc + Object.keys(v).length;
+    return acc;
+  }, 0);
+
+  const confirmado = confirm(
+    `Vas a restaurar una copia de seguridad con ${clavesEncontradas.length} secciones de datos (aprox. ${totalRegistros} registros en total).\n\n` +
+    `Esto SUSTITUIRÁ todos los datos actuales del hub en este navegador y no se puede deshacer.\n\n` +
+    `¿Quieres continuar?`
+  );
+  if (!confirmado) return false;
+
+  clavesEncontradas.forEach(key=>{
+    localStorage.setItem(key, JSON.stringify(datos[key]));
+  });
+
+  showToast('Copia de seguridad restaurada. Recargando el hub...');
+  setTimeout(()=> location.reload(), 1000);
+  return true;
+}
+
+document.getElementById('backupFileInput').addEventListener('change', function(){
+  const inputEl = this;
+  const file = inputEl.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    let parsed;
+    try{ parsed = JSON.parse(e.target.result); }
+    catch(err){ showToast('El archivo no es un JSON válido.'); inputEl.value=''; return; }
+    restaurarBackupCompleto(parsed);
+    inputEl.value = '';
+  };
+  reader.onerror = ()=>{ showToast('No se ha podido leer el archivo.'); inputEl.value=''; };
+  reader.readAsText(file);
+});
+
+/* ---------------------------------------------------------------------
    NAVEGACIÓN
    --------------------------------------------------------------------- */
 const TOPBAR_TEXT = {
@@ -2353,10 +2478,14 @@ function cancelarEdicionProyecto(){
 }
 
 function eliminarProyecto(id){
+  const p = getProyectos().find(x=>x.id===id);
+  if (!p) return;
+  if (!confirm(`¿Eliminar el proyecto "${p.nombre}"? Esta acción no se puede deshacer.`)) return;
   setLS(LS.proyectos, getProyectos().filter(p=>p.id!==id));
   if (proyectoEditId===id) cancelarEdicionProyecto();
   renderProyectos();
   refrescarSelectsProyecto();
+  showToast('Proyecto eliminado.');
 }
 
 function renderProyectos(){
@@ -2438,9 +2567,13 @@ function guardarSector(){
 }
 
 function eliminarSector(id){
-  setLS(LS.sectores, getSectores().filter(s=>s.id!==id));
+  const s = getSectores().find(x=>x.id===id);
+  if (!s) return;
+  if (!confirm(`¿Eliminar el sector "${s.nombre}"?`)) return;
+  setLS(LS.sectores, getSectores().filter(x=>x.id!==id));
   renderSectores();
   poblarSelectSectorInscrito();
+  showToast('Sector eliminado.');
 }
 
 function renderSectores(){
@@ -2560,14 +2693,21 @@ function guardarTarea(){
 
 function borrarTareaModal(){
   if (!tareaEditId) return;
+  const t = getTareas().find(x=>x.id===tareaEditId);
+  if (!confirm(`¿Eliminar la tarea "${t?t.titulo:''}"? Esta acción no se puede deshacer.`)) return;
   setLS(LS.tareas, getTareas().filter(x=>x.id!==tareaEditId));
   cerrarModalTarea();
   renderTareas();
+  showToast('Tarea eliminada.');
 }
 
 function eliminarTarea(id){
+  const t = getTareas().find(x=>x.id===id);
+  if (!t) return;
+  if (!confirm(`¿Eliminar la tarea "${t.titulo}"? Esta acción no se puede deshacer.`)) return;
   setLS(LS.tareas, getTareas().filter(x=>x.id!==id));
   renderTareas();
+  showToast('Tarea eliminada.');
 }
 
 function toggleTareaHecha(id){
@@ -2828,11 +2968,15 @@ function limpiarFormularioEvento(){
 }
 
 function eliminarRegistroEvento(id){
-  setLS(LS.eventos, getLS(LS.eventos).filter(r=>r.id!==id));
+  const r = getLS(LS.eventos).find(x=>x.id===id);
+  if (!r) return;
+  if (!confirm(`¿Eliminar el registro de "${r.nombre} — ${r.evento}"? Esta acción no se puede deshacer.`)) return;
+  setLS(LS.eventos, getLS(LS.eventos).filter(x=>x.id!==id));
   renderRegistrosRecientes();
   populateMemoriaFilters();
   renderMemoria();
   updateDashboardStats();
+  showToast('Registro eliminado.');
 }
 
 function renderRegistrosRecientes(){
@@ -3020,6 +3164,9 @@ function copiarSnippet(id){
 }
 
 function eliminarSnippet(id){
+  const s = getLS(LS.snippets).find(x=>x.id===id);
+  if (!s) return;
+  if (!confirm(`¿Eliminar el snippet "${s.title}"?`)) return;
   setLS(LS.snippets, getLS(LS.snippets).filter(x=>x.id!==id));
   filtrarSnippets();
   showToast('Snippet eliminado.');
@@ -3061,9 +3208,12 @@ function eliminarApartadoWeb(id){
   const proyecto = document.getElementById('proyectoWebActivo').value;
   const estructura = getEstructuraWebObj();
   if (!estructura[proyecto]) return;
+  const apartado = estructura[proyecto].find(a=>a.id===id);
+  if (!confirm(`¿Eliminar el apartado "${apartado?apartado.slug:''}"?`)) return;
   estructura[proyecto] = estructura[proyecto].filter(a=>a.id!==id);
   localStorage.setItem(LS.estructuraWebs, JSON.stringify(estructura));
   renderEstructuraWeb();
+  showToast('Apartado eliminado.');
 }
 
 function renderEstructuraWeb(){
@@ -3140,9 +3290,13 @@ function toggleMantenimiento(id){
 }
 
 function eliminarMantenimiento(id){
+  const t = getLS(LS.mantenimiento).find(x=>x.id===id);
+  if (!t) return;
+  if (!confirm(`¿Eliminar la tarea de mantenimiento "${t.tarea}"?`)) return;
   setLS(LS.mantenimiento, getLS(LS.mantenimiento).filter(x=>x.id!==id));
   renderMantenimiento();
   updateDashboardStats();
+  showToast('Tarea de mantenimiento eliminada.');
 }
 
 function renderMantenimiento(){
@@ -3258,9 +3412,13 @@ function cancelarEdicionKeyword(){
 }
 
 function eliminarKeyword(id){
-  setLS(LS.seoKeywords, getKeywordsSEO().filter(k=>k.id!==id));
+  const k = getKeywordsSEO().find(x=>x.id===id);
+  if (!k) return;
+  if (!confirm(`¿Eliminar la keyword "${k.keyword}"?`)) return;
+  setLS(LS.seoKeywords, getKeywordsSEO().filter(x=>x.id!==id));
   if (kwEditId===id) cancelarEdicionKeyword();
   renderKeywords();
+  showToast('Keyword eliminada.');
 }
 
 function renderKeywords(){
@@ -3351,9 +3509,13 @@ function cancelarEdicionPaginaSEO(){
 }
 
 function eliminarPaginaSEO(id){
-  setLS(LS.seoPaginas, getPaginasSEO().filter(p=>p.id!==id));
+  const p = getPaginasSEO().find(x=>x.id===id);
+  if (!p) return;
+  if (!confirm(`¿Eliminar la ficha SEO de "${p.url}"?`)) return;
+  setLS(LS.seoPaginas, getPaginasSEO().filter(x=>x.id!==id));
   if (paginaEditId===id) cancelarEdicionPaginaSEO();
   renderPaginasSEO();
+  showToast('Ficha SEO eliminada.');
 }
 
 function renderPaginasSEO(){
@@ -3449,9 +3611,13 @@ function toggleAuditoriaSEO(id){
 }
 
 function eliminarAuditoriaSEO(id){
+  const t = getLS(LS.seoAuditoria).find(x=>x.id===id);
+  if (!t) return;
+  if (!confirm(`¿Eliminar la tarea de auditoría "${t.tarea}"?`)) return;
   setLS(LS.seoAuditoria, getLS(LS.seoAuditoria).filter(x=>x.id!==id));
   renderAuditoriaSEO();
   updateDashboardStats();
+  showToast('Tarea de auditoría eliminada.');
 }
 
 function renderAuditoriaSEO(){
@@ -3531,9 +3697,13 @@ function cancelarEdicionContenidoSEO(){
 }
 
 function eliminarContenidoSEO(id){
-  setLS(LS.seoContenidos, getContenidosSEO().filter(c=>c.id!==id));
+  const c = getContenidosSEO().find(x=>x.id===id);
+  if (!c) return;
+  if (!confirm(`¿Eliminar el contenido "${c.titulo}"?`)) return;
+  setLS(LS.seoContenidos, getContenidosSEO().filter(x=>x.id!==id));
   if (contenidoEditId===id) cancelarEdicionContenidoSEO();
   renderContenidosSEO();
+  showToast('Contenido eliminado.');
 }
 
 function renderContenidosSEO(){
@@ -3630,8 +3800,12 @@ function guardarUTM(){
 }
 
 function eliminarUTM(id){
+  const h = getLS(LS.utm).find(x=>x.id===id);
+  if (!h) return;
+  if (!confirm(`¿Eliminar el enlace UTM de la campaña "${h.campaign}"?`)) return;
   setLS(LS.utm, getLS(LS.utm).filter(x=>x.id!==id));
   renderUTMHistorial();
+  showToast('Enlace UTM eliminado.');
 }
 
 function renderUTMHistorial(){
@@ -3671,8 +3845,12 @@ function añadirEnvioEmail(){
 }
 
 function eliminarEnvioEmail(id){
+  const e = getLS(LS.emailsEnviados).find(x=>x.id===id);
+  if (!e) return;
+  if (!confirm(`¿Eliminar el registro de envío "${e.nombre}"?`)) return;
   setLS(LS.emailsEnviados, getLS(LS.emailsEnviados).filter(x=>x.id!==id));
   renderEnviosEmail();
+  showToast('Envío eliminado.');
 }
 
 function renderEnviosEmail(){
@@ -3915,11 +4093,14 @@ function guardarEntradaCalendario(){
 
 function borrarEntradaCalendario(){
   if (!calEditId) return;
+  const e = getLS(LS.calendario).find(x=>x.id===calEditId);
+  if (!confirm(`¿Eliminar la entrada "${e?e.titulo:''}" del calendario?`)) return;
   setLS(LS.calendario, getLS(LS.calendario).filter(x=>x.id!==calEditId));
   cerrarModalCal();
   renderCalendar();
   renderListaPublicaciones();
   updateDashboardStats();
+  showToast('Entrada eliminada.');
 }
 
 function renderListaPublicaciones(){
@@ -4001,8 +4182,12 @@ function cancelarEdicionIdea(){
 }
 
 function eliminarIdea(id){
+  const i = getLS(LS.ideas).find(x=>x.id===id);
+  if (!i) return;
+  if (!confirm(`¿Eliminar la idea "${i.titulo}"?`)) return;
   setLS(LS.ideas, getLS(LS.ideas).filter(x=>x.id!==id));
   renderIdeas();
+  showToast('Idea eliminada.');
 }
 
 function cambiarEstadoIdea(id, estado){
@@ -4294,10 +4479,14 @@ function cancelarEdicionPublicacionRed(){
 }
 
 function eliminarPublicacionRed(id){
+  const p = getLS(LS.publicacionesRedes).find(x=>x.id===id);
+  if (!p) return;
+  if (!confirm(`¿Eliminar la publicación "${p.titulo}"? Esto también borrará sus métricas registradas.`)) return;
   setLS(LS.publicacionesRedes, getLS(LS.publicacionesRedes).filter(x=>x.id!==id));
   if (publicacionEditId===id) cancelarEdicionPublicacionRed();
   poblarFiltrosAnalyticsRedes();
   renderAnalyticsRedes();
+  showToast('Publicación eliminada.');
 }
 
 /* --- Filtros y dashboard de analítica --- */
@@ -4584,8 +4773,12 @@ function guardarEnlace(){
 }
 
 function eliminarEnlace(id){
+  const e = getLS(LS.enlaces).find(x=>x.id===id);
+  if (!e) return;
+  if (!confirm(`¿Eliminar el enlace "${e.titulo}"?`)) return;
   setLS(LS.enlaces, getLS(LS.enlaces).filter(x=>x.id!==id));
   renderEnlaces();
+  showToast('Enlace eliminado.');
 }
 
 function copiarEnlace(id){
@@ -4739,6 +4932,8 @@ function toggleLogisticaTask(evento, fase, id){
 
 function eliminarTareaLogistica(evento, fase, id){
   const logistica = getLogisticaObj();
+  const t = (logistica[evento][fase]||[]).find(x=>x.id===id);
+  if (!confirm(`¿Eliminar la tarea "${t?t.texto:''}" de la checklist?`)) return;
   logistica[evento][fase] = (logistica[evento][fase]||[]).filter(x=>x.id!==id);
   localStorage.setItem(LS.logistica, JSON.stringify(logistica));
   renderLogistica();
@@ -4782,9 +4977,13 @@ function añadirInscrito(){
 }
 
 function eliminarInscrito(id){
+  const i = getLS(LS.inscritos).find(x=>x.id===id);
+  if (!i) return;
+  if (!confirm(`¿Eliminar a "${i.nombre}" de la lista de inscritos?`)) return;
   setLS(LS.inscritos, getLS(LS.inscritos).filter(x=>x.id!==id));
   renderInscritos();
   updateDashboardStats();
+  showToast('Inscrito eliminado.');
 }
 
 function renderInscritos(){
@@ -4977,9 +5176,12 @@ function guardarComunicacionEvento(){
 
 function borrarComunicacionEvento(){
   if (!calComEditId) return;
+  const e = getLS(LS.comunicacionEventos).find(x=>x.id===calComEditId);
+  if (!confirm(`¿Eliminar la entrada "${e?e.titulo:''}" de la planificación?`)) return;
   setLS(LS.comunicacionEventos, getLS(LS.comunicacionEventos).filter(x=>x.id!==calComEditId));
   cerrarModalCom();
   renderCalendarioComunicacion();
+  showToast('Entrada eliminada.');
 }
 
 /* =======================================================================
@@ -5420,6 +5622,8 @@ function init(){
   renderLogistica();
   renderInscritos();
   renderCalendarioComunicacion();
+
+  actualizarBackupUltimaFecha();
 
   updateDashboardStats();
 }
