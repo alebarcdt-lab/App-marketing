@@ -166,6 +166,23 @@
   .tab-pane{display:none;}
   .tab-pane.active{display:block;}
 
+  /* ---------- Sub-tabs (segunda capa dentro de un tab-pane, p.ej. Analítica de Redes Sociales) ---------- */
+  .subtabbar{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap;}
+  .subtab-btn{
+    padding:8px 16px;
+    border-radius:20px;
+    border:1px solid var(--line-strong);
+    background:#fff;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink-700);
+    cursor:pointer;
+  }
+  .subtab-btn:hover{border-color:var(--teal-500);color:var(--teal-700);}
+  .subtab-btn.active{background:var(--teal-950);border-color:var(--teal-950);color:#fff;}
+  .subtab-pane{display:none;}
+  .subtab-pane.active{display:block;}
+
   /* ---------- Panels / cards ---------- */
   .panel{
     background:var(--surface);
@@ -179,7 +196,17 @@
   .panel-subtitle{font-size:12.5px;color:var(--ink-500);margin-bottom:18px;}
   .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
   .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
   @media (max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr;}}
+  @media (max-width:1100px){.grid-4{grid-template-columns:repeat(2,1fr);}}
+  @media (max-width:560px){.grid-4{grid-template-columns:1fr;}}
+
+  /* ---------- Tarjetas de Estadísticas de perfiles ---------- */
+  .perf-card-head{display:flex;align-items:center;gap:9px;margin-bottom:12px;font-size:19px;}
+  .perf-card-head .panel-title{margin-bottom:0;font-size:14.5px;}
+  .perf-card .stat-num{font-size:26px;}
+  .perf-card-row{display:flex;gap:14px;margin-top:10px;font-size:12.5px;font-weight:700;color:var(--ink-700);flex-wrap:wrap;}
+  .perf-card-annual{margin-top:8px;}
 
   /* ---------- Form elements ---------- */
   .field{margin-bottom:15px;}
@@ -1741,6 +1768,13 @@
 
         <!-- Analítica de Redes Sociales -->
         <div class="tab-pane" id="redes-analitica">
+          <div class="subtabbar">
+            <button class="subtab-btn active" data-subtab="publicaciones" onclick="switchAnaliticaSub('publicaciones')">Publicaciones</button>
+            <button class="subtab-btn" data-subtab="perfiles" onclick="switchAnaliticaSub('perfiles')">Estadísticas de perfiles</button>
+          </div>
+
+          <!-- Sub-pestaña: Publicaciones (funcionalidad existente, sin cambios) -->
+          <div class="subtab-pane active" id="analitica-publicaciones">
           <div class="panel">
             <div class="panel-title">Filtros de análisis</div>
             <div class="panel-subtitle">Estos filtros acotan el panel, los gráficos y la tabla de publicaciones de más abajo.</div>
@@ -1908,6 +1942,122 @@
               </table>
             </div>
           </div>
+          </div>
+          <!-- /Sub-pestaña: Publicaciones -->
+
+          <!-- Sub-pestaña: Estadísticas de perfiles -->
+          <div class="subtab-pane" id="analitica-perfiles">
+
+            <div class="panel">
+              <div class="panel-title">Estadísticas de perfiles</div>
+              <div class="panel-subtitle">Introduce y consulta la evolución mensual de seguidores de cada red social. Los seguidores son un valor acumulado: no se suman entre meses, se comparan.</div>
+              <div class="filter-row">
+                <div class="field">
+                  <label for="perfFiltroAnio">Año</label>
+                  <select id="perfFiltroAnio" onchange="renderPerfiles()"></select>
+                </div>
+                <div class="field">
+                  <label for="perfFiltroRed">Red social</label>
+                  <select id="perfFiltroRed" onchange="renderPerfiles()">
+                    <option value="">Todas</option>
+                    <option value="linkedin">LinkedIn</option>
+                    <option value="x">X</option>
+                    <option value="instagram">Instagram</option>
+                    <option value="youtube">YouTube</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid-4" id="perfTarjetas" style="margin-bottom:20px;"></div>
+
+            <div class="panel section-gap">
+              <div class="panel-title" id="perfFormTitulo">Registrar estadísticas</div>
+              <div class="panel-subtitle">Elige el año, el mes y la red social. Si ese registro ya existe, se actualizará en lugar de duplicarse.</div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="perfAnio">Año</label>
+                  <input type="number" id="perfAnio" min="2015" max="2100" step="1" placeholder="Ej. 2026">
+                </div>
+                <div class="field">
+                  <label for="perfMes">Mes</label>
+                  <select id="perfMes">
+                    <option value="">Selecciona un mes</option>
+                    <option value="enero">Enero</option>
+                    <option value="febrero">Febrero</option>
+                    <option value="marzo">Marzo</option>
+                    <option value="abril">Abril</option>
+                    <option value="mayo">Mayo</option>
+                    <option value="junio">Junio</option>
+                    <option value="julio">Julio</option>
+                    <option value="agosto">Agosto</option>
+                    <option value="septiembre">Septiembre</option>
+                    <option value="octubre">Octubre</option>
+                    <option value="noviembre">Noviembre</option>
+                    <option value="diciembre">Diciembre</option>
+                  </select>
+                </div>
+              </div>
+              <div class="platform-tabs" id="perfPlatformTabs">
+                <div class="platform-tab active" data-platform="linkedin" onclick="setPerfRed('linkedin')"><i class="fa-brands fa-linkedin"></i> LinkedIn</div>
+                <div class="platform-tab" data-platform="x" onclick="setPerfRed('x')"><i class="fa-brands fa-x-twitter"></i> X</div>
+                <div class="platform-tab" data-platform="instagram" onclick="setPerfRed('instagram')"><i class="fa-brands fa-instagram"></i> Instagram</div>
+                <div class="platform-tab" data-platform="youtube" onclick="setPerfRed('youtube')"><i class="fa-brands fa-youtube"></i> YouTube</div>
+              </div>
+              <div class="field">
+                <label for="perfSeguidores">Seguidores</label>
+                <input type="number" id="perfSeguidores" min="0" placeholder="Ej. 7470">
+              </div>
+              <div id="perfCamposLinkedin">
+                <div class="field-row">
+                  <div class="field">
+                    <label for="perfVisualizaciones">Visualizaciones de la página</label>
+                    <input type="number" id="perfVisualizaciones" min="0" placeholder="Opcional">
+                  </div>
+                  <div class="field">
+                    <label for="perfVisitantes">Visitantes únicos</label>
+                    <input type="number" id="perfVisitantes" min="0" placeholder="Opcional">
+                  </div>
+                </div>
+              </div>
+              <div class="btn-row">
+                <button class="btn" onclick="guardarEstadisticaPerfil()"><i class="fa-solid fa-floppy-disk"></i> Guardar estadísticas</button>
+                <button class="btn btn-secondary" id="cancelarEdicionPerfilBtn" style="display:none;" onclick="cancelarEdicionEstadisticaPerfil()">Cancelar edición</button>
+              </div>
+            </div>
+
+            <div class="grid-2 section-gap">
+              <div class="panel">
+                <div class="panel-title">Evolución de seguidores</div>
+                <canvas id="chartPerfEvolucion" height="200"></canvas>
+              </div>
+              <div class="panel">
+                <div class="panel-title">Crecimiento mensual</div>
+                <div class="panel-subtitle">Variación de seguidores respecto al mes anterior.</div>
+                <canvas id="chartPerfCrecimiento" height="200"></canvas>
+              </div>
+            </div>
+
+            <div class="panel section-gap" id="perfBlockLinkedin">
+              <div class="panel-title">LinkedIn — Estadísticas de página</div>
+              <div class="panel-subtitle" id="perfLinkedinTotales">Evolución mensual de visualizaciones de la página y visitantes únicos.</div>
+              <canvas id="chartPerfLinkedin" height="200"></canvas>
+            </div>
+
+            <div class="panel section-gap">
+              <div class="panel-title" style="margin-bottom:4px;">Histórico mensual</div>
+              <div class="panel-subtitle" style="margin-bottom:0;">Filtrado según el año y la red social seleccionados arriba. Edita o elimina cualquier registro.</div>
+              <div class="table-wrap" style="margin-top:16px;">
+                <table id="tablaPerfHistorico">
+                  <thead id="tablaPerfHistoricoHead"></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+          <!-- /Sub-pestaña: Estadísticas de perfiles -->
+
         </div>
       </section>
 
@@ -2263,7 +2413,8 @@ const LS = {
   seoAuditoria: 'cidautHub_seoAuditoria',
   seoContenidos: 'cidautHub_seoContenidos',
   publicacionesRedes: 'cidautHub_publicacionesRedes',
-  comunicacionEventos: 'cidautHub_comunicacionEventos'
+  comunicacionEventos: 'cidautHub_comunicacionEventos',
+  estadisticasPerfiles: 'cidautHub_estadisticasPerfiles'
 };
 
 function getLS(key){ try{ return JSON.parse(localStorage.getItem(key)) || []; }catch(e){ return []; } }
@@ -2428,8 +2579,23 @@ function switchTab(module, tabName){
   const view = document.getElementById('view-'+module);
   view.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tabName));
   view.querySelectorAll('.tab-pane').forEach(p=>p.classList.toggle('active', p.id === module+'-'+tabName));
-  if (module==='redes' && tabName==='analitica') renderAnalyticsRedes();
+  if (module==='redes' && tabName==='analitica'){
+    renderAnalyticsRedes();
+    const subActivo = document.querySelector('#redes-analitica .subtab-btn.active');
+    if (subActivo && subActivo.dataset.subtab==='perfiles') renderPerfiles();
+  }
   if (module==='propios' && tabName==='calendario') renderCalendarioComunicacion();
+}
+
+/* Segunda capa de pestañas dentro de "Analítica de Redes Sociales":
+   Publicaciones (analítica existente) / Estadísticas de perfiles (nuevo). */
+function switchAnaliticaSub(sub){
+  const cont = document.getElementById('redes-analitica');
+  if (!cont) return;
+  cont.querySelectorAll('.subtab-btn').forEach(b=>b.classList.toggle('active', b.dataset.subtab===sub));
+  cont.querySelectorAll('.subtab-pane').forEach(p=>p.classList.toggle('active', p.id === 'analitica-'+sub));
+  if (sub==='perfiles') renderPerfiles();
+  else renderAnalyticsRedes();
 }
 
 function goTo(view, tab, evento){
@@ -4909,6 +5075,371 @@ function renderTablaPublicacionesRed(){
 }
 
 /* =======================================================================
+   ESTADÍSTICAS DE PERFILES — evolución mensual de seguidores por red
+   (segunda capa del módulo Analítica de Redes Sociales, independiente
+   de la estructura de datos de publicacionesRedes)
+   ======================================================================= */
+const PERFIL_REDES_ORDEN = ['linkedin','x','instagram','youtube'];
+const REDES_ICONOS = {
+  linkedin: 'fa-brands fa-linkedin',
+  x: 'fa-brands fa-x-twitter',
+  instagram: 'fa-brands fa-instagram',
+  youtube: 'fa-brands fa-youtube'
+};
+
+let perfRedActual = 'linkedin';
+let perfilEditId = null;
+let chartPerfEvolucionRef = null, chartPerfCrecimientoRef = null, chartPerfLinkedinRef = null;
+
+function getEstadisticasPerfiles(){ return getLS(LS.estadisticasPerfiles); }
+
+/* Datos iniciales de seguidores ya conocidos. Solo se siembran una vez
+   (si la clave de almacenamiento todavía no existe) para no pisar datos
+   que el usuario ya haya introducido o editado. */
+function sembrarHistoricoPerfiles(){
+  if (localStorage.getItem(LS.estadisticasPerfiles) !== null) return;
+  const base = [
+    { red:'linkedin', anio:2024, mes:'abril',      seguidores:5404 },
+    { red:'linkedin', anio:2024, mes:'diciembre',  seguidores:6010 },
+    { red:'linkedin', anio:2025, mes:'diciembre',  seguidores:6942 },
+    { red:'linkedin', anio:2026, mes:'julio',      seguidores:7470 },
+    { red:'x',        anio:2024, mes:'abril',      seguidores:977  },
+    { red:'x',        anio:2024, mes:'diciembre',  seguidores:987  },
+    { red:'x',        anio:2025, mes:'diciembre',  seguidores:1022 },
+    { red:'x',        anio:2026, mes:'julio',      seguidores:1023 },
+    { red:'instagram',anio:2024, mes:'abril',      seguidores:292  },
+    { red:'instagram',anio:2024, mes:'diciembre',  seguidores:322  },
+    { red:'instagram',anio:2025, mes:'diciembre',  seguidores:359  },
+    { red:'instagram',anio:2026, mes:'julio',      seguidores:382  }
+  ].map(r => ({ id: uid(), visualizacionesPagina: null, visitantesUnicos: null, ...r }));
+  setLS(LS.estadisticasPerfiles, base);
+}
+
+function ordenarCronologicoPerfil(regs){
+  return regs.slice().sort((a,b)=> Number(a.anio)-Number(b.anio) || MESES.indexOf(a.mes)-MESES.indexOf(b.mes));
+}
+
+function mesAnteriorDe(anio, mes){
+  const idx = MESES.indexOf(mes);
+  if (idx<=0) return { anio: Number(anio)-1, mes: MESES[11] };
+  return { anio: Number(anio), mes: MESES[idx-1] };
+}
+
+/* Variación mensual estricta: solo compara con el mes calendario
+   inmediatamente anterior. Si ese mes no está registrado, N/D
+   (no se inventan ni se buscan datos de meses más lejanos). */
+function calcularDeltaMensualPerfil(registro){
+  const prevInfo = mesAnteriorDe(registro.anio, registro.mes);
+  const prev = getEstadisticasPerfiles().find(r=> r.red===registro.red && Number(r.anio)===prevInfo.anio && r.mes===prevInfo.mes);
+  if (!prev) return { abs:null, pct:null };
+  const abs = registro.seguidores - prev.seguidores;
+  const pct = prev.seguidores ? (abs/prev.seguidores*100) : null;
+  return { abs, pct };
+}
+
+/* Resumen de una red para el año seleccionado: seguidores del último
+   mes registrado ese año, su variación respecto al mes anterior, y el
+   crecimiento acumulado del año (comparando con el último dato conocido
+   antes de que empezara el año; si no hay dato previo, se usa el primer
+   dato disponible dentro del propio año). */
+function calcularResumenRedPerfil(red, anioSel){
+  if (!anioSel) return null;
+  const regs = ordenarCronologicoPerfil(getEstadisticasPerfiles().filter(r=>r.red===red));
+  const regsAnio = regs.filter(r=>Number(r.anio)===Number(anioSel));
+  if (!regsAnio.length) return null;
+  const ultimo = regsAnio[regsAnio.length-1];
+  const delta = calcularDeltaMensualPerfil(ultimo);
+  const previos = regs.filter(r=>Number(r.anio)<Number(anioSel));
+  const baseline = previos.length ? previos[previos.length-1] : regsAnio[0];
+  let crecAbs = null, crecPct = null;
+  if (baseline !== ultimo){
+    crecAbs = ultimo.seguidores - baseline.seguidores;
+    crecPct = baseline.seguidores ? (crecAbs/baseline.seguidores*100) : null;
+  }
+  return { ultimo, variacionMensual: delta.abs, variacionMensualPct: delta.pct, crecAbs, crecPct };
+}
+
+function fmtSignoPerfil(n){
+  if (n==null || isNaN(n) || !isFinite(n)) return 'N/D';
+  const r = Math.round(n);
+  return (r>0?'+':'') + r.toLocaleString('es-ES');
+}
+function fmtSignoPctPerfil(n){
+  if (n==null || isNaN(n) || !isFinite(n)) return 'N/D';
+  const s = Math.abs(n)<0.005 ? (0).toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2}) : n.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2});
+  return (n>0?'+':'') + s + ' %';
+}
+
+function perfAnioSeleccionado(){
+  const el = document.getElementById('perfFiltroAnio');
+  return (el && el.value) ? Number(el.value) : null;
+}
+function perfRedFiltro(){
+  const el = document.getElementById('perfFiltroRed');
+  return el ? el.value : '';
+}
+
+function poblarFiltrosPerfiles(){
+  const sel = document.getElementById('perfFiltroAnio');
+  if (!sel) return;
+  const registros = getEstadisticasPerfiles();
+  const anioActual = new Date().getFullYear();
+  const anios = [...new Set([...registros.map(r=>Number(r.anio)), anioActual])].sort((a,b)=>b-a);
+  const prev = sel.value;
+  sel.innerHTML = anios.map(a=>`<option value="${a}">${a}</option>`).join('');
+  if (prev && anios.map(String).includes(prev)) sel.value = prev;
+  else sel.value = String(anios[0]);
+}
+
+/* --- Formulario de registro --- */
+function setPerfRed(red, valores){
+  perfRedActual = red;
+  document.querySelectorAll('#perfPlatformTabs .platform-tab').forEach(t=>t.classList.toggle('active', t.dataset.platform===red));
+  const cont = document.getElementById('perfCamposLinkedin');
+  if (cont) cont.style.display = (red==='linkedin') ? '' : 'none';
+  const visEl = document.getElementById('perfVisualizaciones');
+  const visitEl = document.getElementById('perfVisitantes');
+  if (visEl) visEl.value = (valores && valores.visualizacionesPagina!=null) ? valores.visualizacionesPagina : '';
+  if (visitEl) visitEl.value = (valores && valores.visitantesUnicos!=null) ? valores.visitantesUnicos : '';
+}
+
+function guardarEstadisticaPerfil(){
+  const anio = parseInt(document.getElementById('perfAnio').value, 10);
+  const mes = document.getElementById('perfMes').value;
+  const red = perfRedActual;
+  const seguidoresRaw = document.getElementById('perfSeguidores').value;
+
+  if (!anio || anio<2000 || anio>2100){ showToast('Indica un año válido.'); return; }
+  if (!mes){ showToast('Indica el mes.'); return; }
+  if (seguidoresRaw===''){ showToast('Indica el número de seguidores.'); return; }
+  const seguidores = Number(seguidoresRaw);
+  if (isNaN(seguidores) || seguidores<0){ showToast('El número de seguidores no es válido.'); return; }
+
+  const data = { anio, mes, red, seguidores, visualizacionesPagina:null, visitantesUnicos:null };
+  if (red==='linkedin'){
+    const visRaw = document.getElementById('perfVisualizaciones').value;
+    const visitRaw = document.getElementById('perfVisitantes').value;
+    data.visualizacionesPagina = visRaw==='' ? null : Number(visRaw);
+    data.visitantesUnicos = visitRaw==='' ? null : Number(visitRaw);
+  }
+
+  const registros = getEstadisticasPerfiles();
+  const idxDuplicado = registros.findIndex(r => r.red===red && Number(r.anio)===anio && r.mes===mes && r.id!==perfilEditId);
+
+  if (perfilEditId){
+    const idx = registros.findIndex(r=>r.id===perfilEditId);
+    if (idx>-1){
+      if (idxDuplicado>-1){
+        registros[idxDuplicado] = { ...registros[idxDuplicado], ...data };
+        registros.splice(idx,1);
+      } else {
+        registros[idx] = { ...registros[idx], ...data };
+      }
+    }
+  } else if (idxDuplicado>-1){
+    registros[idxDuplicado] = { ...registros[idxDuplicado], ...data };
+  } else {
+    registros.push({ id: uid(), ...data });
+  }
+
+  setLS(LS.estadisticasPerfiles, registros);
+  cancelarEdicionEstadisticaPerfil();
+  poblarFiltrosPerfiles();
+  renderPerfiles();
+  showToast('Estadísticas guardadas.');
+}
+
+function editarEstadisticaPerfil(id){
+  const reg = getEstadisticasPerfiles().find(r=>r.id===id);
+  if (!reg) return;
+  perfilEditId = id;
+  document.getElementById('perfAnio').value = reg.anio;
+  document.getElementById('perfMes').value = reg.mes;
+  setPerfRed(reg.red, reg);
+  document.getElementById('perfSeguidores').value = reg.seguidores;
+  document.getElementById('perfFormTitulo').textContent = 'Editar estadísticas';
+  document.getElementById('cancelarEdicionPerfilBtn').style.display = 'inline-flex';
+}
+
+function cancelarEdicionEstadisticaPerfil(){
+  perfilEditId = null;
+  const segEl = document.getElementById('perfSeguidores');
+  if (segEl) segEl.value = '';
+  setPerfRed(perfRedActual);
+  document.getElementById('perfFormTitulo').textContent = 'Registrar estadísticas';
+  document.getElementById('cancelarEdicionPerfilBtn').style.display = 'none';
+}
+
+function eliminarEstadisticaPerfil(id){
+  const r = getEstadisticasPerfiles().find(x=>x.id===id);
+  if (!r) return;
+  if (!confirm(`¿Eliminar el registro de ${REDES_CONFIG[r.red].label} de ${MESES_CAP[MESES.indexOf(r.mes)]} ${r.anio}?`)) return;
+  setLS(LS.estadisticasPerfiles, getEstadisticasPerfiles().filter(x=>x.id!==id));
+  if (perfilEditId===id) cancelarEdicionEstadisticaPerfil();
+  poblarFiltrosPerfiles();
+  renderPerfiles();
+  showToast('Registro eliminado.');
+}
+
+/* --- Tarjetas resumen --- */
+function renderTarjetasPerfiles(){
+  const cont = document.getElementById('perfTarjetas');
+  if (!cont) return;
+  const anioSel = perfAnioSeleccionado();
+  const redFiltro = perfRedFiltro();
+  const redes = redFiltro ? [redFiltro] : PERFIL_REDES_ORDEN;
+
+  cont.innerHTML = redes.map(red=>{
+    const label = REDES_CONFIG[red].label;
+    const icono = REDES_ICONOS[red];
+    const color = COLORES_RED[red];
+    const resumen = calcularResumenRedPerfil(red, anioSel);
+    if (!resumen){
+      return `<div class="panel panel-accent perf-card" style="border-left-color:${color}">
+        <div class="perf-card-head"><i class="${icono}" style="color:${color}"></i><div class="panel-title">${label}</div></div>
+        <div class="stat-num">N/D</div>
+        <div class="stat-label">seguidores${anioSel?` en ${anioSel}`:''}</div>
+        <div class="muted small" style="margin-top:10px;">Sin datos registrados${anioSel?` para ${anioSel}`:''}.</div>
+      </div>`;
+    }
+    const { ultimo, variacionMensual, variacionMensualPct, crecAbs } = resumen;
+    return `<div class="panel panel-accent perf-card" style="border-left-color:${color}">
+      <div class="perf-card-head"><i class="${icono}" style="color:${color}"></i><div class="panel-title">${label}</div></div>
+      <div class="stat-num">${fmtNum(ultimo.seguidores)}</div>
+      <div class="stat-label">seguidores · ${MESES_CAP[MESES.indexOf(ultimo.mes)]} ${ultimo.anio}</div>
+      <div class="perf-card-row">
+        <span>${fmtSignoPerfil(variacionMensual)} este mes</span>
+        <span>${fmtSignoPctPerfil(variacionMensualPct)}</span>
+      </div>
+      <div class="muted small perf-card-annual">${fmtSignoPerfil(crecAbs)} en el año</div>
+    </div>`;
+  }).join('');
+}
+
+/* --- Gráficos --- */
+function dibujarLineChartMulti(canvasId, ref, labels, datasets){
+  const ctx = document.getElementById(canvasId);
+  if (!ctx) return ref;
+  if (ref) ref.destroy();
+  return new Chart(ctx, {
+    type:'line',
+    data:{ labels, datasets: datasets.map(d=>({
+      label:d.label, data:d.data, borderColor:d.color, backgroundColor:d.color+'22',
+      fill:false, tension:0.25, spanGaps:false, pointRadius:4
+    })) },
+    options:{ responsive:true, plugins:{ legend:{ display: datasets.length>1 } }, scales:{ y:{ ticks:{precision:0} } } }
+  });
+}
+
+function dibujarBarChartMulti(canvasId, ref, labels, datasets){
+  const ctx = document.getElementById(canvasId);
+  if (!ctx) return ref;
+  if (ref) ref.destroy();
+  return new Chart(ctx, {
+    type:'bar',
+    data:{ labels, datasets: datasets.map(d=>({ label:d.label, data:d.data, backgroundColor:d.color })) },
+    options:{ responsive:true, plugins:{ legend:{ display: datasets.length>1 } }, scales:{ y:{ ticks:{precision:0} } } }
+  });
+}
+
+function datosMensualesSeguidoresRed(red, anio){
+  return MESES.map(m=>{
+    const reg = getEstadisticasPerfiles().find(r=>r.red===red && Number(r.anio)===anio && r.mes===m);
+    return reg ? reg.seguidores : null;
+  });
+}
+
+function datosMensualesDeltaRed(red, anio){
+  return MESES.map(m=>{
+    const reg = getEstadisticasPerfiles().find(r=>r.red===red && Number(r.anio)===anio && r.mes===m);
+    if (!reg) return null;
+    return calcularDeltaMensualPerfil(reg).abs;
+  });
+}
+
+function renderGraficosPerfiles(){
+  if (!document.getElementById('chartPerfEvolucion')) return;
+  const anioSel = perfAnioSeleccionado();
+  const redFiltro = perfRedFiltro();
+  const labels = MESES_CAP.map(m=>m.slice(0,3));
+  const redes = redFiltro ? [redFiltro] : PERFIL_REDES_ORDEN;
+
+  const datasetsEvolucion = anioSel ? redes.map(r=>({ label:REDES_CONFIG[r].label, data:datosMensualesSeguidoresRed(r, anioSel), color:COLORES_RED[r] })) : [];
+  chartPerfEvolucionRef = dibujarLineChartMulti('chartPerfEvolucion', chartPerfEvolucionRef, labels, datasetsEvolucion);
+
+  const datasetsCrecimiento = anioSel ? redes.map(r=>({ label:REDES_CONFIG[r].label, data:datosMensualesDeltaRed(r, anioSel), color:COLORES_RED[r] })) : [];
+  chartPerfCrecimientoRef = dibujarBarChartMulti('chartPerfCrecimiento', chartPerfCrecimientoRef, labels, datasetsCrecimiento);
+
+  const mostrarLinkedin = !redFiltro || redFiltro==='linkedin';
+  const bloque = document.getElementById('perfBlockLinkedin');
+  if (bloque) bloque.style.display = mostrarLinkedin ? '' : 'none';
+  if (mostrarLinkedin){
+    const regsLinkedinPorMes = anioSel ? MESES.map(m=> getEstadisticasPerfiles().find(r=>r.red==='linkedin' && Number(r.anio)===anioSel && r.mes===m) || null) : MESES.map(()=>null);
+    const visual = regsLinkedinPorMes.map(r=> (r && r.visualizacionesPagina!=null) ? r.visualizacionesPagina : null);
+    const visit = regsLinkedinPorMes.map(r=> (r && r.visitantesUnicos!=null) ? r.visitantesUnicos : null);
+    chartPerfLinkedinRef = dibujarLineChartMulti('chartPerfLinkedin', chartPerfLinkedinRef, labels, [
+      { label:'Visualizaciones de la página', data:visual, color:'#0a66c2' },
+      { label:'Visitantes únicos', data:visit, color:'#1bb8a6' }
+    ]);
+    const totalVisual = sum(visual), totalVisit = sum(visit);
+    setText('perfLinkedinTotales', (totalVisual||totalVisit)
+      ? `Acumulado ${anioSel}: ${fmtNum(totalVisual)} visualizaciones de página · ${fmtNum(totalVisit)} visitantes únicos.`
+      : 'Evolución mensual de visualizaciones de la página y visitantes únicos.');
+  }
+}
+
+/* --- Tabla histórica --- */
+function registrosOrdenadosPerfil(anioSel, redFiltro){
+  let regs = getEstadisticasPerfiles().filter(r=> Number(r.anio)===anioSel && (!redFiltro || r.red===redFiltro));
+  regs.sort((a,b)=> MESES.indexOf(a.mes)-MESES.indexOf(b.mes) || PERFIL_REDES_ORDEN.indexOf(a.red)-PERFIL_REDES_ORDEN.indexOf(b.red));
+  return regs;
+}
+
+function renderTablaPerfiles(){
+  const thead = document.getElementById('tablaPerfHistoricoHead');
+  const tbody = document.querySelector('#tablaPerfHistorico tbody');
+  if (!thead || !tbody) return;
+  const anioSel = perfAnioSeleccionado();
+  const redFiltro = perfRedFiltro();
+  thead.innerHTML = `<tr><th>Mes</th><th>Red social</th><th>Seguidores</th><th>Δ seguidores</th><th>Δ %</th><th>Visualizaciones de página</th><th>Visitantes únicos</th><th></th></tr>`;
+
+  if (!anioSel){
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="8">Selecciona un año para ver el histórico.</td></tr>`;
+    return;
+  }
+  const regs = registrosOrdenadosPerfil(anioSel, redFiltro);
+  if (!regs.length){
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="8">Todavía no hay estadísticas registradas con estos filtros.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = regs.map(r=>{
+    const delta = calcularDeltaMensualPerfil(r);
+    const esLinkedin = r.red==='linkedin';
+    return `<tr>
+      <td>${MESES_CAP[MESES.indexOf(r.mes)]}</td>
+      <td><span class="tag tag-teal">${REDES_CONFIG[r.red].label}</span></td>
+      <td>${fmtNum(r.seguidores)}</td>
+      <td>${fmtSignoPerfil(delta.abs)}</td>
+      <td>${fmtSignoPctPerfil(delta.pct)}</td>
+      <td>${(esLinkedin && r.visualizacionesPagina!=null) ? fmtNum(r.visualizacionesPagina) : 'N/D'}</td>
+      <td>${(esLinkedin && r.visitantesUnicos!=null) ? fmtNum(r.visitantesUnicos) : 'N/D'}</td>
+      <td>
+        <span class="btn-ghost" onclick="editarEstadisticaPerfil('${r.id}')"><i class="fa-solid fa-pen"></i></span>
+        <span class="btn-ghost" onclick="eliminarEstadisticaPerfil('${r.id}')"><i class="fa-solid fa-trash"></i></span>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+/* --- Render general de la sub-pestaña --- */
+function renderPerfiles(){
+  if (!document.getElementById('perfFiltroAnio')) return;
+  renderTarjetasPerfiles();
+  renderGraficosPerfiles();
+  renderTablaPerfiles();
+}
+
+/* =======================================================================
    ENLACES — centro de rutas del ordenador y accesos a webs
    ======================================================================= */
 function guardarEnlace(){
@@ -5950,6 +6481,11 @@ function init(){
   poblarSelectProyectoPublicacion();
   poblarFiltrosAnalyticsRedes();
   renderAnalyticsRedes();
+
+  sembrarHistoricoPerfiles();
+  poblarFiltrosPerfiles();
+  setPerfRed('linkedin');
+  renderPerfiles();
 
   renderEnlaces();
 
