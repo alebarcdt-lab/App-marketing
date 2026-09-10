@@ -951,7 +951,7 @@
         <div class="tab-pane active" id="eventos-registro">
           <div class="grid-2">
             <div class="panel">
-              <div class="panel-title">Registrar asistencia a un evento</div>
+              <div class="panel-title" id="evFormTitulo">Registrar asistencia a un evento</div>
               <div class="panel-subtitle">Rellena estos datos justo después del evento. Se tarda menos de un minuto.</div>
               <div class="field-row">
                 <div class="field">
@@ -1019,6 +1019,7 @@
               <div class="btn-row">
                 <button class="btn" onclick="guardarRegistroEvento()"><i class="fa-solid fa-floppy-disk"></i> Guardar registro</button>
                 <button class="btn btn-secondary" onclick="limpiarFormularioEvento()">Limpiar formulario</button>
+                <button class="btn btn-secondary" id="cancelarEdicionEventoBtn" style="display:none;" onclick="cancelarEdicionEvento()">Cancelar edición</button>
               </div>
             </div>
 
@@ -1064,7 +1065,7 @@
             </div>
             <div class="table-wrap">
               <table id="tablaMemoria">
-                <thead><tr><th>Empleado</th><th>Departamento</th><th>Evento</th><th>Proyecto</th><th>Fecha</th><th>Qué presentó</th><th>Gastos</th></tr></thead>
+                <thead><tr><th>Empleado</th><th>Departamento</th><th>Evento</th><th>Proyecto</th><th>Fecha</th><th>Qué presentó</th><th>Gastos</th><th></th></tr></thead>
                 <tbody></tbody>
               </table>
             </div>
@@ -2888,6 +2889,7 @@ function renderGanttTareas(){
    MÓDULO 1 — EVENTOS Y MEMORIA ANUAL
    ======================================================================= */
 let evFotosData = [];
+let eventoEditId = null;
 
 document.getElementById('evDepartamento').addEventListener('change', function(){
   document.getElementById('evDepartamentoOtro').style.display = this.value==='__otro' ? 'block' : 'none';
@@ -2942,15 +2944,73 @@ function guardarRegistroEvento(){
     showToast('La fecha de fin no puede ser anterior a la fecha de inicio.');
     return;
   }
+  const data = { nombre, depto, evento, proyecto, fecha, fechaFin: fechaFin || '', rol, descripcion, gastos, fotos: evFotosData };
   const registros = getLS(LS.eventos);
-  registros.unshift({ id: uid(), nombre, depto, evento, proyecto, fecha, fechaFin: fechaFin || '', rol, descripcion, gastos, fotos: evFotosData });
+  if (eventoEditId){
+    const idx = registros.findIndex(x=>x.id===eventoEditId);
+    if (idx>-1) registros[idx] = {...registros[idx], ...data};
+  } else {
+    registros.unshift({ id: uid(), ...data });
+  }
   setLS(LS.eventos, registros);
-  limpiarFormularioEvento();
+  cancelarEdicionEvento();
   renderRegistrosRecientes();
   populateMemoriaFilters();
   renderMemoria();
   updateDashboardStats();
-  showToast('Registro guardado correctamente.');
+  showToast(eventoEditId ? 'Registro actualizado.' : 'Registro guardado correctamente.');
+}
+
+function editarRegistroEvento(id){
+  const r = getLS(LS.eventos).find(x=>x.id===id);
+  if (!r) return;
+  eventoEditId = id;
+
+  document.getElementById('evNombre').value = r.nombre || '';
+  const deptosPredefinidos = ['Energía','Materiales','Movilidad','OTRI','TIC'];
+  if (deptosPredefinidos.includes(r.depto)){
+    document.getElementById('evDepartamento').value = r.depto;
+    document.getElementById('evDepartamentoOtro').style.display = 'none';
+    document.getElementById('evDepartamentoOtro').value = '';
+  } else {
+    document.getElementById('evDepartamento').value = '__otro';
+    document.getElementById('evDepartamentoOtro').style.display = 'block';
+    document.getElementById('evDepartamentoOtro').value = r.depto || '';
+  }
+  document.getElementById('evEvento').value = r.evento || '';
+  document.getElementById('evProyecto').value = r.proyecto || '';
+
+  const variosDias = !!(r.fechaFin && r.fechaFin !== r.fecha);
+  document.getElementById('evVariosDias').checked = variosDias;
+  document.getElementById('evFechaFinField').style.display = variosDias ? 'block' : 'none';
+  document.getElementById('evFechaLabel').textContent = variosDias ? 'Fecha de inicio' : 'Fecha';
+  document.getElementById('evFecha').value = r.fecha || '';
+  document.getElementById('evFechaFin').value = variosDias ? (r.fechaFin || '') : '';
+
+  document.getElementById('evRol').value = r.rol || '';
+  document.getElementById('evDescripcion').value = r.descripcion || '';
+  document.getElementById('evGastos').value = r.gastos || '';
+
+  evFotosData = (r.fotos || []).slice();
+  document.getElementById('evFotos').value = '';
+  const preview = document.getElementById('evFotosPreview');
+  preview.innerHTML = '';
+  evFotosData.forEach(dataUrl=>{
+    const img = document.createElement('img');
+    img.src = dataUrl;
+    preview.appendChild(img);
+  });
+
+  document.getElementById('evFormTitulo').textContent = 'Editar registro de evento';
+  document.getElementById('cancelarEdicionEventoBtn').style.display = 'inline-flex';
+  window.scrollTo(0,0);
+}
+
+function cancelarEdicionEvento(){
+  eventoEditId = null;
+  limpiarFormularioEvento();
+  document.getElementById('evFormTitulo').textContent = 'Registrar asistencia a un evento';
+  document.getElementById('cancelarEdicionEventoBtn').style.display = 'none';
 }
 
 function limpiarFormularioEvento(){
@@ -2972,6 +3032,7 @@ function eliminarRegistroEvento(id){
   if (!r) return;
   if (!confirm(`¿Eliminar el registro de "${r.nombre} — ${r.evento}"? Esta acción no se puede deshacer.`)) return;
   setLS(LS.eventos, getLS(LS.eventos).filter(x=>x.id!==id));
+  if (eventoEditId===id) cancelarEdicionEvento();
   renderRegistrosRecientes();
   populateMemoriaFilters();
   renderMemoria();
@@ -2993,7 +3054,10 @@ function renderRegistrosRecientes(){
       <td>${esc(r.evento)}</td>
       <td>${esc(r.proyecto)||'—'}</td>
       <td>${fmtRangoFecha(r)}</td>
-      <td><span class="btn-ghost" onclick="eliminarRegistroEvento('${r.id}')">Eliminar</span></td>
+      <td>
+        <span class="btn-ghost" onclick="editarRegistroEvento('${r.id}')"><i class="fa-solid fa-pen"></i></span>
+        <span class="btn-ghost" onclick="eliminarRegistroEvento('${r.id}')"><i class="fa-solid fa-trash"></i></span>
+      </td>
     </tr>`).join('');
 }
 
@@ -3033,7 +3097,7 @@ function renderMemoria(){
 
   const tbody = document.querySelector('#tablaMemoria tbody');
   if (!registros.length){
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="7">No hay registros para este filtro.</td></tr>';
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="8">No hay registros para este filtro.</td></tr>';
     return;
   }
   tbody.innerHTML = registros.map(r=>`
@@ -3045,7 +3109,16 @@ function renderMemoria(){
       <td>${fmtRangoFecha(r)}</td>
       <td>${esc(r.rol)}</td>
       <td>${esc(r.gastos)||'—'}</td>
+      <td>
+        <span class="btn-ghost" onclick="editarRegistroEventoDesdeMemoria('${r.id}')"><i class="fa-solid fa-pen"></i></span>
+        <span class="btn-ghost" onclick="eliminarRegistroEvento('${r.id}')"><i class="fa-solid fa-trash"></i></span>
+      </td>
     </tr>`).join('');
+}
+
+function editarRegistroEventoDesdeMemoria(id){
+  switchTab('eventos','registro');
+  editarRegistroEvento(id);
 }
 
 function exportarExcel(){
