@@ -768,9 +768,25 @@
       <!-- ============ CONFIGURACIÓN ============ -->
       <section class="module-view" id="view-config">
         <div class="tabbar">
+          <button class="tab-btn" data-tab="general" onclick="switchTab('config','general')">General</button>
           <button class="tab-btn active" data-tab="proyectos" onclick="switchTab('config','proyectos')">Proyectos</button>
           <button class="tab-btn" data-tab="sectores" onclick="switchTab('config','sectores')">Sectores</button>
           <button class="tab-btn" data-tab="backup" onclick="switchTab('config','backup')">Copia de seguridad</button>
+        </div>
+
+        <!-- General -->
+        <div class="tab-pane" id="config-general">
+          <div class="grid-2">
+            <div class="panel panel-accent">
+              <div class="panel-title">Perfil de usuario</div>
+              <div class="panel-subtitle">Este nombre se muestra en el saludo del panel de inicio.</div>
+              <div class="field">
+                <label for="cfgUsuarioNombre">Tu nombre</label>
+                <input type="text" id="cfgUsuarioNombre" placeholder="Ej. Alejandro">
+              </div>
+              <button class="btn" onclick="guardarConfigGeneral()"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+            </div>
+          </div>
         </div>
 
         <!-- Proyectos -->
@@ -2414,7 +2430,8 @@ const LS = {
   seoContenidos: 'cidautHub_seoContenidos',
   publicacionesRedes: 'cidautHub_publicacionesRedes',
   comunicacionEventos: 'cidautHub_comunicacionEventos',
-  estadisticasPerfiles: 'cidautHub_estadisticasPerfiles'
+  estadisticasPerfiles: 'cidautHub_estadisticasPerfiles',
+  config: 'cidautHub_config'
 };
 
 function getLS(key){ try{ return JSON.parse(localStorage.getItem(key)) || []; }catch(e){ return []; } }
@@ -2422,6 +2439,18 @@ function setLS(key,val){ localStorage.setItem(key, JSON.stringify(val)); }
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 function esc(str){ const d=document.createElement('div'); d.textContent = str==null?'':String(str); return d.innerHTML; }
 function fmtFecha(iso){ if(!iso) return '—'; const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; }
+
+/* Fecha local en formato ISO (YYYY-MM-DD). toISOString() devuelve UTC y,
+   cerca de medianoche en España, "hoy" puede ser mañana. */
+function isoLocal(d){
+  d = d || new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function hoyLocal(){ return isoLocal(new Date()); }
+
+/* Escape para interpolar texto de usuario dentro de cadenas JS en atributos
+   onclick (esc() solo escapa HTML, no comillas simples para contexto JS). */
+function escJs(str){ return String(str==null?'':str).replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
 
 function showToast(msg){
   const t = document.getElementById('toast');
@@ -2470,7 +2499,7 @@ function exportarBackupCompleto(){
   const blob = new Blob([JSON.stringify(paquete, null, 2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  const hoy = new Date().toISOString().slice(0,10);
+  const hoy = hoyLocal();
   a.href = url;
   a.download = `backup_hub_marketing_cidaut_${hoy}.json`;
   a.click();
@@ -2487,7 +2516,7 @@ function actualizarBackupUltimaFecha(){
   if (!raw){ el.textContent = 'Nunca'; return; }
   const d = new Date(raw);
   if (isNaN(d.getTime())){ el.textContent = 'Nunca'; return; }
-  const fecha = fmtFecha(d.toISOString().slice(0,10));
+  const fecha = fmtFecha(isoLocal(d));
   const hora = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
   el.textContent = `${fecha} a las ${hora}`;
 }
@@ -3067,7 +3096,7 @@ function renderCalendarTareas(){
   const daysInMonth = new Date(year, month+1, 0).getDate();
   const daysInPrevMonth = new Date(year, month, 0).getDate();
   const tareas = getTareas();
-  const todayStr = new Date().toISOString().slice(0,10);
+  const todayStr = hoyLocal();
 
   let cells = DOWS.map(d=>`<div class="cal-dow">${d}</div>`).join('');
   for (let i=startOffset; i>0; i--){
@@ -3191,6 +3220,7 @@ function guardarRegistroEvento(){
     return;
   }
   const data = { nombre, depto, evento, proyecto, fecha, fechaFin: fechaFin || '', rol, descripcion, gastos, fotos: evFotosData };
+  const eraEdicion = !!eventoEditId;
   const registros = getLS(LS.eventos);
   if (eventoEditId){
     const idx = registros.findIndex(x=>x.id===eventoEditId);
@@ -3204,7 +3234,7 @@ function guardarRegistroEvento(){
   populateMemoriaFilters();
   renderMemoria();
   updateDashboardStats();
-  showToast(eventoEditId ? 'Registro actualizado.' : 'Registro guardado correctamente.');
+  showToast(eraEdicion ? 'Registro actualizado.' : 'Registro guardado correctamente.');
 }
 
 function editarRegistroEvento(id){
@@ -3602,7 +3632,7 @@ function toggleMantenimiento(id){
   const t = tareas.find(x=>x.id===id);
   if (!t) return;
   t.done = !t.done;
-  t.ultima = t.done ? new Date().toISOString().slice(0,10) : t.ultima;
+  t.ultima = t.done ? hoyLocal() : t.ultima;
   setLS(LS.mantenimiento, tareas);
   renderMantenimiento();
   updateDashboardStats();
@@ -3923,7 +3953,7 @@ function toggleAuditoriaSEO(id){
   const t = items.find(x=>x.id===id);
   if (!t) return;
   t.done = !t.done;
-  t.ultima = t.done ? new Date().toISOString().slice(0,10) : t.ultima;
+  t.ultima = t.done ? hoyLocal() : t.ultima;
   setLS(LS.seoAuditoria, items);
   renderAuditoriaSEO();
   updateDashboardStats();
@@ -4294,7 +4324,7 @@ function renderCalendar(){
   const daysInMonth = new Date(year, month+1, 0).getDate();
   const daysInPrevMonth = new Date(year, month, 0).getDate();
   const entries = getLS(LS.calendario);
-  const todayStr = new Date().toISOString().slice(0,10);
+  const todayStr = hoyLocal();
 
   let cells = DOWS.map(d=>`<div class="cal-dow">${d}</div>`).join('');
 
@@ -4425,7 +4455,7 @@ function borrarEntradaCalendario(){
 function renderListaPublicaciones(){
   const tbody = document.querySelector('#tablaPublicaciones tbody');
   if (!tbody) return;
-  const hoy = new Date().toISOString().slice(0,10);
+  const hoy = hoyLocal();
   const entries = getLS(LS.calendario).slice().sort((a,b)=> (a.fecha||'').localeCompare(b.fecha||''));
   if (!entries.length){
     tbody.innerHTML = '<tr class="empty-row"><td colspan="5">Todavía no hay publicaciones programadas. Añádelas desde el calendario editorial.</td></tr>';
@@ -5687,7 +5717,7 @@ function renderEventosHub(){
     const pct = tareas.length ? Math.round(hechas/tareas.length*100) : 0;
     const numInscritos = inscritos.filter(i=>i.evento===ev.nombre).length;
     return `
-    <div class="event-card" onclick="abrirEventoDetalle('${ev.nombre}')">
+    <div class="event-card" onclick="abrirEventoDetalle('${escJs(ev.nombre)}')">
       <div class="event-card-top">
         <div class="event-card-title">${esc(ev.nombre)}</div>
         <span class="tag ${ESTADO_EVENTO_TAG[ev.estado]||'tag-grey'}">${ESTADO_EVENTO_LABEL[ev.estado]||'—'}</span>
@@ -5702,8 +5732,8 @@ function renderEventosHub(){
         <span><b>${numInscritos}</b> inscrito${numInscritos===1?'':'s'}</span>
       </div>
       <div class="event-card-actions">
-        <span class="btn-ghost" onclick="event.stopPropagation();abrirModalEventoPropio('${ev.nombre}')"><i class="fa-solid fa-pen"></i></span>
-        <span class="btn-ghost" onclick="event.stopPropagation();eliminarEventoPropio('${ev.nombre}')"><i class="fa-solid fa-trash"></i></span>
+        <span class="btn-ghost" onclick="event.stopPropagation();abrirModalEventoPropio('${escJs(ev.nombre)}')"><i class="fa-solid fa-pen"></i></span>
+        <span class="btn-ghost" onclick="event.stopPropagation();eliminarEventoPropio('${escJs(ev.nombre)}')"><i class="fa-solid fa-trash"></i></span>
       </div>
     </div>`;
   }).join('');
@@ -5729,7 +5759,7 @@ function abrirEventoDetalle(nombre){
         ${ev.descripcion ? `<div class="panel-subtitle" style="margin:10px 0 0 0;">${esc(ev.descripcion)}</div>` : ''}
       </div>
       <div class="event-detail-actions">
-        <button class="btn btn-secondary" onclick="abrirModalEventoPropio('${ev.nombre}')"><i class="fa-solid fa-pen"></i> Editar datos</button>
+        <button class="btn btn-secondary" onclick="abrirModalEventoPropio('${escJs(ev.nombre)}')"><i class="fa-solid fa-pen"></i> Editar datos</button>
       </div>
     </div>`;
   switchTab('propios','logistica');
@@ -5936,7 +5966,7 @@ function renderCalendarioComunicacion(){
   const daysInMonth = new Date(year, month+1, 0).getDate();
   const daysInPrevMonth = new Date(year, month, 0).getDate();
   const entradas = getComunicacionEvento(evento);
-  const todayStr = new Date().toISOString().slice(0,10);
+  const todayStr = hoyLocal();
 
   let cells = DOWS.map(d=>`<div class="cal-dow">${d}</div>`).join('');
   for (let i=startOffset; i>0; i--){
@@ -6052,8 +6082,6 @@ function borrarComunicacionEvento(){
 /* =======================================================================
    DASHBOARD (INICIO)
    ======================================================================= */
-const USUARIO_NOMBRE = 'Alejandro';
-
 function saludoPorHora(){
   const h = new Date().getHours();
   if (h >= 6 && h < 14) return 'Buenos días';
@@ -6066,20 +6094,36 @@ function formatearFechaHoy(){
   return f.charAt(0).toUpperCase() + f.slice(1);
 }
 
+function getConfig(){ try{ return JSON.parse(localStorage.getItem(LS.config)) || {}; }catch(e){ return {}; } }
+function getUsuarioNombre(){ return (getConfig().usuarioNombre || '').trim(); }
+
 function renderSaludo(){
   const saludoEl = document.getElementById('heroSaludo');
   const fechaEl = document.getElementById('heroFecha');
-  if (saludoEl) saludoEl.textContent = `${saludoPorHora()}, ${USUARIO_NOMBRE}`;
+  const nombre = getUsuarioNombre();
+  if (saludoEl) saludoEl.textContent = nombre ? `${saludoPorHora()}, ${nombre}` : saludoPorHora();
   if (fechaEl) fechaEl.textContent = formatearFechaHoy();
+}
+
+/* Configuración > General: nombre del usuario para el saludo del inicio. */
+function guardarConfigGeneral(){
+  const nombre = document.getElementById('cfgUsuarioNombre').value.trim();
+  setLS(LS.config, { ...getConfig(), usuarioNombre: nombre });
+  renderSaludo();
+  showToast('Configuración guardada.');
+}
+function renderConfigGeneral(){
+  const el = document.getElementById('cfgUsuarioNombre');
+  if (el) el.value = getUsuarioNombre();
 }
 
 function renderResumenHero(){
   const el = document.getElementById('heroResumen');
   if (!el) return;
   const tareasPendientes = getTareas().filter(t=>t.estado!=='hecha').length;
-  const hoyStr = new Date().toISOString().slice(0,10);
+  const hoyStr = hoyLocal();
   const limite = new Date(); limite.setDate(limite.getDate()+7);
-  const limiteStr = limite.toISOString().slice(0,10);
+  const limiteStr = isoLocal(limite);
   const publicacionesSemana = getLS(LS.calendario).filter(e=> e.fecha>=hoyStr && e.fecha<=limiteStr).length;
 
   if (!tareasPendientes && !publicacionesSemana){
@@ -6100,9 +6144,9 @@ function updateDashboardStats(){
   const tareasPendientes = getTareas().filter(t=>t.estado!=='hecha').length;
   const proyectosActivos = getProyectos().filter(p=>(p.estado||'Activo')==='Activo').length;
 
-  const hoyStr = new Date().toISOString().slice(0,10);
+  const hoyStr = hoyLocal();
   const limite = new Date(); limite.setDate(limite.getDate()+7);
-  const limiteStr = limite.toISOString().slice(0,10);
+  const limiteStr = isoLocal(limite);
   const proximasPublicaciones = getLS(LS.calendario).filter(e=> e.fecha>=hoyStr && e.fecha<=limiteStr).length;
 
   document.getElementById('statEventos').textContent = eventosEsteAnio;
@@ -6124,7 +6168,7 @@ function updateDashboardStats(){
 function renderTareasUrgentes(){
   const wrap = document.getElementById('listaTareasUrgentes');
   if (!wrap) return;
-  const hoyStr = new Date().toISOString().slice(0,10);
+  const hoyStr = hoyLocal();
   const pendientes = getTareas()
     .filter(t=>t.estado!=='hecha')
     .sort((a,b)=>{
@@ -6202,16 +6246,16 @@ function renderActividadReciente(){
         <div class="ai-title">${esc(it.title)}</div>
         <div class="ai-meta">${esc(it.meta)}</div>
       </div>
-      <button class="ai-link" onclick="goTo('${it.view}','${it.tab}','${it.evento||''}')">Ver</button>
+      <button class="ai-link" onclick="goTo('${it.view}','${it.tab}','${escJs(it.evento||'')}')">Ver</button>
     </div>`).join('');
 }
 
 function renderProximasPublicaciones(){
   const wrap = document.getElementById('listaProximasPublicaciones');
   if (!wrap) return;
-  const hoyStr = new Date().toISOString().slice(0,10);
+  const hoyStr = hoyLocal();
   const limite = new Date(); limite.setDate(limite.getDate()+7);
-  const limiteStr = limite.toISOString().slice(0,10);
+  const limiteStr = isoLocal(limite);
   const proximas = getLS(LS.calendario)
     .filter(e=> e.fecha>=hoyStr && e.fecha<=limiteStr)
     .sort((a,b)=> (a.fecha||'').localeCompare(b.fecha||''));
@@ -6255,9 +6299,9 @@ function renderProgresoMantenimiento(){
    --------------------------------------------------------------------- */
 function getNotificaciones(){
   const notifs = [];
-  const hoyStr = new Date().toISOString().slice(0,10);
+  const hoyStr = hoyLocal();
   const en3dias = new Date(); en3dias.setDate(en3dias.getDate()+3);
-  const en3diasStr = en3dias.toISOString().slice(0,10);
+  const en3diasStr = isoLocal(en3dias);
 
   getTareas().forEach(t=>{
     if (t.estado==='hecha' || !t.fechaFin) return;
@@ -6402,7 +6446,7 @@ function buscarGlobal(query){
     return;
   }
   resultsWrap.innerHTML = resultados.slice(0,20).map(r=>`
-    <div class="gs-item" onclick="irDesdeGlobalSearch('${r.view}','${r.tab}','${r.evento||''}')">
+    <div class="gs-item" onclick="irDesdeGlobalSearch('${r.view}','${r.tab}','${escJs(r.evento||'')}')">
       <div class="gs-icon"><i class="fa-solid ${r.icon}"></i></div>
       <div>
         <div class="gs-title">${esc(r.titulo)}</div>
@@ -6492,6 +6536,7 @@ function init(){
   renderEventosHub();
 
   actualizarBackupUltimaFecha();
+  renderConfigGeneral();
 
   updateDashboardStats();
 }
