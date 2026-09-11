@@ -921,68 +921,45 @@
           <div class="hero-resumen" id="heroResumen"></div>
         </div>
 
-        <div class="kpi-grid">
-          <div class="panel panel-accent">
-            <div class="stat-block accent">
-              <div class="stat-num" id="statEventos">0</div>
-              <div class="stat-label">Registros de eventos este año</div>
-            </div>
-          </div>
+        <!-- Pulso general: cómo va Marketing -->
+        <div class="grid-4" id="inicioKpiGrid">
           <div class="panel panel-accent">
             <div class="stat-block accent">
               <div class="stat-num" id="statTareasPendientes">0</div>
               <div class="stat-label">Tareas pendientes</div>
-            </div>
-          </div>
-          <div class="panel panel-accent">
-            <div class="stat-block accent">
-              <div class="stat-num" id="statMantenimiento">0</div>
-              <div class="stat-label">Mantenimiento pendiente</div>
+              <div class="muted small" id="statTareasVencidas" style="margin-top:4px;"></div>
             </div>
           </div>
           <div class="panel panel-accent">
             <div class="stat-block accent">
               <div class="stat-num" id="statProximasPublicaciones">0</div>
-              <div class="stat-label">Publicaciones en 7 días</div>
+              <div class="stat-label">Publicaciones esta semana</div>
             </div>
           </div>
           <div class="panel panel-accent">
             <div class="stat-block accent">
-              <div class="stat-num" id="statInscritos">0</div>
-              <div class="stat-label">Inscritos en eventos propios</div>
+              <div class="stat-num" id="statEventosProximos">0</div>
+              <div class="stat-label">Eventos propios próximos</div>
             </div>
           </div>
           <div class="panel panel-accent">
             <div class="stat-block accent">
-              <div class="stat-num" id="statProyectosActivos">0</div>
-              <div class="stat-label">Proyectos activos</div>
+              <div class="stat-num" id="statSeguidoresLinkedin">0</div>
+              <div class="stat-label" id="statSeguidoresLinkedinMeta">Seguidores LinkedIn</div>
             </div>
           </div>
         </div>
 
         <div class="grid-2 section-gap">
           <div class="panel">
-            <div class="panel-title">Tareas más urgentes</div>
-            <div class="panel-subtitle">Las tuyas pendientes, ordenadas por fecha límite.</div>
-            <div class="activity-list" id="listaTareasUrgentes"></div>
+            <div class="panel-title" style="margin-bottom:4px;">Pendiente</div>
+            <div class="panel-subtitle">Lo que necesita tu atención ahora mismo.</div>
+            <div class="activity-list" id="listaPendiente"></div>
           </div>
           <div class="panel">
-            <div class="panel-title">Próximas publicaciones</div>
-            <div class="panel-subtitle">Calendario editorial en los próximos 7 días.</div>
-            <div class="activity-list" id="listaProximasPublicaciones"></div>
-          </div>
-        </div>
-
-        <div class="grid-2 section-gap">
-          <div class="panel">
-            <div class="panel-title">Actividad reciente</div>
-            <div class="panel-subtitle">Lo último añadido en cada área del hub.</div>
-            <div class="activity-list" id="listaActividadReciente"></div>
-          </div>
-          <div class="panel">
-            <div class="panel-title">Mantenimiento de webs</div>
-            <div class="panel-subtitle">Progreso del checklist periódico.</div>
-            <div id="progresoMantenimiento"></div>
+            <div class="panel-title" style="margin-bottom:4px;">Qué viene</div>
+            <div class="panel-subtitle">Eventos, publicaciones y tareas de los próximos días.</div>
+            <div class="activity-list" id="listaProximo"></div>
           </div>
         </div>
 
@@ -1000,11 +977,6 @@
             <button class="quick-action" onclick="goTo('email','utm')"><i class="fa-solid fa-link"></i><span>Generar un enlace UTM</span></button>
             <button class="quick-action" onclick="goTo('email','seguimiento')"><i class="fa-solid fa-paper-plane"></i><span>Registrar un envío de email</span></button>
           </div>
-        </div>
-
-        <div class="panel section-gap">
-          <div class="panel-title">Sobre este hub</div>
-          <div class="panel-subtitle" style="margin-bottom:0;">Esta herramienta centraliza el trabajo del equipo de Comunicación y Marketing: tareas, memoria anual de eventos, gestión de las webs de proyecto, email marketing, planificación de redes sociales y organización de eventos propios, con proyectos y sectores compartidos desde Configuración. Los datos introducidos se guardan en este mismo navegador.</div>
         </div>
       </section>
 
@@ -6137,161 +6109,151 @@ function renderResumenHero(){
 }
 
 function updateDashboardStats(){
-  const anioActual = String(new Date().getFullYear());
-  const eventosEsteAnio = getLS(LS.eventos).filter(r=> r.fecha && r.fecha.slice(0,4)===anioActual).length;
-  const mantenimientoPendiente = getLS(LS.mantenimiento).filter(t=>!t.done).length;
-  const inscritosTotales = getLS(LS.inscritos).length;
-  const tareasPendientes = getTareas().filter(t=>t.estado!=='hecha').length;
-  const proyectosActivos = getProyectos().filter(p=>(p.estado||'Activo')==='Activo').length;
-
-  const hoyStr = hoyLocal();
-  const limite = new Date(); limite.setDate(limite.getDate()+7);
-  const limiteStr = isoLocal(limite);
-  const proximasPublicaciones = getLS(LS.calendario).filter(e=> e.fecha>=hoyStr && e.fecha<=limiteStr).length;
-
-  document.getElementById('statEventos').textContent = eventosEsteAnio;
-  document.getElementById('statMantenimiento').textContent = mantenimientoPendiente;
-  document.getElementById('statInscritos').textContent = inscritosTotales;
-  document.getElementById('statTareasPendientes').textContent = tareasPendientes;
-  document.getElementById('statProyectosActivos').textContent = proyectosActivos;
-  document.getElementById('statProximasPublicaciones').textContent = proximasPublicaciones;
-
   renderSaludo();
   renderResumenHero();
-  renderTareasUrgentes();
-  renderActividadReciente();
-  renderProximasPublicaciones();
-  renderProgresoMantenimiento();
+  renderKpiInicio();
+  renderPendienteInicio();
+  renderProximoInicio();
   renderNotificaciones();
 }
 
-function renderTareasUrgentes(){
-  const wrap = document.getElementById('listaTareasUrgentes');
-  if (!wrap) return;
+/* Pulso general: 4 indicadores que resumen "cómo va" Marketing,
+   pensados para leerse de un vistazo (no un volcado de contadores). */
+function renderKpiInicio(){
   const hoyStr = hoyLocal();
-  const pendientes = getTareas()
-    .filter(t=>t.estado!=='hecha')
-    .sort((a,b)=>{
-      const fa = a.fechaFin || a.fechaInicio || '9999-99-99';
-      const fb = b.fechaFin || b.fechaInicio || '9999-99-99';
-      return fa.localeCompare(fb);
-    })
-    .slice(0,5);
 
-  if (!pendientes.length){
-    wrap.innerHTML = '<p class="muted small">No tienes tareas pendientes.</p>';
-    return;
+  const pendientes = getTareas().filter(t=>t.estado!=='hecha');
+  const vencidas = pendientes.filter(t=>t.fechaFin && t.fechaFin<hoyStr).length;
+  document.getElementById('statTareasPendientes').textContent = pendientes.length;
+  document.getElementById('statTareasVencidas').textContent = vencidas ? `${vencidas} vencida${vencidas===1?'':'s'}` : (pendientes.length ? 'Ninguna vencida' : '');
+
+  const limite7 = new Date(); limite7.setDate(limite7.getDate()+7);
+  const limite7Str = isoLocal(limite7);
+  const publicacionesSemana = getLS(LS.calendario).filter(e=> e.fecha>=hoyStr && e.fecha<=limite7Str).length;
+  document.getElementById('statProximasPublicaciones').textContent = publicacionesSemana;
+
+  const eventosProximosCount = getEventosPropios().filter(ev=>
+    ev.estado!=='cancelado' && ((ev.fechaFin && ev.fechaFin>=hoyStr) || (!ev.fechaFin && ev.fechaInicio>=hoyStr))
+  ).length;
+  document.getElementById('statEventosProximos').textContent = eventosProximosCount;
+
+  const resumenLinkedin = calcularResumenRedPerfil('linkedin', new Date().getFullYear());
+  const elSeg = document.getElementById('statSeguidoresLinkedin');
+  const elSegMeta = document.getElementById('statSeguidoresLinkedinMeta');
+  if (resumenLinkedin){
+    elSeg.textContent = fmtNum(resumenLinkedin.ultimo.seguidores);
+    elSegMeta.textContent = `Seguidores LinkedIn · ${fmtSignoPerfil(resumenLinkedin.variacionMensual)} este mes`;
+  } else {
+    elSeg.textContent = 'N/D';
+    elSegMeta.textContent = 'Seguidores LinkedIn';
   }
-  wrap.innerHTML = pendientes.map(t=>{
-    const vencida = !!(t.fechaFin && t.fechaFin < hoyStr);
-    return `
-    <div class="activity-item">
-      <div class="ai-icon" style="${vencida?'background:var(--orange-100);color:#b1521a;':''}"><i class="fa-solid ${vencida?'fa-triangle-exclamation':'fa-list-check'}"></i></div>
-      <div class="ai-body">
-        <div class="ai-title">${esc(t.titulo)}</div>
-        <div class="ai-meta">
-          <span class="tag ${PRIORIDAD_TAG[t.prioridad]||'tag-grey'}">${PRIORIDAD_LABEL[t.prioridad]||t.prioridad}</span>
-          ${t.fechaFin ? (vencida ? 'Vencida el '+fmtFecha(t.fechaFin) : 'Vence el '+fmtFecha(t.fechaFin)) : 'Sin fecha límite'}
-        </div>
-      </div>
-      <button class="ai-link" onclick="abrirModalTarea('${t.id}')">Abrir</button>
-    </div>`;
-  }).join('');
 }
 
-function renderActividadReciente(){
-  const wrap = document.getElementById('listaActividadReciente');
+/* "Pendiente": todo lo que ya requiere atención ahora mismo (tareas
+   vencidas o a punto de vencer, mantenimiento y auditoría SEO
+   pendientes, publicaciones de hoy). Reutiliza getNotificaciones()
+   para no duplicar esa lógica ni desincronizarse de la campana. */
+function renderPendienteInicio(){
+  const wrap = document.getElementById('listaPendiente');
   if (!wrap) return;
+  const notifs = getNotificaciones();
+
+  if (!notifs.length){
+    wrap.innerHTML = `
+    <div class="activity-item">
+      <div class="ai-icon" style="background:var(--teal-100);color:var(--teal-700);"><i class="fa-solid fa-circle-check"></i></div>
+      <div class="ai-body">
+        <div class="ai-title">Todo al día</div>
+        <div class="ai-meta">No hay tareas vencidas, mantenimiento ni avisos pendientes.</div>
+      </div>
+    </div>`;
+    return;
+  }
+
+  const visibles = notifs.slice(0,6);
+  let html = visibles.map(n=>`
+    <div class="activity-item">
+      <div class="ai-icon" style="${n.tipo==='urgente'?'background:var(--orange-100);color:#b1521a;':(n.tipo==='aviso'?'background:#fdf3d8;color:#8a6b0a;':'')}"><i class="fa-solid ${n.icon}"></i></div>
+      <div class="ai-body">
+        <div class="ai-title">${esc(n.texto)}</div>
+        <div class="ai-meta">${esc(n.meta)}</div>
+      </div>
+      <button class="ai-link" onclick="goTo('${n.view}','${n.tab}')">Ver</button>
+    </div>`).join('');
+
+  if (notifs.length > visibles.length){
+    html += `<button class="ai-link" style="margin-top:10px;" onclick="toggleNotificaciones()">Ver ${notifs.length-visibles.length} más en Notificaciones</button>`;
+  }
+  wrap.innerHTML = html;
+}
+
+/* "Qué viene": una única línea de tiempo, ordenada por fecha, que
+   mezcla eventos propios, publicaciones y tareas que aún no son
+   urgentes pero se acercan (evita duplicar lo que ya sale en
+   "Pendiente"). */
+function getProximosItemsInicio(){
+  const hoyStr = hoyLocal();
+  const en3dias = new Date(); en3dias.setDate(en3dias.getDate()+3);
+  const en3diasStr = isoLocal(en3dias);
+  const en9dias = new Date(); en9dias.setDate(en9dias.getDate()+9);
+  const en9diasStr = isoLocal(en9dias);
+  const en7dias = new Date(); en7dias.setDate(en7dias.getDate()+7);
+  const en7diasStr = isoLocal(en7dias);
+  const en30dias = new Date(); en30dias.setDate(en30dias.getDate()+30);
+  const en30diasStr = isoLocal(en30dias);
+
   const items = [];
 
-  const eventos = getLS(LS.eventos);
-  if (eventos.length){
-    const e = eventos[0];
-    items.push({ icon:'fa-calendar-check', title:`${e.nombre} — ${e.evento}`, meta:`Evento registrado · ${fmtFecha(e.fecha)}`, view:'eventos', tab:'registro' });
-  }
-  const tareas = getTareas();
-  if (tareas.length){
-    const t = tareas[0];
-    items.push({ icon:'fa-list-check', title:t.titulo, meta:`Tarea · ${ESTADO_LABEL[t.estado]||t.estado}`, view:'tareas', tab:'lista' });
-  }
-  const proyectos = getProyectos();
-  if (proyectos.length){
-    const p = proyectos[0];
-    items.push({ icon:'fa-diagram-project', title:p.nombre, meta:'Proyecto registrado', view:'config', tab:'proyectos' });
-  }
-  const calendario = getLS(LS.calendario);
-  if (calendario.length){
-    const c = calendario[calendario.length-1];
-    items.push({ icon:'fa-share-nodes', title:c.titulo, meta:`Publicación programada · ${fmtFecha(c.fecha)}`, view:'redes', tab:'lista' });
-  }
-  const envios = getLS(LS.emailsEnviados);
-  if (envios.length){
-    const em = envios[0];
-    items.push({ icon:'fa-envelope-open-text', title:em.nombre, meta:`Envío registrado · ${fmtFecha(em.fecha)}`, view:'email', tab:'seguimiento' });
-  }
-  const inscritos = getLS(LS.inscritos);
-  if (inscritos.length){
-    const i = inscritos[inscritos.length-1];
-    items.push({ icon:'fa-user-plus', title:`${i.nombre} — ${i.evento}`, meta:`Inscrito añadido · ${fmtFecha(i.fecha)}`, view:'propios', tab:'inscritos', evento:i.evento });
-  }
+  getTareas().forEach(t=>{
+    if (t.estado==='hecha' || !t.fechaFin) return;
+    if (t.fechaFin > en3diasStr && t.fechaFin <= en9diasStr){
+      items.push({ icon:'fa-list-check', titulo:t.titulo, fecha:t.fechaFin, tipo:'Tarea', view:'tareas', tab:'lista' });
+    }
+  });
+
+  getLS(LS.calendario).forEach(c=>{
+    if (c.fecha > hoyStr && c.fecha <= en7diasStr){
+      items.push({ icon:'fa-share-nodes', titulo:c.titulo, fecha:c.fecha, tipo:'Publicación', view:'redes', tab:'lista' });
+    }
+  });
+
+  getEventosPropios().forEach(ev=>{
+    if (ev.estado==='cancelado' || ev.estado==='finalizado') return;
+    if (ev.fechaInicio && ev.fechaInicio >= hoyStr && ev.fechaInicio <= en30diasStr){
+      items.push({ icon:'fa-calendar-days', titulo:ev.nombre, fecha:ev.fechaInicio, tipo:'Evento propio', view:'propios', tab:'logistica', evento:ev.nombre });
+    }
+  });
+
+  return items.sort((a,b)=> (a.fecha||'').localeCompare(b.fecha||''));
+}
+
+function fmtFechaRelativaInicio(fechaStr){
+  const hoyStr = hoyLocal();
+  const manana = new Date(); manana.setDate(manana.getDate()+1);
+  const mananaStr = isoLocal(manana);
+  if (fechaStr===hoyStr) return 'Hoy';
+  if (fechaStr===mananaStr) return 'Mañana';
+  return fmtFecha(fechaStr);
+}
+
+function renderProximoInicio(){
+  const wrap = document.getElementById('listaProximo');
+  if (!wrap) return;
+  const items = getProximosItemsInicio().slice(0,6);
 
   if (!items.length){
-    wrap.innerHTML = '<p class="muted small">Todavía no hay actividad registrada en el hub.</p>';
+    wrap.innerHTML = '<p class="muted small">No hay eventos, publicaciones ni tareas programadas en los próximos días.</p>';
     return;
   }
   wrap.innerHTML = items.map(it=>`
     <div class="activity-item">
       <div class="ai-icon"><i class="fa-solid ${it.icon}"></i></div>
       <div class="ai-body">
-        <div class="ai-title">${esc(it.title)}</div>
-        <div class="ai-meta">${esc(it.meta)}</div>
+        <div class="ai-title">${esc(it.titulo)}</div>
+        <div class="ai-meta">${it.tipo} · ${fmtFechaRelativaInicio(it.fecha)}</div>
       </div>
       <button class="ai-link" onclick="goTo('${it.view}','${it.tab}','${escJs(it.evento||'')}')">Ver</button>
     </div>`).join('');
-}
-
-function renderProximasPublicaciones(){
-  const wrap = document.getElementById('listaProximasPublicaciones');
-  if (!wrap) return;
-  const hoyStr = hoyLocal();
-  const limite = new Date(); limite.setDate(limite.getDate()+7);
-  const limiteStr = isoLocal(limite);
-  const proximas = getLS(LS.calendario)
-    .filter(e=> e.fecha>=hoyStr && e.fecha<=limiteStr)
-    .sort((a,b)=> (a.fecha||'').localeCompare(b.fecha||''));
-
-  if (!proximas.length){
-    wrap.innerHTML = '<p class="muted small">No hay publicaciones programadas para los próximos 7 días.</p>';
-    return;
-  }
-  wrap.innerHTML = proximas.map(e=>{
-    const etiquetaTxt = e.etiqueta==='proyecto' ? (e.proyecto || 'Proyecto') : 'CIDAUT';
-    return `
-    <div class="activity-item">
-      <div class="ai-icon"><i class="fa-solid fa-share-nodes"></i></div>
-      <div class="ai-body">
-        <div class="ai-title">${esc(e.titulo)}</div>
-        <div class="ai-meta">${fmtFecha(e.fecha)} · ${esc(etiquetaTxt)} · ${esc(e.plataforma)}</div>
-      </div>
-      <button class="ai-link" onclick="abrirModalCal('${e.fecha}','${e.id}')">Editar</button>
-    </div>`;
-  }).join('');
-}
-
-function renderProgresoMantenimiento(){
-  const wrap = document.getElementById('progresoMantenimiento');
-  if (!wrap) return;
-  const tareas = getLS(LS.mantenimiento);
-  if (!tareas.length){
-    wrap.innerHTML = '<p class="muted small">No hay tareas de mantenimiento registradas todavía.</p>';
-    return;
-  }
-  const hechas = tareas.filter(t=>t.done).length;
-  const pct = Math.round((hechas/tareas.length)*100);
-  wrap.innerHTML = `
-    <div style="font-size:12.5px;color:var(--ink-500);margin-bottom:6px;">${hechas} de ${tareas.length} tareas completadas (${pct}%)</div>
-    <div class="progress-bar"><div class="progress-bar-fill" style="width:${pct}%;"></div></div>
-    <button class="ai-link" onclick="goTo('webs','mantenimiento')">Ver checklist completo</button>`;
 }
 
 /* ---------------------------------------------------------------------
