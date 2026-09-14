@@ -604,7 +604,6 @@
     .grid-2,.grid-3{grid-template-columns:1fr;}
   }
 </style>
-<base target="_blank">
 </head>
 <body>
 
@@ -1904,54 +1903,16 @@
           </div>
 
           <div class="panel section-gap">
-            <div class="panel-title" id="pubFormTitulo">Registrar publicación</div>
-            <div class="panel-subtitle">Elige primero el proyecto y la red social: el formulario mostrará solo las métricas correspondientes.</div>
-            <div class="field">
-              <label for="pubProyecto">Proyecto</label>
-              <select id="pubProyecto" onchange="onCambioProyectoPublicacion()"><option value="">Ninguno / General</option></select>
-            </div>
-            <div class="platform-tabs" id="pubPlatformTabs">
-              <div class="platform-tab active" data-platform="linkedin" onclick="setPubRed('linkedin')"><i class="fa-brands fa-linkedin"></i> LinkedIn</div>
-              <div class="platform-tab" data-platform="x" onclick="setPubRed('x')"><i class="fa-brands fa-x-twitter"></i> X</div>
-              <div class="platform-tab" data-platform="instagram" onclick="setPubRed('instagram')"><i class="fa-brands fa-instagram"></i> Instagram</div>
-              <div class="platform-tab" data-platform="youtube" onclick="setPubRed('youtube')"><i class="fa-brands fa-youtube"></i> YouTube</div>
-            </div>
-            <div class="field-row">
-              <div class="field">
-                <label for="pubTitulo">Título de la publicación</label>
-                <input type="text" id="pubTitulo" placeholder="Ej. Vídeo resumen del taller RESILIENT">
-              </div>
-              <div class="field">
-                <label for="pubEnlace">Enlace a la publicación</label>
-                <input type="text" id="pubEnlace" placeholder="https://...">
-              </div>
-            </div>
-            <div class="field-row">
-              <div class="field">
-                <label for="pubFecha">Fecha de publicación</label>
-                <input type="date" id="pubFecha" onchange="onCambioFechaPublicacion()">
-              </div>
-              <div class="field">
-                <label for="pubHora">Hora de publicación</label>
-                <input type="time" id="pubHora">
-              </div>
-            </div>
-            <div class="muted small" id="pubFechaCalculada" style="margin:-8px 0 16px 0;"></div>
-            <div id="pubCamposMetricas"></div>
-            <div class="btn-row">
-              <button class="btn" onclick="guardarPublicacionRed()"><i class="fa-solid fa-floppy-disk"></i> Guardar publicación</button>
-              <button class="btn btn-secondary" id="cancelarEdicionPubBtn" style="display:none;" onclick="cancelarEdicionPublicacionRed()">Cancelar edición</button>
-            </div>
-          </div>
-
-          <div class="panel section-gap">
-            <div class="flex-between">
+            <div class="flex-between" style="flex-wrap:wrap;gap:14px;">
               <div>
                 <div class="panel-title" style="margin-bottom:4px;">Publicaciones registradas</div>
                 <div class="panel-subtitle" style="margin-bottom:0;">Usa los filtros de arriba para acotar por proyecto, red, año, mes o día. Haz clic en Fecha, Impresiones o Interacciones para ordenar.</div>
               </div>
-              <div class="field" style="min-width:220px;margin-bottom:0;">
-                <input type="text" id="pubBuscar" placeholder="Buscar por título..." oninput="renderTablaPublicacionesRed()">
+              <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+                <div class="field" style="min-width:220px;margin-bottom:0;">
+                  <input type="text" id="pubBuscar" placeholder="Buscar por título..." oninput="renderTablaPublicacionesRed()">
+                </div>
+                <button class="btn" onclick="abrirModalPublicacion()"><i class="fa-solid fa-plus"></i> Registrar publicación</button>
               </div>
             </div>
             <div class="table-wrap" style="margin-top:16px;">
@@ -1968,9 +1929,14 @@
           <div class="subtab-pane" id="analitica-perfiles">
 
             <div class="panel">
-              <div class="panel-title">Estadísticas de perfiles</div>
-              <div class="panel-subtitle">Introduce y consulta la evolución mensual de seguidores de cada red social. Los seguidores son un valor acumulado: no se suman entre meses, se comparan.</div>
-              <div class="filter-row">
+              <div class="flex-between" style="align-items:flex-start;flex-wrap:wrap;gap:14px;">
+                <div>
+                  <div class="panel-title">Estadísticas de perfiles</div>
+                  <div class="panel-subtitle" style="margin-bottom:0;">Introduce y consulta la evolución mensual de seguidores de cada red social. Los seguidores son un valor acumulado: no se suman entre meses, se comparan.</div>
+                </div>
+                <button class="btn" onclick="abrirModalEstadisticaPerfil()"><i class="fa-solid fa-plus"></i> Registrar estadísticas</button>
+              </div>
+              <div class="filter-row" style="margin-top:18px;">
                 <div class="field">
                   <label for="perfFiltroAnio">Año</label>
                   <select id="perfFiltroAnio" onchange="renderPerfiles()"></select>
@@ -1988,63 +1954,10 @@
               </div>
             </div>
 
-            <div class="grid-4" id="perfTarjetas" style="margin-bottom:20px;"></div>
+            <div class="panel-title" style="margin:26px 2px 12px 2px;font-size:12.5px;color:var(--ink-500);text-transform:uppercase;letter-spacing:0.4px;">Resumen por red social</div>
+            <div class="grid-4" id="perfTarjetas" style="margin-bottom:8px;"></div>
 
-            <div class="panel section-gap">
-              <div class="panel-title" id="perfFormTitulo">Registrar estadísticas</div>
-              <div class="panel-subtitle">Elige el año, el mes y la red social. Si ese registro ya existe, se actualizará en lugar de duplicarse.</div>
-              <div class="field-row">
-                <div class="field">
-                  <label for="perfAnio">Año</label>
-                  <input type="number" id="perfAnio" min="2015" max="2100" step="1" placeholder="Ej. 2026">
-                </div>
-                <div class="field">
-                  <label for="perfMes">Mes</label>
-                  <select id="perfMes">
-                    <option value="">Selecciona un mes</option>
-                    <option value="enero">Enero</option>
-                    <option value="febrero">Febrero</option>
-                    <option value="marzo">Marzo</option>
-                    <option value="abril">Abril</option>
-                    <option value="mayo">Mayo</option>
-                    <option value="junio">Junio</option>
-                    <option value="julio">Julio</option>
-                    <option value="agosto">Agosto</option>
-                    <option value="septiembre">Septiembre</option>
-                    <option value="octubre">Octubre</option>
-                    <option value="noviembre">Noviembre</option>
-                    <option value="diciembre">Diciembre</option>
-                  </select>
-                </div>
-              </div>
-              <div class="platform-tabs" id="perfPlatformTabs">
-                <div class="platform-tab active" data-platform="linkedin" onclick="setPerfRed('linkedin')"><i class="fa-brands fa-linkedin"></i> LinkedIn</div>
-                <div class="platform-tab" data-platform="x" onclick="setPerfRed('x')"><i class="fa-brands fa-x-twitter"></i> X</div>
-                <div class="platform-tab" data-platform="instagram" onclick="setPerfRed('instagram')"><i class="fa-brands fa-instagram"></i> Instagram</div>
-                <div class="platform-tab" data-platform="youtube" onclick="setPerfRed('youtube')"><i class="fa-brands fa-youtube"></i> YouTube</div>
-              </div>
-              <div class="field">
-                <label for="perfSeguidores">Seguidores</label>
-                <input type="number" id="perfSeguidores" min="0" placeholder="Ej. 7470">
-              </div>
-              <div id="perfCamposLinkedin">
-                <div class="field-row">
-                  <div class="field">
-                    <label for="perfVisualizaciones">Visualizaciones de la página</label>
-                    <input type="number" id="perfVisualizaciones" min="0" placeholder="Opcional">
-                  </div>
-                  <div class="field">
-                    <label for="perfVisitantes">Visitantes únicos</label>
-                    <input type="number" id="perfVisitantes" min="0" placeholder="Opcional">
-                  </div>
-                </div>
-              </div>
-              <div class="btn-row">
-                <button class="btn" onclick="guardarEstadisticaPerfil()"><i class="fa-solid fa-floppy-disk"></i> Guardar estadísticas</button>
-                <button class="btn btn-secondary" id="cancelarEdicionPerfilBtn" style="display:none;" onclick="cancelarEdicionEstadisticaPerfil()">Cancelar edición</button>
-              </div>
-            </div>
-
+            <div class="panel-title" style="margin:26px 2px 12px 2px;font-size:12.5px;color:var(--ink-500);text-transform:uppercase;letter-spacing:0.4px;">Evolución</div>
             <div class="grid-2 section-gap">
               <div class="panel">
                 <div class="panel-title">Evolución de seguidores</div>
@@ -2079,6 +1992,110 @@
 
         </div>
       </section>
+
+      <!-- Modal: Registrar / editar publicación (Analítica de Redes Sociales) -->
+      <div class="modal-overlay" id="pubModal">
+        <div class="modal-box wide">
+          <span class="modal-close" onclick="cerrarModalPublicacion()"><i class="fa-solid fa-xmark"></i></span>
+          <h3 id="pubFormTitulo">Registrar publicación</h3>
+          <div class="panel-subtitle" style="margin-bottom:18px;">Elige primero el proyecto y la red social: el formulario mostrará solo las métricas correspondientes.</div>
+          <div class="field">
+            <label for="pubProyecto">Proyecto</label>
+            <select id="pubProyecto" onchange="onCambioProyectoPublicacion()"><option value="">Ninguno / General</option></select>
+          </div>
+          <div class="platform-tabs" id="pubPlatformTabs">
+            <div class="platform-tab active" data-platform="linkedin" onclick="setPubRed('linkedin')"><i class="fa-brands fa-linkedin"></i> LinkedIn</div>
+            <div class="platform-tab" data-platform="x" onclick="setPubRed('x')"><i class="fa-brands fa-x-twitter"></i> X</div>
+            <div class="platform-tab" data-platform="instagram" onclick="setPubRed('instagram')"><i class="fa-brands fa-instagram"></i> Instagram</div>
+            <div class="platform-tab" data-platform="youtube" onclick="setPubRed('youtube')"><i class="fa-brands fa-youtube"></i> YouTube</div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="pubTitulo">Título de la publicación</label>
+              <input type="text" id="pubTitulo" placeholder="Ej. Vídeo resumen del taller RESILIENT">
+            </div>
+            <div class="field">
+              <label for="pubEnlace">Enlace a la publicación</label>
+              <input type="text" id="pubEnlace" placeholder="https://...">
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="pubFecha">Fecha de publicación</label>
+              <input type="date" id="pubFecha" onchange="onCambioFechaPublicacion()">
+            </div>
+            <div class="field">
+              <label for="pubHora">Hora de publicación</label>
+              <input type="time" id="pubHora">
+            </div>
+          </div>
+          <div class="muted small" id="pubFechaCalculada" style="margin:-8px 0 16px 0;"></div>
+          <div id="pubCamposMetricas"></div>
+          <div class="btn-row">
+            <button class="btn" onclick="guardarPublicacionRed()"><i class="fa-solid fa-floppy-disk"></i> Guardar publicación</button>
+            <button class="btn btn-secondary" id="cancelarEdicionPubBtn" style="display:none;" onclick="cancelarEdicionPublicacionRed()">Cancelar edición</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal: Registrar / editar estadísticas de perfil (Analítica de Redes Sociales) -->
+      <div class="modal-overlay" id="perfModal">
+        <div class="modal-box wide">
+          <span class="modal-close" onclick="cerrarModalEstadisticaPerfil()"><i class="fa-solid fa-xmark"></i></span>
+          <h3 id="perfFormTitulo">Registrar estadísticas</h3>
+          <div class="panel-subtitle" style="margin-bottom:18px;">Elige el año, el mes y la red social. Si ese registro ya existe, se actualizará en lugar de duplicarse.</div>
+          <div class="field-row">
+            <div class="field">
+              <label for="perfAnio">Año</label>
+              <input type="number" id="perfAnio" min="2015" max="2100" step="1" placeholder="Ej. 2026">
+            </div>
+            <div class="field">
+              <label for="perfMes">Mes</label>
+              <select id="perfMes">
+                <option value="">Selecciona un mes</option>
+                <option value="enero">Enero</option>
+                <option value="febrero">Febrero</option>
+                <option value="marzo">Marzo</option>
+                <option value="abril">Abril</option>
+                <option value="mayo">Mayo</option>
+                <option value="junio">Junio</option>
+                <option value="julio">Julio</option>
+                <option value="agosto">Agosto</option>
+                <option value="septiembre">Septiembre</option>
+                <option value="octubre">Octubre</option>
+                <option value="noviembre">Noviembre</option>
+                <option value="diciembre">Diciembre</option>
+              </select>
+            </div>
+          </div>
+          <div class="platform-tabs" id="perfPlatformTabs">
+            <div class="platform-tab active" data-platform="linkedin" onclick="setPerfRed('linkedin')"><i class="fa-brands fa-linkedin"></i> LinkedIn</div>
+            <div class="platform-tab" data-platform="x" onclick="setPerfRed('x')"><i class="fa-brands fa-x-twitter"></i> X</div>
+            <div class="platform-tab" data-platform="instagram" onclick="setPerfRed('instagram')"><i class="fa-brands fa-instagram"></i> Instagram</div>
+            <div class="platform-tab" data-platform="youtube" onclick="setPerfRed('youtube')"><i class="fa-brands fa-youtube"></i> YouTube</div>
+          </div>
+          <div class="field">
+            <label for="perfSeguidores">Seguidores</label>
+            <input type="number" id="perfSeguidores" min="0" placeholder="Ej. 7470">
+          </div>
+          <div id="perfCamposLinkedin">
+            <div class="field-row">
+              <div class="field">
+                <label for="perfVisualizaciones">Visualizaciones de la página</label>
+                <input type="number" id="perfVisualizaciones" min="0" placeholder="Opcional">
+              </div>
+              <div class="field">
+                <label for="perfVisitantes">Visitantes únicos</label>
+                <input type="number" id="perfVisitantes" min="0" placeholder="Opcional">
+              </div>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn" onclick="guardarEstadisticaPerfil()"><i class="fa-solid fa-floppy-disk"></i> Guardar estadísticas</button>
+            <button class="btn btn-secondary" id="cancelarEdicionPerfilBtn" style="display:none;" onclick="cancelarEdicionEstadisticaPerfil()">Cancelar edición</button>
+          </div>
+        </div>
+      </div>
 
       <!-- ============ MÓDULO 5: ORGANIZADOR DE EVENTOS PROPIOS ============ -->
       <section class="module-view" id="view-propios">
@@ -4967,6 +4984,15 @@ function onCambioProyectoPublicacion(){
   if (!redActualVisible) setPubRed(activas[0] || 'linkedin');
 }
 
+function abrirModalPublicacion(){
+  cancelarEdicionPublicacionRed();
+  document.getElementById('pubModal').classList.add('active');
+}
+
+function cerrarModalPublicacion(){
+  cancelarEdicionPublicacionRed();
+}
+
 function setPubRed(red, valores){
   pubRedActual = red;
   document.querySelectorAll('#pubPlatformTabs .platform-tab').forEach(t=>t.classList.toggle('active', t.dataset.platform===red));
@@ -5072,6 +5098,7 @@ function editarPublicacionRed(id){
   document.getElementById('pubFormTitulo').textContent = 'Editar publicación';
   document.getElementById('cancelarEdicionPubBtn').style.display = 'inline-flex';
   goTo('redes','analitica');
+  document.getElementById('pubModal').classList.add('active');
 }
 
 function cancelarEdicionPublicacionRed(){
@@ -5083,6 +5110,7 @@ function cancelarEdicionPublicacionRed(){
   setPubRed('linkedin');
   document.getElementById('pubFormTitulo').textContent = 'Registrar publicación';
   document.getElementById('cancelarEdicionPubBtn').style.display = 'none';
+  const modalPub = document.getElementById('pubModal'); if (modalPub) modalPub.classList.remove('active');
 }
 
 function eliminarPublicacionRed(id){
@@ -5480,6 +5508,15 @@ function poblarFiltrosPerfiles(){
 }
 
 /* --- Formulario de registro --- */
+function abrirModalEstadisticaPerfil(){
+  cancelarEdicionEstadisticaPerfil();
+  document.getElementById('perfModal').classList.add('active');
+}
+
+function cerrarModalEstadisticaPerfil(){
+  cancelarEdicionEstadisticaPerfil();
+}
+
 function setPerfRed(red, valores){
   perfRedActual = red;
   document.querySelectorAll('#perfPlatformTabs .platform-tab').forEach(t=>t.classList.toggle('active', t.dataset.platform===red));
@@ -5547,15 +5584,16 @@ function editarEstadisticaPerfil(id){
   document.getElementById('perfSeguidores').value = reg.seguidores;
   document.getElementById('perfFormTitulo').textContent = 'Editar estadísticas';
   document.getElementById('cancelarEdicionPerfilBtn').style.display = 'inline-flex';
+  document.getElementById('perfModal').classList.add('active');
 }
 
 function cancelarEdicionEstadisticaPerfil(){
   perfilEditId = null;
-  const segEl = document.getElementById('perfSeguidores');
-  if (segEl) segEl.value = '';
+  ['perfAnio','perfMes','perfSeguidores'].forEach(id=>{ const el=document.getElementById(id); if (el) el.value=''; });
   setPerfRed(perfRedActual);
   document.getElementById('perfFormTitulo').textContent = 'Registrar estadísticas';
   document.getElementById('cancelarEdicionPerfilBtn').style.display = 'none';
+  const modalPerf = document.getElementById('perfModal'); if (modalPerf) modalPerf.classList.remove('active');
 }
 
 function eliminarEstadisticaPerfil(id){
@@ -5590,7 +5628,7 @@ function renderTarjetasPerfiles(){
         <div class="muted small" style="margin-top:10px;">Sin datos registrados${anioSel?` para ${anioSel}`:''}.</div>
       </div>`;
     }
-    const { ultimo, variacionMensual, variacionMensualPct, crecAbs } = resumen;
+    const { ultimo, variacionMensual, variacionMensualPct, crecAbs, crecPct } = resumen;
     return `<div class="panel panel-accent perf-card" style="border-left-color:${color}">
       <div class="perf-card-head"><i class="${icono}" style="color:${color}"></i><div class="panel-title">${label}</div></div>
       <div class="stat-num">${fmtNum(ultimo.seguidores)}</div>
@@ -5599,7 +5637,7 @@ function renderTarjetasPerfiles(){
         <span>${fmtSignoPerfil(variacionMensual)} este mes</span>
         <span>${fmtSignoPctPerfil(variacionMensualPct)}</span>
       </div>
-      <div class="muted small perf-card-annual">${fmtSignoPerfil(crecAbs)} en el año</div>
+      <div class="muted small perf-card-annual">${fmtSignoPerfil(crecAbs)} (${fmtSignoPctPerfil(crecPct)}) en el año</div>
     </div>`;
   }).join('');
 }
