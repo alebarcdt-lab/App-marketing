@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
   :root{
     --teal-950:#0a2a30;
@@ -1809,6 +1810,7 @@
                   <option value="x">X</option>
                   <option value="instagram">Instagram</option>
                   <option value="youtube">YouTube</option>
+                  <option value="bluesky">Bluesky</option>
                 </select>
               </div>
               <div class="field">
@@ -1949,6 +1951,7 @@
                     <option value="x">X</option>
                     <option value="instagram">Instagram</option>
                     <option value="youtube">YouTube</option>
+                    <option value="bluesky">Bluesky</option>
                   </select>
                 </div>
               </div>
@@ -2008,6 +2011,7 @@
             <div class="platform-tab" data-platform="x" onclick="setPubRed('x')"><i class="fa-brands fa-x-twitter"></i> X</div>
             <div class="platform-tab" data-platform="instagram" onclick="setPubRed('instagram')"><i class="fa-brands fa-instagram"></i> Instagram</div>
             <div class="platform-tab" data-platform="youtube" onclick="setPubRed('youtube')"><i class="fa-brands fa-youtube"></i> YouTube</div>
+            <div class="platform-tab" data-platform="bluesky" onclick="setPubRed('bluesky')"><i class="fa-brands fa-bluesky"></i> Bluesky</div>
           </div>
           <div class="field-row">
             <div class="field">
@@ -2073,6 +2077,7 @@
             <div class="platform-tab" data-platform="x" onclick="setPerfRed('x')"><i class="fa-brands fa-x-twitter"></i> X</div>
             <div class="platform-tab" data-platform="instagram" onclick="setPerfRed('instagram')"><i class="fa-brands fa-instagram"></i> Instagram</div>
             <div class="platform-tab" data-platform="youtube" onclick="setPerfRed('youtube')"><i class="fa-brands fa-youtube"></i> YouTube</div>
+            <div class="platform-tab" data-platform="bluesky" onclick="setPerfRed('bluesky')"><i class="fa-brands fa-bluesky"></i> Bluesky</div>
           </div>
           <div class="field">
             <label for="perfSeguidores">Seguidores</label>
@@ -2700,8 +2705,126 @@ const LS = {
   config: 'cidautHub_config'
 };
 
-function getLS(key){ try{ return JSON.parse(localStorage.getItem(key)) || []; }catch(e){ return []; } }
-function setLS(key,val){ localStorage.setItem(key, JSON.stringify(val)); }
+/* ---------------------------------------------------------------------
+   SUPABASE — módulo Social (estadísticas de perfiles y publicaciones)
+   Solo estas dos tablas viven en Supabase; el resto del hub sigue
+   usando localStorage como hasta ahora. getLS/setLS interceptan estas
+   dos claves de forma transparente para que el resto del código (que
+   ya usaba getLS(LS.publicacionesRedes) / getLS(LS.estadisticasPerfiles))
+   funcione sin cambios.
+   --------------------------------------------------------------------- */
+const SUPABASE_URL = 'https://atpcakzseqrvfuiidvht.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF0cGNha3pzZXFydmZ1aWlkdmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzNTc0MjksImV4cCI6MjEwNDkzMzQyOX0.oI747dO6KW6JHZsCttZxHaeFSHSo32m4uxOjGW2s82o';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let _cachePublicaciones = [];
+let _cacheEstadisticas = [];
+let _socialSupabaseListo = false;
+
+function dbToRowPost(d){
+  return {
+    id: d.id, titulo: d.titulo, enlace: d.enlace, proyecto: d.proyecto, red: d.red,
+    fecha: d.fecha, hora: d.hora, diaSemana: d.dia_semana, diaMes: d.dia_mes,
+    mes: d.mes, anio: d.anio, metricas: d.metricas || {}
+  };
+}
+function rowToDbPost(r){
+  return {
+    id: r.id, titulo: r.titulo, enlace: r.enlace || null, proyecto: r.proyecto || null,
+    red: r.red, fecha: r.fecha, hora: r.hora || null, dia_semana: r.diaSemana || null,
+    dia_mes: (r.diaMes!=null && r.diaMes!=='') ? String(r.diaMes) : null,
+    mes: r.mes || null, anio: (r.anio!=null && r.anio!=='') ? Number(r.anio) : null,
+    metricas: r.metricas || {}
+  };
+}
+function dbToRowStat(d){
+  return {
+    id: d.id, red: d.red, anio: d.anio, mes: d.mes, seguidores: d.seguidores,
+    visualizacionesPagina: d.visualizaciones_pagina, visitantesUnicos: d.visitantes_unicos
+  };
+}
+function rowToDbStat(r){
+  return {
+    id: r.id, red: r.red, anio: Number(r.anio), mes: r.mes,
+    seguidores: (r.seguidores!=null && r.seguidores!=='') ? Number(r.seguidores) : null,
+    visualizaciones_pagina: (r.visualizacionesPagina!=null && r.visualizacionesPagina!=='') ? Number(r.visualizacionesPagina) : null,
+    visitantes_unicos: (r.visitantesUnicos!=null && r.visitantesUnicos!=='') ? Number(r.visitantesUnicos) : null
+  };
+}
+
+/* Sincroniza en segundo plano solo lo que ha cambiado entre el array
+   anterior y el nuevo (altas, bajas y modificaciones), comparando por id.
+   No bloquea la interfaz: la caché local ya se ha actualizado antes de
+   llamar a esta función. */
+async function sincronizarTablaSocial(tabla, mapper, oldArr, newArr){
+  try{
+    const oldMap = new Map(oldArr.map(r=>[r.id,r]));
+    const newMap = new Map(newArr.map(r=>[r.id,r]));
+    const aBorrar = [...oldMap.keys()].filter(id=>!newMap.has(id));
+    const aGuardar = newArr.filter(r=>{
+      const prev = oldMap.get(r.id);
+      return !prev || JSON.stringify(prev)!==JSON.stringify(r);
+    });
+    if (aBorrar.length){
+      const { error } = await supabaseClient.from(tabla).delete().in('id', aBorrar);
+      if (error) throw error;
+    }
+    if (aGuardar.length){
+      const { error } = await supabaseClient.from(tabla).upsert(aGuardar.map(mapper));
+      if (error) throw error;
+    }
+  }catch(e){
+    console.error('Error sincronizando con Supabase ('+tabla+'):', e);
+    showToast('No se pudo guardar en Supabase. Revisa tu conexión.');
+  }
+}
+
+async function cargarDatosSocialSupabase(){
+  try{
+    const [rPub, rStat] = await Promise.all([
+      supabaseClient.from('social_posts').select('*'),
+      supabaseClient.from('social_stats').select('*')
+    ]);
+    if (rPub.error) throw rPub.error;
+    if (rStat.error) throw rStat.error;
+    _cachePublicaciones = (rPub.data||[]).map(dbToRowPost);
+    _cacheEstadisticas = (rStat.data||[]).map(dbToRowStat);
+  }catch(e){
+    console.error('Error cargando datos sociales de Supabase:', e);
+    showToast('No se pudieron cargar los datos de redes sociales desde Supabase.');
+    _cachePublicaciones = [];
+    _cacheEstadisticas = [];
+  }
+  _socialSupabaseListo = true;
+  poblarSelectProyectoPublicacion();
+  poblarFiltrosAnalyticsRedes();
+  renderAnalyticsRedes();
+  poblarFiltrosPerfiles();
+  setPerfRed('linkedin');
+  renderPerfiles();
+  updateDashboardStats();
+}
+
+function getLS(key){
+  if (key === LS.publicacionesRedes) return _cachePublicaciones.slice();
+  if (key === LS.estadisticasPerfiles) return _cacheEstadisticas.slice();
+  try{ return JSON.parse(localStorage.getItem(key)) || []; }catch(e){ return []; }
+}
+function setLS(key,val){
+  if (key === LS.publicacionesRedes){
+    const anterior = _cachePublicaciones;
+    _cachePublicaciones = val;
+    sincronizarTablaSocial('social_posts', rowToDbPost, anterior, val);
+    return;
+  }
+  if (key === LS.estadisticasPerfiles){
+    const anterior = _cacheEstadisticas;
+    _cacheEstadisticas = val;
+    sincronizarTablaSocial('social_stats', rowToDbStat, anterior, val);
+    return;
+  }
+  localStorage.setItem(key, JSON.stringify(val));
+}
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 function esc(str){ const d=document.createElement('div'); d.textContent = str==null?'':String(str); return d.innerHTML; }
 function fmtFecha(iso){ if(!iso) return '—'; const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; }
@@ -2752,6 +2875,11 @@ const LS_BACKUP_ULTIMA = 'cidautHub_backupUltimaFecha';
 function exportarBackupCompleto(){
   const datos = {};
   Object.values(LS).forEach(key=>{
+    if (key === LS.publicacionesRedes || key === LS.estadisticasPerfiles){
+      // Estas dos claves viven en Supabase; se exportan desde la caché en memoria.
+      datos[key] = getLS(key);
+      return;
+    }
     const raw = localStorage.getItem(key);
     if (raw !== null){
       try{ datos[key] = JSON.parse(raw); }catch(e){ datos[key] = raw; }
@@ -2819,12 +2947,27 @@ function restaurarBackupCompleto(paqueteOplano){
   );
   if (!confirmado) return false;
 
+  const tareasRestoreAsync = [];
   clavesEncontradas.forEach(key=>{
+    if (key === LS.publicacionesRedes || key === LS.estadisticasPerfiles){
+      // Estas dos claves viven en Supabase: se sincronizan en segundo plano
+      // en lugar de escribirse en localStorage.
+      const anterior = getLS(key);
+      const nuevo = Array.isArray(datos[key]) ? datos[key] : [];
+      if (key === LS.publicacionesRedes){
+        _cachePublicaciones = nuevo;
+        tareasRestoreAsync.push(sincronizarTablaSocial('social_posts', rowToDbPost, anterior, nuevo));
+      } else {
+        _cacheEstadisticas = nuevo;
+        tareasRestoreAsync.push(sincronizarTablaSocial('social_stats', rowToDbStat, anterior, nuevo));
+      }
+      return;
+    }
     localStorage.setItem(key, JSON.stringify(datos[key]));
   });
 
-  showToast('Copia de seguridad restaurada. Recargando el hub...');
-  setTimeout(()=> location.reload(), 1000);
+  showToast('Copia de seguridad restaurada. Sincronizando y recargando...');
+  Promise.all(tareasRestoreAsync).finally(()=> setTimeout(()=> location.reload(), 900));
   return true;
 }
 
@@ -4916,9 +5059,17 @@ const REDES_CONFIG = {
     ],
     calculadas: [],
     tablaCols: ['meGusta','tiempoVisualizacionHoras']
+  },
+  bluesky: {
+    label: 'Bluesky',
+    /* Bluesky todavía no tiene métricas de rendimiento por publicación en
+       el histórico importado; se registran igualmente el título/enlace/fecha. */
+    campos: [],
+    calculadas: [],
+    tablaCols: []
   }
 };
-const COLORES_RED = { linkedin:'#0a66c2', x:'#111111', instagram:'#c1338d', youtube:'#ff0000' };
+const COLORES_RED = { linkedin:'#0a66c2', x:'#111111', instagram:'#c1338d', youtube:'#ff0000', bluesky:'#0085ff' };
 const DIAS_SEMANA = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 const DIAS_SEMANA_ORDEN = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
 const MESES_CAP = MESES.map(m => m.charAt(0).toUpperCase()+m.slice(1));
@@ -5395,12 +5546,13 @@ function renderTablaPublicacionesRed(){
    (segunda capa del módulo Analítica de Redes Sociales, independiente
    de la estructura de datos de publicacionesRedes)
    ======================================================================= */
-const PERFIL_REDES_ORDEN = ['linkedin','x','instagram','youtube'];
+const PERFIL_REDES_ORDEN = ['linkedin','x','instagram','youtube','bluesky'];
 const REDES_ICONOS = {
   linkedin: 'fa-brands fa-linkedin',
   x: 'fa-brands fa-x-twitter',
   instagram: 'fa-brands fa-instagram',
-  youtube: 'fa-brands fa-youtube'
+  youtube: 'fa-brands fa-youtube',
+  bluesky: 'fa-brands fa-bluesky'
 };
 
 let perfRedActual = 'linkedin';
@@ -5408,28 +5560,6 @@ let perfilEditId = null;
 let chartPerfEvolucionRef = null, chartPerfCrecimientoRef = null, chartPerfLinkedinRef = null;
 
 function getEstadisticasPerfiles(){ return getLS(LS.estadisticasPerfiles); }
-
-/* Datos iniciales de seguidores ya conocidos. Solo se siembran una vez
-   (si la clave de almacenamiento todavía no existe) para no pisar datos
-   que el usuario ya haya introducido o editado. */
-function sembrarHistoricoPerfiles(){
-  if (localStorage.getItem(LS.estadisticasPerfiles) !== null) return;
-  const base = [
-    { red:'linkedin', anio:2024, mes:'abril',      seguidores:5404 },
-    { red:'linkedin', anio:2024, mes:'diciembre',  seguidores:6010 },
-    { red:'linkedin', anio:2025, mes:'diciembre',  seguidores:6942 },
-    { red:'linkedin', anio:2026, mes:'julio',      seguidores:7470 },
-    { red:'x',        anio:2024, mes:'abril',      seguidores:977  },
-    { red:'x',        anio:2024, mes:'diciembre',  seguidores:987  },
-    { red:'x',        anio:2025, mes:'diciembre',  seguidores:1022 },
-    { red:'x',        anio:2026, mes:'julio',      seguidores:1023 },
-    { red:'instagram',anio:2024, mes:'abril',      seguidores:292  },
-    { red:'instagram',anio:2024, mes:'diciembre',  seguidores:322  },
-    { red:'instagram',anio:2025, mes:'diciembre',  seguidores:359  },
-    { red:'instagram',anio:2026, mes:'julio',      seguidores:382  }
-  ].map(r => ({ id: uid(), visualizacionesPagina: null, visitantesUnicos: null, ...r }));
-  setLS(LS.estadisticasPerfiles, base);
-}
 
 function ordenarCronologicoPerfil(regs){
   return regs.slice().sort((a,b)=> Number(a.anio)-Number(b.anio) || MESES.indexOf(a.mes)-MESES.indexOf(b.mes));
@@ -8078,14 +8208,11 @@ function init(){
   renderIdeas();
   renderCalendar();
   renderListaPublicaciones();
-  poblarSelectProyectoPublicacion();
-  poblarFiltrosAnalyticsRedes();
-  renderAnalyticsRedes();
 
-  sembrarHistoricoPerfiles();
-  poblarFiltrosPerfiles();
-  setPerfRed('linkedin');
-  renderPerfiles();
+  /* El módulo Social (publicaciones + estadísticas de perfiles) vive en
+     Supabase, no en localStorage. Sus renders iniciales se disparan desde
+     cargarDatosSocialSupabase() en cuanto llegan los datos, para no pintar
+     el módulo vacío mientras carga. */
 
   renderEnlaces();
 
@@ -8098,6 +8225,7 @@ function init(){
 }
 
 init();
+cargarDatosSocialSupabase();
 </script>
 
 </body>
