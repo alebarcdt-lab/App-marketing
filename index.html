@@ -534,8 +534,9 @@
   .activity-item .ai-type{font-size:10.5px;font-weight:700;color:var(--ink-300);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:2px;}
   .activity-item .ai-title{font-size:12.5px;color:var(--ink-900);font-weight:600;}
   .activity-item .ai-meta{font-size:11.5px;color:var(--ink-500);margin-top:3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
-  .activity-item .ai-link{font-size:11.5px;font-weight:600;color:var(--teal-700);flex-shrink:0;text-decoration:none;cursor:pointer;background:none;border:none;}
-  .activity-item .ai-link:hover{text-decoration:underline;}
+  .ai-link{font-size:11.5px;font-weight:600;color:var(--teal-700);text-decoration:none;cursor:pointer;background:none;border:none;padding:0;font-family:inherit;}
+  .ai-link:hover{text-decoration:underline;}
+  .activity-item .ai-link{flex-shrink:0;}
 
   .quick-actions-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
   @media (max-width:900px){.quick-actions-grid{grid-template-columns:repeat(2,1fr);}}
@@ -2274,6 +2275,15 @@
                 <button class="btn btn-secondary" onclick="cambiarMesComunicacion(-1)"><i class="fa-solid fa-chevron-left"></i></button>
                 <h3 id="calComMesLabel"></h3>
                 <button class="btn btn-secondary" onclick="cambiarMesComunicacion(1)"><i class="fa-solid fa-chevron-right"></i></button>
+              </div>
+              <div style="margin-bottom:14px;display:flex;gap:6px;flex-wrap:wrap;">
+                <span class="tag" style="background:#dbe9f8;color:#0a66c2;">LinkedIn</span>
+                <span class="tag" style="background:#e4e4e4;color:#111111;">X</span>
+                <span class="tag" style="background:#fbe0ef;color:#c1338d;">Instagram</span>
+                <span class="tag" style="background:#fddbdb;color:#c4131a;">YouTube</span>
+                <span class="tag" style="background:#fdecc8;color:#a9720b;">Mailing</span>
+                <span class="tag" style="background:#e3f6f3;color:#175058;">Web</span>
+                <span class="tag" style="background:#eef0f0;color:#5b6b6e;">Otro</span>
               </div>
               <div class="cal-grid" id="calComGrid"></div>
             </div>
@@ -4720,7 +4730,10 @@ const PLATAFORMA_CAL_COLOR = {
   'X':         { bg:'#e4e4e4', fg:'#111111' },
   'Instagram': { bg:'#fbe0ef', fg:'#c1338d' },
   'YouTube':   { bg:'#fddbdb', fg:'#c4131a' },
-  'Email':     { bg:'#fdecc8', fg:'#a9720b' }
+  'Email':     { bg:'#fdecc8', fg:'#a9720b' },
+  'Mailing':   { bg:'#fdecc8', fg:'#a9720b' },
+  'Web':       { bg:'#e3f6f3', fg:'#175058' },
+  'Otro':      { bg:'#eef0f0', fg:'#5b6b6e' }
 };
 function colorPlataformaCal(plataforma){
   return PLATAFORMA_CAL_COLOR[plataforma] || { bg:'var(--teal-100)', fg:'var(--teal-700)' };
@@ -7349,7 +7362,8 @@ function renderCalendarioComunicacion(){
     const dayEntries = entradas.filter(e=>e.fecha===dateStr);
     const entryHtml = dayEntries.map(e=>{
       const label = `${COM_CAT_LABEL[e.cat]||e.canal||'Acción'}: ${e.titulo}`;
-      return `<div class="entry ${e.cat==='mailing'?'proyecto':''}" onclick="abrirModalCom('${dateStr}','${e.id}')" title="${esc(label)}">${esc(label)}</div>`;
+      const color = colorPlataformaCal(e.canal);
+      return `<div class="entry" style="background:${color.bg};color:${color.fg};" onclick="abrirModalCom('${dateStr}','${e.id}')" title="${esc(e.canal||'')} · ${esc(label)}">${esc(label)}</div>`;
     }).join('');
     cells += `<div class="cal-day" style="${dateStr===todayStr?'box-shadow:inset 0 0 0 2px var(--teal-500);':''}">
       <div class="cal-day-head">
@@ -7376,7 +7390,7 @@ function renderCalendarioComunicacion(){
       <td>${fmtFecha(e.fecha)}</td>
       <td><span class="tag ${COM_CAT_TAG[e.cat]||'tag-teal'}">${COM_CAT_LABEL[e.cat]||esc(e.cat||'—')}</span></td>
       <td>${esc(e.titulo)}</td>
-      <td>${esc(e.canal)||'—'}</td>
+      <td>${e.canal?`<span class="tag" style="background:${colorPlataformaCal(e.canal).bg};color:${colorPlataformaCal(e.canal).fg};">${esc(e.canal)}</span>`:'—'}</td>
       <td>${esc(e.objetivo)||'—'}</td>
       <td>${esc(e.responsable)||'—'}</td>
       <td>${e.hecho?'<span class="tag tag-teal">Realizada</span>':'<span class="tag tag-orange">Pendiente</span>'}</td>
