@@ -235,6 +235,10 @@
   #emailHtmlInput:focus{border-color:var(--teal-500);box-shadow:0 0 0 3px var(--teal-100);}
   .field-row{display:flex;gap:14px;}
   .field-row .field{flex:1;}
+  .checklist{border:1px solid var(--line-strong);border-radius:8px;max-height:150px;overflow-y:auto;padding:8px 10px;}
+  .checklist label{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;font-weight:500;cursor:pointer;}
+  .checklist input[type="checkbox"]{width:auto;margin:0;}
+  .checklist .muted{padding:4px 0;}
   .file-drop{
     border:1.5px dashed var(--line-strong);
     border-radius:6px;
@@ -775,18 +779,9 @@
         <div class="panel">
           <div class="panel-title">Añadir enlace o ruta</div>
           <div class="panel-subtitle">Guarda accesos rápidos a webs o a carpetas y archivos del ordenador.</div>
-          <div class="field-row">
-            <div class="field" style="flex:2;">
-              <label for="enlaceTitulo">Título</label>
-              <input type="text" id="enlaceTitulo" placeholder="Ej. Carpeta de fotos del evento anual">
-            </div>
-            <div class="field">
-              <label for="enlaceTipo">Tipo</label>
-              <select id="enlaceTipo">
-                <option value="web">Web</option>
-                <option value="ordenador">Ordenador</option>
-              </select>
-            </div>
+          <div class="field">
+            <label for="enlaceTitulo">Título</label>
+            <input type="text" id="enlaceTitulo" placeholder="Ej. Carpeta de fotos del evento anual">
           </div>
           <div class="field">
             <label for="enlaceUrl">URL o ruta</label>
@@ -2525,15 +2520,16 @@
             <div class="field"><label for="pgHoraFin">Hora de fin</label><input type="time" id="pgHoraFin"></div>
           </div>
           <div class="field"><label for="pgTitulo">Título</label><input type="text" id="pgTitulo" placeholder="Ej. Ponencia: cubiertas vegetales"></div>
-          <div class="field-row">
-            <div class="field">
-              <label for="pgTipo">Tipo de actividad</label>
-              <select id="pgTipo">
-                <option>Registro</option><option>Bienvenida</option><option>Ponencia</option><option>Mesa redonda</option>
-                <option>Demostración</option><option>Pausa</option><option>Networking</option><option>Clausura</option><option>Otro</option>
-              </select>
-            </div>
-            <div class="field"><label for="pgPonente">Ponente (opcional)</label><select id="pgPonente"><option value="">Sin ponente</option></select></div>
+          <div class="field">
+            <label for="pgTipo">Tipo de actividad</label>
+            <select id="pgTipo">
+              <option>Registro</option><option>Bienvenida</option><option>Ponencia</option><option>Mesa redonda</option>
+              <option>Demostración</option><option>Pausa</option><option>Networking</option><option>Clausura</option><option>Otro</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Ponentes (opcional)</label>
+            <div id="pgPonentes" class="checklist"></div>
           </div>
           <div class="field-row">
             <div class="field"><label for="pgSala">Sala / ubicación</label><input type="text" id="pgSala" placeholder="Ej. Auditorio principal"></div>
@@ -2562,10 +2558,6 @@
           </div>
           <div class="field"><label for="poEmail">Email</label><input type="email" id="poEmail"></div>
           <div class="field"><label for="poBio">Biografía (opcional)</label><textarea id="poBio"></textarea></div>
-          <div class="field-row">
-            <div class="field"><label for="poTitulo">Título de su intervención</label><input type="text" id="poTitulo"></div>
-            <div class="field"><label for="poDuracion">Duración</label><input type="text" id="poDuracion" placeholder="Ej. 20 min"></div>
-          </div>
           <div class="field">
             <label>Fotografía (opcional)</label>
             <div class="file-drop" onclick="document.getElementById('poFoto').click()"><i class="fa-solid fa-image"></i> Haz clic para adjuntar una foto<input type="file" id="poFoto" accept="image/*"></div>
@@ -3139,7 +3131,7 @@ document.getElementById('mobileToggle').addEventListener('click', ()=>{
    ======================================================================= */
 let proyectoEditId = null;
 
-function getProyectos(){ return getLS(LS.proyectos); }
+function getProyectos(){ return getLS(LS.proyectos).slice().sort((a,b)=> (a.nombre||'').localeCompare((b.nombre||''), 'es', {sensitivity:'base'})); }
 function getProyectosNombres(){ return getProyectos().map(p=>p.nombre); }
 
 /* Alias de compatibilidad: varios módulos ya usaban getProyectosWeb()
@@ -6003,14 +5995,27 @@ function renderPerfiles(){
   renderTablaPerfiles();
 }
 
+/* Detecta si un valor es una ruta de ordenador (C:\..., \\servidor\..., /home/..., etc.)
+   en vez de una URL, para decidir si mostrar "Abrir" o "Copiar ruta". */
+function esRutaOrdenador(valor){
+  const v = (valor||'').trim();
+  if (!v) return false;
+  if (/^https?:\/\//i.test(v)) return false;
+  if (/^[a-zA-Z]:[\\\/]/.test(v)) return true;
+  if (/^\\\\/.test(v)) return true;
+  if (/^\//.test(v)) return true;
+  if (v.includes('\\')) return true;
+  return false;
+}
+
 /* =======================================================================
    ENLACES — centro de rutas del ordenador y accesos a webs
    ======================================================================= */
 function guardarEnlace(){
   const titulo = document.getElementById('enlaceTitulo').value.trim();
-  const tipo = document.getElementById('enlaceTipo').value;
   const url = document.getElementById('enlaceUrl').value.trim();
   if (!titulo || !url){ showToast('Indica un título y una URL o ruta.'); return; }
+  const tipo = esRutaOrdenador(url) ? 'ordenador' : 'web';
   const enlaces = getLS(LS.enlaces);
   enlaces.unshift({ id: uid(), titulo, tipo, url });
   setLS(LS.enlaces, enlaces);
@@ -7157,7 +7162,8 @@ function renderPrograma(){
     wrapP.innerHTML = '<p class="muted small">Todavía no hay bloques en la agenda. Añade el primero.</p>';
   } else {
     wrapP.innerHTML = bloques.map(b=>{
-      const p = b.ponenteId ? ponentes.find(x=>x.id===b.ponenteId) : null;
+      const idsPonentes = Array.isArray(b.ponenteIds) ? b.ponenteIds : (b.ponenteId ? [b.ponenteId] : []);
+      const nombresPonentes = idsPonentes.map(id=>ponentes.find(x=>x.id===id)).filter(Boolean).map(p=>p.nombre);
       return `
       <div class="agenda-item">
         <div class="agenda-hora">${esc(b.horaInicio||'—')}${b.horaFin?'<br>– '+esc(b.horaFin):''}</div>
@@ -7165,7 +7171,7 @@ function renderPrograma(){
           <div style="font-size:12.5px;font-weight:600;color:var(--ink-900);">${esc(b.titulo)}</div>
           <div class="ai-meta" style="margin-top:3px;">
             <span class="tag tag-teal">${esc(b.tipo||'Otro')}</span>
-            ${p?`<span><i class="fa-solid fa-user"></i> ${esc(p.nombre)}</span>`:''}
+            ${nombresPonentes.length?`<span><i class="fa-solid fa-user"></i> ${esc(nombresPonentes.join(', '))}</span>`:''}
             ${b.sala?`<span><i class="fa-solid fa-location-dot"></i> ${esc(b.sala)}</span>`:''}
           </div>
           ${b.notas?`<div class="cmeta" style="margin-top:3px;">${esc(b.notas)}</div>`:''}
@@ -7188,7 +7194,6 @@ function renderPrograma(){
         <div style="flex:1;min-width:0;">
           <div style="font-size:12.5px;font-weight:600;color:var(--ink-900);">${esc(p.nombre)} <span class="tag ${p.estado==='confirmado'?'tag-teal':'tag-orange'}" style="margin-left:4px;">${p.estado==='confirmado'?'Confirmado':'Pendiente'}</span></div>
           <div class="cmeta" style="margin-top:2px;">${[p.cargo,p.empresa].filter(Boolean).map(esc).join(' · ')||'—'}</div>
-          ${p.titulo?`<div class="cmeta" style="margin-top:2px;"><i class="fa-solid fa-microphone"></i> ${esc(p.titulo)}${p.duracion?' ('+esc(p.duracion)+')':''}</div>`:''}
         </div>
         <div style="display:flex;gap:2px;flex-shrink:0;">
           <span class="btn-ghost" onclick="abrirModalPonente('${p.id}')" title="Editar"><i class="fa-solid fa-pen"></i></span>
@@ -7209,7 +7214,10 @@ function abrirModalPrograma(id){
   document.getElementById('pgHoraFin').value = b ? (b.horaFin||'') : '';
   document.getElementById('pgTitulo').value = b ? (b.titulo||'') : '';
   document.getElementById('pgTipo').value = b ? (b.tipo||'Ponencia') : 'Registro';
-  document.getElementById('pgPonente').innerHTML = '<option value="">Sin ponente</option>' + ponentes.map(p=>`<option value="${p.id}" ${b&&b.ponenteId===p.id?'selected':''}>${esc(p.nombre)}</option>`).join('');
+  const idsSeleccionados = b ? (Array.isArray(b.ponenteIds) ? b.ponenteIds : (b.ponenteId ? [b.ponenteId] : [])) : [];
+  document.getElementById('pgPonentes').innerHTML = ponentes.length
+    ? ponentes.map(p=>`<label><input type="checkbox" value="${p.id}" ${idsSeleccionados.includes(p.id)?'checked':''}> ${esc(p.nombre)}</label>`).join('')
+    : '<div class="muted small">Todavía no hay ponentes registrados. Añade alguno primero.</div>';
   document.getElementById('pgSala').value = b ? (b.sala||'') : '';
   document.getElementById('pgOrden').value = b ? (b.orden||'') : (getEvLista(LS_EV_PROGRAMA, ev).length + 1);
   document.getElementById('pgNotas').value = b ? (b.notas||'') : '';
@@ -7233,7 +7241,7 @@ function guardarPrograma(){
     horaFin: document.getElementById('pgHoraFin').value,
     titulo,
     tipo: document.getElementById('pgTipo').value,
-    ponenteId: document.getElementById('pgPonente').value,
+    ponenteIds: [...document.querySelectorAll('#pgPonentes input[type="checkbox"]:checked')].map(el=>el.value),
     sala: document.getElementById('pgSala').value.trim(),
     orden: Number(document.getElementById('pgOrden').value)||lista.length+1,
     notas: document.getElementById('pgNotas').value.trim()
@@ -7285,8 +7293,6 @@ function abrirModalPonente(id){
   document.getElementById('poCargo').value = p ? (p.cargo||'') : '';
   document.getElementById('poEmail').value = p ? (p.email||'') : '';
   document.getElementById('poBio').value = p ? (p.bio||'') : '';
-  document.getElementById('poTitulo').value = p ? (p.titulo||'') : '';
-  document.getElementById('poDuracion').value = p ? (p.duracion||'') : '';
   document.getElementById('poEstado').value = p ? (p.estado||'pendiente') : 'pendiente';
   poFotoData = p ? (p.foto||null) : null;
   document.getElementById('poFotoPreview').innerHTML = poFotoData ? `<img src="${poFotoData}">` : '';
@@ -7311,8 +7317,6 @@ function guardarPonente(){
     cargo: document.getElementById('poCargo').value.trim(),
     email: document.getElementById('poEmail').value.trim(),
     bio: document.getElementById('poBio').value.trim(),
-    titulo: document.getElementById('poTitulo').value.trim(),
-    duracion: document.getElementById('poDuracion').value.trim(),
     estado: document.getElementById('poEstado').value,
     foto: poFotoData
   };
@@ -7599,7 +7603,10 @@ function renderRecursos(){
           </div>
         </div>
         <div class="btn-row" style="margin-top:0;">
-          ${r.url ? `<a class="btn btn-secondary" href="${esc(r.url.match(/^https?:\/\//i)?r.url:'https://'+r.url)}" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>` : ''}
+          ${r.url ? (esRutaOrdenador(r.url)
+            ? `<span class="btn btn-secondary" onclick="copiarRecurso('${r.id}')" title="Copiar ruta"><i class="fa-solid fa-copy"></i></span>`
+            : `<a class="btn btn-secondary" href="${esc(r.url.match(/^https?:\/\//i)?r.url:'https://'+r.url)}" target="_blank" rel="noopener" title="Abrir"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>`
+          ) : ''}
           <span class="btn-ghost" onclick="abrirModalRecurso('${r.id}')"><i class="fa-solid fa-pen"></i></span>
           <span class="btn-ghost" onclick="eliminarRecurso('${r.id}')"><i class="fa-solid fa-trash"></i></span>
         </div>
@@ -7660,6 +7667,14 @@ function guardarRecurso(){
   cerrarModalRecurso();
   renderRecursos();
   showToast('Recurso guardado.');
+}
+
+function copiarRecurso(id){
+  const ev = eventoDetalleActual;
+  if (!ev) return;
+  const r = getEvLista(LS_EV_RECURSOS, ev).find(x=>x.id===id);
+  if (!r || !r.url) return;
+  navigator.clipboard.writeText(r.url).then(()=> showToast('Ruta copiada al portapapeles.'));
 }
 
 function eliminarRecurso(id){
