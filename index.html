@@ -619,6 +619,10 @@
 </style>
 </head>
 <body>
+<div id="appLoader" style="position:fixed;inset:0;background:#f6f7f6;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-family:'Montserrat',system-ui,sans-serif;">
+  <i class="fa-solid fa-circle-notch fa-spin" style="font-size:28px;color:#1bb8a6;"></i>
+  <div style="color:#33454a;font-size:13.5px;font-weight:600;">Cargando datos desde Supabase…</div>
+</div>
 
 <div class="app-shell">
 
@@ -2709,20 +2713,18 @@ const LS = {
 };
 
 /* ---------------------------------------------------------------------
-   SUPABASE — módulo Social (estadísticas de perfiles y publicaciones)
-   Solo estas dos tablas viven en Supabase; el resto del hub sigue
-   usando localStorage como hasta ahora. getLS/setLS interceptan estas
-   dos claves de forma transparente para que el resto del código (que
-   ya usaba getLS(LS.publicacionesRedes) / getLS(LS.estadisticasPerfiles))
-   funcione sin cambios.
+   SUPABASE — persistencia única para TODA la app.
+   Ya no se usa localStorage como almacén de verdad en ningún sitio: la
+   variable `localStorage` de más abajo eclipsa (shadowing) al objeto
+   real del navegador dentro de este script, así que TODO el código que
+   ya existía y llamaba a localStorage.getItem/setItem/removeItem (haya
+   sido escrito directamente o a través de getLS/setLS) sigue funcionando
+   exactamente igual, sin tener que tocar cada punto uno a uno — solo que
+   ahora, por debajo, lee y escribe contra una única tabla de Supabase
+   (app_data: clave -> valor JSON), igual para cualquier ordenador.
    --------------------------------------------------------------------- */
 const SUPABASE_URL = 'https://atpcakzseqrvfuiidvht.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF0cGNha3pzZXFydmZ1aWlkdmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzNTc0MjksImV4cCI6MjEwNDkzMzQyOX0.oI747dO6KW6JHZsCttZxHaeFSHSo32m4uxOjGW2s82o';
-/* Si el script de supabase-js no ha podido cargar (CDN bloqueado, sin
-   conexión, etc.) esto NO debe tumbar el resto del hub. Se crea un cliente
-   "falso" que siempre devuelve error, para que cargarDatosSocialSupabase
-   caiga limpiamente en el aviso + copia de seguridad local en vez de
-   romper la ejecución de todo el script. */
 let supabaseClient;
 try{
   if (!window.supabase) throw new Error('El script de Supabase no se ha cargado (revisa la conexión a internet o si algo está bloqueando cdn.jsdelivr.net).');
@@ -2730,70 +2732,18 @@ try{
 }catch(e){
   console.error('No se pudo inicializar Supabase:', e);
   const errorFn = async () => ({ data:null, error: e });
-  supabaseClient = { from: () => ({ select: errorFn, upsert: errorFn, delete: () => ({ in: errorFn }) }) };
+  supabaseClient = { from: () => ({ select: errorFn, upsert: errorFn, delete: () => ({ eq: errorFn }) }) };
 }
 
-let _cachePublicaciones = [];
-let _cacheEstadisticas = [];
-let _socialSupabaseListo = false;
-
-function dbToRowPost(d){
-  return {
-    id: d.id, titulo: d.titulo, enlace: d.enlace, proyecto: d.proyecto, red: d.red,
-    fecha: d.fecha, hora: d.hora, diaSemana: d.dia_semana, diaMes: d.dia_mes,
-    mes: d.mes, anio: d.anio, metricas: d.metricas || {}
-  };
-}
-function rowToDbPost(r){
-  return {
-    id: r.id, titulo: r.titulo, enlace: r.enlace || null, proyecto: r.proyecto || null,
-    red: r.red, fecha: r.fecha, hora: r.hora || null, dia_semana: r.diaSemana || null,
-    dia_mes: (r.diaMes!=null && r.diaMes!=='') ? String(r.diaMes) : null,
-    mes: r.mes || null, anio: (r.anio!=null && r.anio!=='') ? Number(r.anio) : null,
-    metricas: r.metricas || {}
-  };
-}
-function dbToRowStat(d){
-  return {
-    id: d.id, red: d.red, anio: d.anio, mes: d.mes, seguidores: d.seguidores,
-    visualizacionesPagina: d.visualizaciones_pagina, visitantesUnicos: d.visitantes_unicos
-  };
-}
-function rowToDbStat(r){
-  return {
-    id: r.id, red: r.red, anio: Number(r.anio), mes: r.mes,
-    seguidores: (r.seguidores!=null && r.seguidores!=='') ? Number(r.seguidores) : null,
-    visualizaciones_pagina: (r.visualizacionesPagina!=null && r.visualizacionesPagina!=='') ? Number(r.visualizacionesPagina) : null,
-    visitantes_unicos: (r.visitantesUnicos!=null && r.visitantesUnicos!=='') ? Number(r.visitantesUnicos) : null
-  };
-}
-
-/* Sincroniza en segundo plano solo lo que ha cambiado entre el array
-   anterior y el nuevo (altas, bajas y modificaciones), comparando por id.
-   No bloquea la interfaz: la caché local ya se ha actualizado antes de
-   llamar a esta función. */
-/* Copia de seguridad local (no es la fuente de verdad, solo una red de
-   seguridad): si Supabase falla al cargar o al guardar, los datos no se
-   pierden — quedan aquí hasta que la conexión vuelva. */
-const LS_SOCIAL_BACKUP_POSTS = 'cidautHub_socialBackupPosts';
-const LS_SOCIAL_BACKUP_STATS = 'cidautHub_socialBackupStats';
-function guardarBackupLocalSocial(){
-  try{
-    localStorage.setItem(LS_SOCIAL_BACKUP_POSTS, JSON.stringify(_cachePublicaciones));
-    localStorage.setItem(LS_SOCIAL_BACKUP_STATS, JSON.stringify(_cacheEstadisticas));
-  }catch(e){ console.error('No se pudo guardar la copia de seguridad local:', e); }
-}
-function leerBackupLocalSocial(){
-  try{
-    return {
-      posts: JSON.parse(localStorage.getItem(LS_SOCIAL_BACKUP_POSTS)) || [],
-      stats: JSON.parse(localStorage.getItem(LS_SOCIAL_BACKUP_STATS)) || []
-    };
-  }catch(e){ return { posts:[], stats:[] }; }
-}
+/* Caché en memoria de TODAS las claves de la app, ya cargada desde
+   Supabase antes de que arranque init(). Guarda exactamente strings,
+   igual que el localStorage real, para que el comportamiento de
+   getItem/setItem sea idéntico al de siempre. */
+let _appDataCache = {};
+let _appDataListo = false;
 
 /* Aviso persistente (no un toast que desaparece) de que Supabase no está
-   sincronizando, con el motivo exacto para poder diagnosticarlo. */
+   disponible, con el motivo exacto para poder diagnosticarlo. */
 function mostrarAvisoSupabase(mensaje){
   let banner = document.getElementById('supabaseWarningBanner');
   if (!banner){
@@ -2810,131 +2760,156 @@ function ocultarAvisoSupabase(){
   if (banner) banner.remove();
 }
 
-async function sincronizarTablaSocial(tabla, mapper, oldArr, newArr){
-  guardarBackupLocalSocial();
+/* Guarda/borra UNA clave en Supabase en segundo plano (no bloquea la UI:
+   la caché en memoria ya se ha actualizado antes de llamar a esto). */
+async function guardarClaveAppData(key, valorString){
   try{
-    const oldMap = new Map(oldArr.map(r=>[r.id,r]));
-    const newMap = new Map(newArr.map(r=>[r.id,r]));
-    const aBorrar = [...oldMap.keys()].filter(id=>!newMap.has(id));
-    const aGuardar = newArr.filter(r=>{
-      const prev = oldMap.get(r.id);
-      return !prev || JSON.stringify(prev)!==JSON.stringify(r);
-    });
-    if (aBorrar.length){
-      const { error } = await supabaseClient.from(tabla).delete().in('id', aBorrar);
-      if (error) throw error;
-    }
-    if (aGuardar.length){
-      const { error } = await supabaseClient.from(tabla).upsert(aGuardar.map(mapper));
-      if (error) throw error;
-    }
+    const { error } = await supabaseClient.from('app_data').upsert({ key, value: valorString, updated_at: new Date().toISOString() });
+    if (error) throw error;
     ocultarAvisoSupabase();
   }catch(e){
-    console.error('Error sincronizando con Supabase ('+tabla+'):', e);
-    mostrarAvisoSupabase('No se ha podido guardar en Supabase (los cambios quedan solo en este navegador). Motivo: '+(e && e.message ? e.message : e));
+    console.error('Error guardando en Supabase ('+key+'):', e);
+    mostrarAvisoSupabase('No se ha podido guardar en Supabase. Los cambios recientes podrían perderse al recargar. Motivo: '+(e && e.message ? e.message : e));
   }
+}
+async function borrarClaveAppData(key){
+  try{
+    const { error } = await supabaseClient.from('app_data').delete().eq('key', key);
+    if (error) throw error;
+    ocultarAvisoSupabase();
+  }catch(e){
+    console.error('Error borrando en Supabase ('+key+'):', e);
+    mostrarAvisoSupabase('No se ha podido borrar en Supabase. Motivo: '+(e && e.message ? e.message : e));
+  }
+}
+
+/* Sustituye (eclipsa) el localStorage real del navegador para TODO el
+   código de más abajo. window.localStorage sigue siendo el real y se usa
+   aparte, solo para la recuperación única de datos antiguos. */
+const localStorage = {
+  getItem(key){ return Object.prototype.hasOwnProperty.call(_appDataCache, key) ? _appDataCache[key] : null; },
+  setItem(key, value){
+    const str = String(value);
+    _appDataCache[key] = str;
+    guardarClaveAppData(key, str);
+  },
+  removeItem(key){
+    delete _appDataCache[key];
+    borrarClaveAppData(key);
+  },
+  key(i){ return Object.keys(_appDataCache)[i] ?? null; },
+  get length(){ return Object.keys(_appDataCache).length; }
+};
+
+async function cargarAppDataDesdeSupabase(){
+  try{
+    const { data, error } = await supabaseClient.from('app_data').select('*');
+    if (error) throw error;
+    _appDataCache = {};
+    (data||[]).forEach(row=>{ _appDataCache[row.key] = row.value; });
+    ocultarAvisoSupabase();
+  }catch(e){
+    console.error('Error cargando datos de Supabase:', e);
+    _appDataCache = {};
+    mostrarAvisoSupabase('No se ha podido conectar con Supabase, así que no se ve ningún dato guardado. Motivo: '+(e && e.message ? e.message : e));
+  }
+  _appDataListo = true;
 }
 
 /* ---------------------------------------------------------------------
    RECUPERACIÓN de datos antiguos: antes de conectar Supabase, este hub
-   guardaba publicaciones/estadísticas en localStorage bajo las claves
-   LS.publicacionesRedes / LS.estadisticasPerfiles. Al pasar esas dos
-   claves a Supabase, esos datos antiguos se quedaron "atrapados" en el
-   navegador donde se escribieron, porque la app ya no los lee de ahí.
-   Esta herramienta los detecta, los fusiona con lo que ya hay en
-   Supabase (sin perder ni duplicar nada) y los sube.
+   lo guardaba todo en el localStorage real del navegador. Al pasar a
+   Supabase, esos datos se quedaron "atrapados" en el navegador donde se
+   escribieron. Esta herramienta escanea el localStorage REAL de este
+   navegador (window.localStorage, no el de arriba) y sube a Supabase
+   cualquier clave que todavía no se haya migrado, fusionando con
+   cuidado en vez de machacar lo que ya hubiera en Supabase.
    --------------------------------------------------------------------- */
-function leerArrayLocalStorageCrudo(key){
-  try{ const v = JSON.parse(localStorage.getItem(key)); return Array.isArray(v) ? v : []; }
-  catch(e){ return []; }
-}
-
-function hayDatosAntiguosSocialSinMigrar(){
-  return leerArrayLocalStorageCrudo(LS.publicacionesRedes).length>0 || leerArrayLocalStorageCrudo(LS.estadisticasPerfiles).length>0;
-}
-
-function fusionarEstadisticasAntiguas(actuales, antiguas){
-  const resultado = actuales.slice();
-  let añadidas = 0, actualizadas = 0;
-  antiguas.forEach(vieja=>{
-    const idx = resultado.findIndex(r=>r.red===vieja.red && String(r.anio)===String(vieja.anio) && r.mes===vieja.mes);
-    if (idx>-1){
-      const actual = resultado[idx];
-      const fusion = { ...actual };
-      ['seguidores','visualizacionesPagina','visitantesUnicos'].forEach(campo=>{
-        if (vieja[campo]!=null && vieja[campo]!=='') fusion[campo] = vieja[campo];
-      });
-      if (JSON.stringify(fusion)!==JSON.stringify(actual)){ resultado[idx] = fusion; actualizadas++; }
-    } else {
-      resultado.push({ ...vieja, id: vieja.id || uid() });
-      añadidas++;
+function clavesAntiguasSinMigrar(){
+  const claves = [];
+  try{
+    for (let i=0;i<window.localStorage.length;i++){
+      const k = window.localStorage.key(i);
+      if (k && k.indexOf('cidautHub_')===0 && k.slice(-8)!=='_migrado') claves.push(k);
     }
-  });
-  return { resultado, añadidas, actualizadas };
+  }catch(e){ console.error(e); }
+  return claves;
+}
+function hayDatosAntiguosSinMigrar(){ return clavesAntiguasSinMigrar().length>0; }
+
+/* Fusiona un valor "viejo" (del localStorage real) con el actual (ya
+   cargado de Supabase) sin perder ni duplicar nada, adaptándose a la
+   forma del dato: listas de objetos con id, objetos sueltos, o valores
+   simples. Devuelve null si no hace falta ningún cambio. */
+function fusionarValorAntiguo(actual, viejo){
+  if (viejo==null) return null;
+  if (Array.isArray(viejo)){
+    const base = Array.isArray(actual) ? actual.slice() : [];
+    const porId = new Map(base.map((x,i)=>[ (x && x.id!=null) ? x.id : Symbol('sinid'+i), x ]));
+    let cambios = 0;
+    viejo.forEach(item=>{
+      const id = (item && item.id!=null) ? item.id : null;
+      if (id!=null && porId.has(id)) return; // ya existe, no se toca
+      base.push(item);
+      cambios++;
+    });
+    return cambios ? base : null;
+  }
+  if (typeof viejo==='object'){
+    const base = (actual && typeof actual==='object' && !Array.isArray(actual)) ? {...actual} : {};
+    let cambios = 0;
+    Object.keys(viejo).forEach(k=>{
+      if (JSON.stringify(base[k]) !== JSON.stringify(viejo[k])){ base[k] = viejo[k]; cambios++; }
+    });
+    return cambios ? base : null;
+  }
+  // valor simple (texto, fecha...): si no había nada, usa el viejo
+  return (actual==null || actual==='') ? viejo : null;
 }
 
-function fusionarPublicacionesAntiguas(actuales, antiguas){
-  const idsExistentes = new Set(actuales.map(r=>r.id));
-  // Además del id, evita duplicar si ya existe una publicación con misma red+fecha+título
-  const clave = p => `${p.red}|${p.fecha}|${(p.titulo||'').trim().toLowerCase()}`;
-  const clavesExistentes = new Set(actuales.map(clave));
-  const resultado = actuales.slice();
-  let añadidas = 0, omitidas = 0;
-  antiguas.forEach(vieja=>{
-    if (idsExistentes.has(vieja.id) || clavesExistentes.has(clave(vieja))){ omitidas++; return; }
-    resultado.push({ ...vieja, id: vieja.id || uid() });
-    añadidas++;
-  });
-  return { resultado, añadidas, omitidas };
-}
-
-async function recuperarDatosAntiguosSocial(){
-  const viejasPublicaciones = leerArrayLocalStorageCrudo(LS.publicacionesRedes);
-  const viejasEstadisticas = leerArrayLocalStorageCrudo(LS.estadisticasPerfiles);
-
-  if (!viejasPublicaciones.length && !viejasEstadisticas.length){
+async function recuperarDatosAntiguosGlobal(){
+  const claves = clavesAntiguasSinMigrar();
+  if (!claves.length){
     showToast('No se han encontrado datos antiguos en este navegador.');
     ocultarAvisoRecuperacion();
     return;
   }
+  let clavesConCambios = 0, clavesRevisadas = claves.length;
+  claves.forEach(key=>{
+    let viejoRaw;
+    try{ viejoRaw = JSON.parse(window.localStorage.getItem(key)); }
+    catch(e){ viejoRaw = window.localStorage.getItem(key); }
+    const actual = getLS(key);
+    const fusionado = fusionarValorAntiguo(actual, viejoRaw);
+    if (fusionado!==null){ setLS(key, fusionado); clavesConCambios++; }
+  });
 
-  const resPub = fusionarPublicacionesAntiguas(_cachePublicaciones, viejasPublicaciones);
-  const resEst = fusionarEstadisticasAntiguas(_cacheEstadisticas, viejasEstadisticas);
+  await new Promise(r=>setTimeout(r, 700));
 
-  if (resPub.añadidas) setLS(LS.publicacionesRedes, resPub.resultado);
-  if (resEst.añadidas || resEst.actualizadas) setLS(LS.estadisticasPerfiles, resEst.resultado);
-
-  // Aviso: espera un instante a que salgan las peticiones a Supabase antes de refrescar la vista.
-  await new Promise(r=>setTimeout(r, 600));
-  poblarFiltrosAnalyticsRedes();
-  poblarFiltrosPerfiles();
-  setAnaliticaRed(analiticaRedActual);
-  updateDashboardStats();
-
-  // Renombra (no borra) las claves antiguas para no volver a ofrecer la recuperación cada vez,
-  // conservando el respaldo por si hubiera que revisarlo más adelante.
+  // Renombra (no borra) las claves antiguas para no volver a ofrecer la
+  // recuperación cada vez, conservando el respaldo por si hiciera falta revisarlo.
   try{
-    localStorage.setItem(LS.publicacionesRedes+'_migrado', localStorage.getItem(LS.publicacionesRedes));
-    localStorage.setItem(LS.estadisticasPerfiles+'_migrado', localStorage.getItem(LS.estadisticasPerfiles));
-    localStorage.removeItem(LS.publicacionesRedes);
-    localStorage.removeItem(LS.estadisticasPerfiles);
+    claves.forEach(key=>{
+      window.localStorage.setItem(key+'_migrado', window.localStorage.getItem(key));
+      window.localStorage.removeItem(key);
+    });
   }catch(e){ console.error(e); }
 
   ocultarAvisoRecuperacion();
-  showToast(`Recuperados: ${resPub.añadidas} publicaciones nuevas, ${resEst.añadidas} estadísticas nuevas y ${resEst.actualizadas} actualizadas.`);
+  showToast(`Recuperación completa: ${clavesRevisadas} claves revisadas, ${clavesConCambios} con datos nuevos incorporados a Supabase.`);
+  location.reload();
 }
 
 function mostrarAvisoRecuperacion(){
   if (document.getElementById('recuperacionBanner')) return;
-  const pubs = leerArrayLocalStorageCrudo(LS.publicacionesRedes).length;
-  const ests = leerArrayLocalStorageCrudo(LS.estadisticasPerfiles).length;
+  const n = clavesAntiguasSinMigrar().length;
   const banner = document.createElement('div');
   banner.id = 'recuperacionBanner';
   banner.style.cssText = 'position:sticky;top:0;z-index:30;background:#dbe9f8;color:#0a3d66;padding:10px 20px;font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:14px;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid #a9c8e8;';
   banner.innerHTML = `
-    <span><i class="fa-solid fa-clock-rotate-left"></i> Este navegador tiene datos de redes sociales de antes de conectar Supabase (${pubs} publicaciones, ${ests} estadísticas) que no se están mostrando. ¿Los recuperamos?</span>
+    <span><i class="fa-solid fa-clock-rotate-left"></i> Este navegador tiene datos guardados de antes de conectar Supabase (${n} apartados) que puede que no se estén viendo. ¿Los recuperamos?</span>
     <span style="display:flex;gap:10px;flex-shrink:0;">
-      <button class="btn" style="padding:6px 14px;font-size:12px;" onclick="recuperarDatosAntiguosSocial()">Recuperar ahora</button>
+      <button class="btn" style="padding:6px 14px;font-size:12px;" onclick="recuperarDatosAntiguosGlobal()">Recuperar ahora</button>
       <span style="cursor:pointer;font-weight:800;align-self:center;" onclick="document.getElementById('recuperacionBanner').remove()">✕</span>
     </span>`;
   document.body.insertBefore(banner, document.body.firstChild);
@@ -2944,59 +2919,8 @@ function ocultarAvisoRecuperacion(){
   if (banner) banner.remove();
 }
 
-async function cargarDatosSocialSupabase(){
-  try{
-    const [rPub, rStat] = await Promise.all([
-      supabaseClient.from('social_posts').select('*'),
-      supabaseClient.from('social_stats').select('*')
-    ]);
-    if (rPub.error) throw rPub.error;
-    if (rStat.error) throw rStat.error;
-    _cachePublicaciones = (rPub.data||[]).map(dbToRowPost);
-    _cacheEstadisticas = (rStat.data||[]).map(dbToRowStat);
-    guardarBackupLocalSocial();
-    ocultarAvisoSupabase();
-  }catch(e){
-    console.error('Error cargando datos sociales de Supabase:', e);
-    const backup = leerBackupLocalSocial();
-    _cachePublicaciones = backup.posts;
-    _cacheEstadisticas = backup.stats;
-    const motivo = (e && e.message) ? e.message : String(e);
-    mostrarAvisoSupabase(
-      (backup.posts.length || backup.stats.length)
-        ? `No se ha podido conectar con Supabase — mostrando la última copia guardada en este navegador (puede no estar actualizada). Motivo: ${motivo}`
-        : `No se ha podido conectar con Supabase y no hay copia local en este navegador, así que no se ven publicaciones ni estadísticas. Motivo: ${motivo}`
-    );
-  }
-  _socialSupabaseListo = true;
-  poblarSelectProyectoPublicacion();
-  poblarFiltrosAnalyticsRedes();
-  poblarFiltrosPerfiles();
-  setAnaliticaRed(analiticaRedActual);
-  updateDashboardStats();
-  if (hayDatosAntiguosSocialSinMigrar()) mostrarAvisoRecuperacion();
-}
-
-function getLS(key){
-  if (key === LS.publicacionesRedes) return _cachePublicaciones.slice();
-  if (key === LS.estadisticasPerfiles) return _cacheEstadisticas.slice();
-  try{ return JSON.parse(localStorage.getItem(key)) || []; }catch(e){ return []; }
-}
-function setLS(key,val){
-  if (key === LS.publicacionesRedes){
-    const anterior = _cachePublicaciones;
-    _cachePublicaciones = val;
-    sincronizarTablaSocial('social_posts', rowToDbPost, anterior, val);
-    return;
-  }
-  if (key === LS.estadisticasPerfiles){
-    const anterior = _cacheEstadisticas;
-    _cacheEstadisticas = val;
-    sincronizarTablaSocial('social_stats', rowToDbStat, anterior, val);
-    return;
-  }
-  localStorage.setItem(key, JSON.stringify(val));
-}
+function getLS(key){ try{ return JSON.parse(localStorage.getItem(key)) || []; }catch(e){ return []; } }
+function setLS(key,val){ localStorage.setItem(key, JSON.stringify(val)); }
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 function esc(str){ const d=document.createElement('div'); d.textContent = str==null?'':String(str); return d.innerHTML; }
 function fmtFecha(iso){ if(!iso) return '—'; const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; }
@@ -3047,11 +2971,6 @@ const LS_BACKUP_ULTIMA = 'cidautHub_backupUltimaFecha';
 function exportarBackupCompleto(){
   const datos = {};
   Object.values(LS).forEach(key=>{
-    if (key === LS.publicacionesRedes || key === LS.estadisticasPerfiles){
-      // Estas dos claves viven en Supabase; se exportan desde la caché en memoria.
-      datos[key] = getLS(key);
-      return;
-    }
     const raw = localStorage.getItem(key);
     if (raw !== null){
       try{ datos[key] = JSON.parse(raw); }catch(e){ datos[key] = raw; }
@@ -3121,25 +3040,11 @@ function restaurarBackupCompleto(paqueteOplano){
 
   const tareasRestoreAsync = [];
   clavesEncontradas.forEach(key=>{
-    if (key === LS.publicacionesRedes || key === LS.estadisticasPerfiles){
-      // Estas dos claves viven en Supabase: se sincronizan en segundo plano
-      // en lugar de escribirse en localStorage.
-      const anterior = getLS(key);
-      const nuevo = Array.isArray(datos[key]) ? datos[key] : [];
-      if (key === LS.publicacionesRedes){
-        _cachePublicaciones = nuevo;
-        tareasRestoreAsync.push(sincronizarTablaSocial('social_posts', rowToDbPost, anterior, nuevo));
-      } else {
-        _cacheEstadisticas = nuevo;
-        tareasRestoreAsync.push(sincronizarTablaSocial('social_stats', rowToDbStat, anterior, nuevo));
-      }
-      return;
-    }
     localStorage.setItem(key, JSON.stringify(datos[key]));
   });
 
   showToast('Copia de seguridad restaurada. Sincronizando y recargando...');
-  Promise.all(tareasRestoreAsync).finally(()=> setTimeout(()=> location.reload(), 900));
+  setTimeout(()=> location.reload(), 900);
   return true;
 }
 
@@ -8408,10 +8313,10 @@ function init(){
   renderCalendar();
   renderListaPublicaciones();
 
-  /* El módulo Social (publicaciones + estadísticas de perfiles) vive en
-     Supabase, no en localStorage. Sus renders iniciales se disparan desde
-     cargarDatosSocialSupabase() en cuanto llegan los datos, para no pintar
-     el módulo vacío mientras carga. */
+  poblarSelectProyectoPublicacion();
+  poblarFiltrosAnalyticsRedes();
+  poblarFiltrosPerfiles();
+  setAnaliticaRed(analiticaRedActual);
 
   renderEnlaces();
 
@@ -8423,8 +8328,17 @@ function init(){
   updateDashboardStats();
 }
 
-init();
-cargarDatosSocialSupabase();
+/* Arranque: hasta que no se cargan todos los datos desde Supabase no
+   tiene sentido pintar nada (saldría todo vacío un instante). Se
+   muestra una pantalla de carga mientras tanto. */
+async function arrancarApp(){
+  await cargarAppDataDesdeSupabase();
+  const loader = document.getElementById('appLoader');
+  if (loader) loader.remove();
+  init();
+  if (hayDatosAntiguosSinMigrar()) mostrarAvisoRecuperacion();
+}
+arrancarApp();
 </script>
 
 </body>
