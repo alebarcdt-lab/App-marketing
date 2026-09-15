@@ -378,22 +378,25 @@
   /* ---------- Calendar ---------- */
   .cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
   .cal-head h3{font-size:15px;}
-  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden;}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:96px;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden;}
   .cal-dow{background:#fafbfb;padding:7px;font-size:11px;font-weight:600;color:var(--ink-500);text-align:center;}
-  .cal-day{background:#fff;min-height:88px;padding:6px;font-size:11.5px;position:relative;}
+  .cal-day{background:#fff;height:96px;padding:6px;font-size:11.5px;position:relative;display:flex;flex-direction:column;overflow:hidden;}
   .cal-day.other-month{background:#fbfcfc;color:var(--ink-300);}
-  .cal-day .dnum{font-weight:600;font-size:11.5px;color:var(--ink-500);margin-bottom:4px;}
+  .cal-day .dnum{font-weight:600;font-size:11.5px;color:var(--ink-500);margin-bottom:4px;flex-shrink:0;}
+  .cal-day-entries{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;}
   .cal-day .entry{
     background:var(--teal-100);color:var(--teal-700);
     font-size:10px;font-weight:600;padding:2px 5px;border-radius:4px;
-    margin-bottom:3px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    margin-bottom:3px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;
+    white-space:nowrap;max-width:100%;
   }
   .cal-day .entry.proyecto{background:var(--orange-100);color:#b1521a;}
   .cal-day .entry.hecha{background:#eef0f0;color:var(--ink-300);text-decoration:line-through;}
-  .cal-day .entry.programada{background:#e3f5e6;color:#1e7d34;}
-  .cal-day .entry.programada::before{content:"\2713";margin-right:3px;font-weight:800;}
-  .cal-day .add-btn{position:absolute;top:5px;right:5px;font-size:11px;color:var(--ink-300);cursor:pointer;opacity:0;}
+  .cal-day .entry.programada{border-left:3px solid #1e7d34;padding-left:4px;}
+  .cal-day .entry.programada::before{content:"\2713";margin-right:3px;font-weight:800;color:#1e7d34;}
+  .cal-day .add-btn{font-size:11px;color:var(--ink-300);cursor:pointer;opacity:0;flex-shrink:0;}
   .cal-day:hover .add-btn{opacity:1;}
+  .cal-day-head{display:flex;align-items:flex-start;justify-content:space-between;flex-shrink:0;}
 
   /* ---------- Kanban (tareas) ---------- */
   .kanban-col{display:flex;flex-direction:column;gap:8px;min-height:60px;}
@@ -1777,9 +1780,13 @@
               <h3 id="calMesLabel"></h3>
               <button class="btn btn-secondary" onclick="cambiarMes(1)"><i class="fa-solid fa-chevron-right"></i></button>
             </div>
-            <div style="margin-bottom:14px;">
-              <span class="tag tag-teal">CIDAUT</span>
-              <span class="tag tag-orange" style="margin-left:6px;">Proyecto</span>
+            <div style="margin-bottom:14px;display:flex;gap:6px;flex-wrap:wrap;">
+              <span class="tag" style="background:#dbe9f8;color:#0a66c2;">LinkedIn</span>
+              <span class="tag" style="background:#e4e4e4;color:#111111;">X</span>
+              <span class="tag" style="background:#fbe0ef;color:#c1338d;">Instagram</span>
+              <span class="tag" style="background:#fddbdb;color:#c4131a;">YouTube</span>
+              <span class="tag" style="background:#fdecc8;color:#a9720b;">Email</span>
+              <span class="tag" style="background:#fff;border:1px solid #1e7d34;color:#1e7d34;">✓ Programada</span>
             </div>
             <div class="cal-grid" id="calGrid"></div>
           </div>
@@ -2386,6 +2393,7 @@
               <option>X</option>
               <option>Instagram</option>
               <option>YouTube</option>
+              <option>Email</option>
             </select>
           </div>
           <div class="field">
@@ -3505,9 +3513,11 @@ function renderCalendarTareas(){
     });
     const entryHtml = dayTareas.map(t=>`<div class="entry ${t.estado==='hecha'?'hecha':''}" onclick="abrirModalTarea('${t.id}')" title="${esc(t.titulo)}">${esc(t.titulo)}</div>`).join('');
     cells += `<div class="cal-day" style="${dateStr===todayStr?'box-shadow:inset 0 0 0 2px var(--teal-500);':''}">
-      <div class="dnum">${day}</div>
-      <span class="add-btn" onclick="abrirModalTareaEnFecha('${dateStr}')"><i class="fa-solid fa-plus"></i></span>
-      ${entryHtml}
+      <div class="cal-day-head">
+        <div class="dnum">${day}</div>
+        <span class="add-btn" onclick="abrirModalTareaEnFecha('${dateStr}')"><i class="fa-solid fa-plus"></i></span>
+      </div>
+      <div class="cal-day-entries">${entryHtml}</div>
     </div>`;
   }
   const totalCells = startOffset + daysInMonth;
@@ -4702,6 +4712,19 @@ let calDate = new Date();
 let calEditId = null;
 
 const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+/* Color por plataforma en el calendario editorial: lo que importa de un
+   vistazo es DÓNDE se publica, no el proyecto. */
+const PLATAFORMA_CAL_COLOR = {
+  'LinkedIn':  { bg:'#dbe9f8', fg:'#0a66c2' },
+  'X':         { bg:'#e4e4e4', fg:'#111111' },
+  'Instagram': { bg:'#fbe0ef', fg:'#c1338d' },
+  'YouTube':   { bg:'#fddbdb', fg:'#c4131a' },
+  'Email':     { bg:'#fdecc8', fg:'#a9720b' }
+};
+function colorPlataformaCal(plataforma){
+  return PLATAFORMA_CAL_COLOR[plataforma] || { bg:'var(--teal-100)', fg:'var(--teal-700)' };
+}
 const DOWS = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
 
 function cambiarMes(delta){
@@ -4730,13 +4753,16 @@ function renderCalendar(){
     const dayEntries = entries.filter(e=>e.fecha===dateStr);
     const entryHtml = dayEntries.map(e=>{
       const label = (e.etiqueta==='proyecto' && e.proyecto) ? `${e.proyecto}: ${e.titulo}` : e.titulo;
-      const clases = [e.etiqueta==='proyecto'?'proyecto':'', e.programada?'programada':''].filter(Boolean).join(' ');
-      return `<div class="entry ${clases}" onclick="abrirModalCal('${dateStr}','${e.id}')" title="${esc(label)}${e.programada?' (programada)':''}">${esc(label)}</div>`;
+      const color = colorPlataformaCal(e.plataforma);
+      const clase = e.programada ? 'programada' : '';
+      return `<div class="entry ${clase}" style="background:${color.bg};color:${color.fg};" onclick="abrirModalCal('${dateStr}','${e.id}')" title="${esc(e.plataforma||'')} · ${esc(label)}${e.programada?' (programada)':''}">${esc(label)}</div>`;
     }).join('');
     cells += `<div class="cal-day" style="${dateStr===todayStr?'box-shadow:inset 0 0 0 2px var(--teal-500);':''}">
-      <div class="dnum">${day}</div>
-      <span class="add-btn" onclick="abrirModalCal('${dateStr}')"><i class="fa-solid fa-plus"></i></span>
-      ${entryHtml}
+      <div class="cal-day-head">
+        <div class="dnum">${day}</div>
+        <span class="add-btn" onclick="abrirModalCal('${dateStr}')"><i class="fa-solid fa-plus"></i></span>
+      </div>
+      <div class="cal-day-entries">${entryHtml}</div>
     </div>`;
   }
   const totalCells = startOffset + daysInMonth;
@@ -4862,14 +4888,15 @@ function renderListaPublicaciones(){
   tbody.innerHTML = entries.map(e=>{
     const etiquetaTxt = e.etiqueta==='proyecto' ? (e.proyecto || 'Proyecto') : 'CIDAUT';
     const pasada = e.fecha < hoy;
+    const color = colorPlataformaCal(e.plataforma);
     return `
     <tr style="${pasada?'opacity:0.55;':''}">
       <td>${fmtFecha(e.fecha)}</td>
       <td>${esc(e.titulo)}</td>
       <td><span class="tag ${e.etiqueta==='proyecto'?'tag-orange':'tag-teal'}">${esc(etiquetaTxt)}</span></td>
-      <td>${esc(e.plataforma)}</td>
+      <td><span class="tag" style="background:${color.bg};color:${color.fg};">${esc(e.plataforma)}</span></td>
       <td>${e.programada
-        ? '<span class="tag" style="background:#e3f5e6;color:#1e7d34;"><i class="fa-solid fa-check"></i> Programada</span>'
+        ? '<span class="tag" style="background:#fff;border:1px solid #1e7d34;color:#1e7d34;"><i class="fa-solid fa-check"></i> Programada</span>'
         : '<span class="tag tag-grey">Pendiente</span>'}</td>
       <td><span class="btn-ghost" onclick="abrirModalCal('${e.fecha}','${e.id}')">Editar</span></td>
     </tr>`;
@@ -7325,9 +7352,11 @@ function renderCalendarioComunicacion(){
       return `<div class="entry ${e.cat==='mailing'?'proyecto':''}" onclick="abrirModalCom('${dateStr}','${e.id}')" title="${esc(label)}">${esc(label)}</div>`;
     }).join('');
     cells += `<div class="cal-day" style="${dateStr===todayStr?'box-shadow:inset 0 0 0 2px var(--teal-500);':''}">
-      <div class="dnum">${day}</div>
-      <span class="add-btn" onclick="abrirModalCom('${dateStr}')"><i class="fa-solid fa-plus"></i></span>
-      ${entryHtml}
+      <div class="cal-day-head">
+        <div class="dnum">${day}</div>
+        <span class="add-btn" onclick="abrirModalCom('${dateStr}')"><i class="fa-solid fa-plus"></i></span>
+      </div>
+      <div class="cal-day-entries">${entryHtml}</div>
     </div>`;
   }
   const totalCells = startOffset + daysInMonth;
