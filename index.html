@@ -2835,6 +2835,115 @@ async function sincronizarTablaSocial(tabla, mapper, oldArr, newArr){
   }
 }
 
+/* ---------------------------------------------------------------------
+   RECUPERACIÓN de datos antiguos: antes de conectar Supabase, este hub
+   guardaba publicaciones/estadísticas en localStorage bajo las claves
+   LS.publicacionesRedes / LS.estadisticasPerfiles. Al pasar esas dos
+   claves a Supabase, esos datos antiguos se quedaron "atrapados" en el
+   navegador donde se escribieron, porque la app ya no los lee de ahí.
+   Esta herramienta los detecta, los fusiona con lo que ya hay en
+   Supabase (sin perder ni duplicar nada) y los sube.
+   --------------------------------------------------------------------- */
+function leerArrayLocalStorageCrudo(key){
+  try{ const v = JSON.parse(localStorage.getItem(key)); return Array.isArray(v) ? v : []; }
+  catch(e){ return []; }
+}
+
+function hayDatosAntiguosSocialSinMigrar(){
+  return leerArrayLocalStorageCrudo(LS.publicacionesRedes).length>0 || leerArrayLocalStorageCrudo(LS.estadisticasPerfiles).length>0;
+}
+
+function fusionarEstadisticasAntiguas(actuales, antiguas){
+  const resultado = actuales.slice();
+  let añadidas = 0, actualizadas = 0;
+  antiguas.forEach(vieja=>{
+    const idx = resultado.findIndex(r=>r.red===vieja.red && String(r.anio)===String(vieja.anio) && r.mes===vieja.mes);
+    if (idx>-1){
+      const actual = resultado[idx];
+      const fusion = { ...actual };
+      ['seguidores','visualizacionesPagina','visitantesUnicos'].forEach(campo=>{
+        if (vieja[campo]!=null && vieja[campo]!=='') fusion[campo] = vieja[campo];
+      });
+      if (JSON.stringify(fusion)!==JSON.stringify(actual)){ resultado[idx] = fusion; actualizadas++; }
+    } else {
+      resultado.push({ ...vieja, id: vieja.id || uid() });
+      añadidas++;
+    }
+  });
+  return { resultado, añadidas, actualizadas };
+}
+
+function fusionarPublicacionesAntiguas(actuales, antiguas){
+  const idsExistentes = new Set(actuales.map(r=>r.id));
+  // Además del id, evita duplicar si ya existe una publicación con misma red+fecha+título
+  const clave = p => `${p.red}|${p.fecha}|${(p.titulo||'').trim().toLowerCase()}`;
+  const clavesExistentes = new Set(actuales.map(clave));
+  const resultado = actuales.slice();
+  let añadidas = 0, omitidas = 0;
+  antiguas.forEach(vieja=>{
+    if (idsExistentes.has(vieja.id) || clavesExistentes.has(clave(vieja))){ omitidas++; return; }
+    resultado.push({ ...vieja, id: vieja.id || uid() });
+    añadidas++;
+  });
+  return { resultado, añadidas, omitidas };
+}
+
+async function recuperarDatosAntiguosSocial(){
+  const viejasPublicaciones = leerArrayLocalStorageCrudo(LS.publicacionesRedes);
+  const viejasEstadisticas = leerArrayLocalStorageCrudo(LS.estadisticasPerfiles);
+
+  if (!viejasPublicaciones.length && !viejasEstadisticas.length){
+    showToast('No se han encontrado datos antiguos en este navegador.');
+    ocultarAvisoRecuperacion();
+    return;
+  }
+
+  const resPub = fusionarPublicacionesAntiguas(_cachePublicaciones, viejasPublicaciones);
+  const resEst = fusionarEstadisticasAntiguas(_cacheEstadisticas, viejasEstadisticas);
+
+  if (resPub.añadidas) setLS(LS.publicacionesRedes, resPub.resultado);
+  if (resEst.añadidas || resEst.actualizadas) setLS(LS.estadisticasPerfiles, resEst.resultado);
+
+  // Aviso: espera un instante a que salgan las peticiones a Supabase antes de refrescar la vista.
+  await new Promise(r=>setTimeout(r, 600));
+  poblarFiltrosAnalyticsRedes();
+  poblarFiltrosPerfiles();
+  setAnaliticaRed(analiticaRedActual);
+  updateDashboardStats();
+
+  // Renombra (no borra) las claves antiguas para no volver a ofrecer la recuperación cada vez,
+  // conservando el respaldo por si hubiera que revisarlo más adelante.
+  try{
+    localStorage.setItem(LS.publicacionesRedes+'_migrado', localStorage.getItem(LS.publicacionesRedes));
+    localStorage.setItem(LS.estadisticasPerfiles+'_migrado', localStorage.getItem(LS.estadisticasPerfiles));
+    localStorage.removeItem(LS.publicacionesRedes);
+    localStorage.removeItem(LS.estadisticasPerfiles);
+  }catch(e){ console.error(e); }
+
+  ocultarAvisoRecuperacion();
+  showToast(`Recuperados: ${resPub.añadidas} publicaciones nuevas, ${resEst.añadidas} estadísticas nuevas y ${resEst.actualizadas} actualizadas.`);
+}
+
+function mostrarAvisoRecuperacion(){
+  if (document.getElementById('recuperacionBanner')) return;
+  const pubs = leerArrayLocalStorageCrudo(LS.publicacionesRedes).length;
+  const ests = leerArrayLocalStorageCrudo(LS.estadisticasPerfiles).length;
+  const banner = document.createElement('div');
+  banner.id = 'recuperacionBanner';
+  banner.style.cssText = 'position:sticky;top:0;z-index:30;background:#dbe9f8;color:#0a3d66;padding:10px 20px;font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:14px;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid #a9c8e8;';
+  banner.innerHTML = `
+    <span><i class="fa-solid fa-clock-rotate-left"></i> Este navegador tiene datos de redes sociales de antes de conectar Supabase (${pubs} publicaciones, ${ests} estadísticas) que no se están mostrando. ¿Los recuperamos?</span>
+    <span style="display:flex;gap:10px;flex-shrink:0;">
+      <button class="btn" style="padding:6px 14px;font-size:12px;" onclick="recuperarDatosAntiguosSocial()">Recuperar ahora</button>
+      <span style="cursor:pointer;font-weight:800;align-self:center;" onclick="document.getElementById('recuperacionBanner').remove()">✕</span>
+    </span>`;
+  document.body.insertBefore(banner, document.body.firstChild);
+}
+function ocultarAvisoRecuperacion(){
+  const banner = document.getElementById('recuperacionBanner');
+  if (banner) banner.remove();
+}
+
 async function cargarDatosSocialSupabase(){
   try{
     const [rPub, rStat] = await Promise.all([
@@ -2865,6 +2974,7 @@ async function cargarDatosSocialSupabase(){
   poblarFiltrosPerfiles();
   setAnaliticaRed(analiticaRedActual);
   updateDashboardStats();
+  if (hayDatosAntiguosSocialSinMigrar()) mostrarAvisoRecuperacion();
 }
 
 function getLS(key){
