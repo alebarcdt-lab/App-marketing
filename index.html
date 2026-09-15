@@ -2806,7 +2806,15 @@ async function cargarAppDataDesdeSupabase(){
     const { data, error } = await supabaseClient.from('app_data').select('*');
     if (error) throw error;
     _appDataCache = {};
-    (data||[]).forEach(row=>{ _appDataCache[row.key] = row.value; });
+    (data||[]).forEach(row=>{
+      /* La columna "value" es jsonb: según cómo se haya escrito el dato
+         (desde la app siempre llega como string ya escapado; si se ha
+         insertado directamente por SQL como array/objeto "de verdad",
+         Supabase lo devuelve YA analizado, no como texto) hay que
+         normalizar siempre a string aquí, que es el contrato que espera
+         el resto del código (igual que el localStorage real). */
+      _appDataCache[row.key] = (typeof row.value === 'string') ? row.value : JSON.stringify(row.value);
+    });
     ocultarAvisoSupabase();
   }catch(e){
     console.error('Error cargando datos de Supabase:', e);
