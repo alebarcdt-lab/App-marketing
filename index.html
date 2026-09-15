@@ -2284,6 +2284,7 @@
                 <span class="tag" style="background:#fdecc8;color:#a9720b;">Mailing</span>
                 <span class="tag" style="background:#e3f6f3;color:#175058;">Web</span>
                 <span class="tag" style="background:#eef0f0;color:#5b6b6e;">Otro</span>
+                <span class="tag" style="background:#fff;border:1px solid #1e7d34;color:#1e7d34;">✓ Ya realizada</span>
               </div>
               <div class="cal-grid" id="calComGrid"></div>
             </div>
@@ -5092,7 +5093,7 @@ const MESES_CAP = MESES.map(m => m.charAt(0).toUpperCase()+m.slice(1));
 let pubRedActual = 'linkedin';
 let publicacionEditId = null;
 let pubSortDir = 'desc';
-let chartAnaImpresionesRef=null, chartAnaInteraccionesRef=null, chartAnaPublicacionesMesRef=null, chartAnaRedesRef=null, chartAnaDiaSemanaRef=null, chartAnaHoraRef=null;
+let chartAnaImpresionesRef=null, chartAnaInteraccionesRef=null, chartAnaPublicacionesMesRef=null, chartAnaDiaSemanaRef=null, chartAnaHoraRef=null;
 
 function sum(arr){ return arr.filter(v=>v!=null && !isNaN(v)).reduce((a,b)=>a+b,0); }
 function numOrNull(v){ return (v===undefined || v===null || v==='') ? null : Number(v); }
@@ -5352,20 +5353,6 @@ function renderKpisAnalyticsRedes(pubs){
   let mejorPub = null, mejorScore = -1;
   norm.forEach(x=>{ const score = x.n.interacciones || 0; if (score>mejorScore){ mejorScore=score; mejorPub=x.p; } });
 
-  const porRed = {};
-  norm.forEach(x=>{
-    const r = x.p.red;
-    if (!porRed[r]) porRed[r] = { interacciones:0, tasaSum:0, tasaCount:0 };
-    porRed[r].interacciones += (x.n.interacciones||0);
-    if (x.n.impresiones && x.n.interacciones!=null){ porRed[r].tasaSum += x.n.interacciones/x.n.impresiones*100; porRed[r].tasaCount++; }
-  });
-  let mejorRed = null, mejorRedValor = -1;
-  Object.keys(porRed).forEach(r=>{
-    const d = porRed[r];
-    const valor = d.tasaCount ? d.tasaSum/d.tasaCount : d.interacciones;
-    if (valor>mejorRedValor){ mejorRedValor=valor; mejorRed=r; }
-  });
-
   setText('anaStatTotalPubs', pubs.length);
   setText('anaStatImpresiones', fmtNum(totalImpresiones));
   setText('anaStatInteracciones', fmtNum(totalInteracciones));
@@ -5375,7 +5362,6 @@ function renderKpisAnalyticsRedes(pubs){
   setText('anaStatMediaImpresiones', mediaImpresiones.toFixed(1));
   setText('anaStatMediaInteracciones', mediaInteracciones.toFixed(1));
   setText('anaStatMejorPub', mejorPub ? mejorPub.titulo : '—');
-  setText('anaStatMejorRed', mejorRed ? REDES_CONFIG[mejorRed].label : '—');
 }
 
 function renderResumenProyectoAnalytics(pubs){
@@ -5457,10 +5443,6 @@ function renderGraficosAnalyticsRedes(pubs){
   chartAnaImpresionesRef = dibujarLineChart('chartAnaImpresiones', chartAnaImpresionesRef, labelsMes, impresionesPorMes, 'Impresiones');
   chartAnaInteraccionesRef = dibujarLineChart('chartAnaInteracciones', chartAnaInteraccionesRef, labelsMes, interaccionesPorMes, 'Interacciones');
   chartAnaPublicacionesMesRef = dibujarBarChart('chartAnaPublicacionesMes', chartAnaPublicacionesMesRef, labelsMes, cantidadPorMes, 'Publicaciones');
-
-  const redesKeys = Object.keys(REDES_CONFIG);
-  const interaccionesPorRed = redesKeys.map(r=> sum(pubs.filter(p=>p.red===r).map(p=>metricasNormalizadas(p).interacciones)));
-  chartAnaRedesRef = dibujarBarChart('chartAnaRedes', chartAnaRedesRef, redesKeys.map(r=>REDES_CONFIG[r].label), interaccionesPorRed, 'Interacciones', redesKeys.map(r=>COLORES_RED[r]));
 
   const cantidadPorDia = DIAS_SEMANA_ORDEN.map(d=> pubs.filter(p=>p.diaSemana===d).length);
   chartAnaDiaSemanaRef = dibujarBarChart('chartAnaDiaSemana', chartAnaDiaSemanaRef, DIAS_SEMANA_ORDEN, cantidadPorDia, 'Publicaciones');
@@ -5821,41 +5803,6 @@ function eliminarEstadisticaPerfil(id){
   showToast('Registro eliminado.');
 }
 
-/* --- Tarjetas resumen --- */
-function renderTarjetasPerfiles(){
-  const cont = document.getElementById('perfTarjetas');
-  if (!cont) return;
-  const anioSel = perfAnioSeleccionado();
-  const redFiltro = perfRedFiltro();
-  const redes = redFiltro ? [redFiltro] : PERFIL_REDES_ORDEN;
-
-  cont.innerHTML = redes.map(red=>{
-    const label = REDES_CONFIG[red].label;
-    const icono = REDES_ICONOS[red];
-    const color = COLORES_RED[red];
-    const resumen = calcularResumenRedPerfil(red, anioSel);
-    if (!resumen){
-      return `<div class="panel panel-accent perf-card" style="border-left-color:${color}">
-        <div class="perf-card-head"><i class="${icono}" style="color:${color}"></i><div class="panel-title">${label}</div></div>
-        <div class="stat-num">N/D</div>
-        <div class="stat-label">seguidores${anioSel?` en ${anioSel}`:''}</div>
-        <div class="muted small" style="margin-top:10px;">Sin datos registrados${anioSel?` para ${anioSel}`:''}.</div>
-      </div>`;
-    }
-    const { ultimo, variacionMensual, variacionMensualPct, crecAbs, crecPct } = resumen;
-    return `<div class="panel panel-accent perf-card" style="border-left-color:${color}">
-      <div class="perf-card-head"><i class="${icono}" style="color:${color}"></i><div class="panel-title">${label}</div></div>
-      <div class="stat-num">${fmtNum(ultimo.seguidores)}</div>
-      <div class="stat-label">seguidores · ${MESES_CAP[MESES.indexOf(ultimo.mes)]} ${ultimo.anio}</div>
-      <div class="perf-card-row">
-        <span>${fmtSignoPerfil(variacionMensual)} este mes</span>
-        <span>${fmtSignoPctPerfil(variacionMensualPct)}</span>
-      </div>
-      <div class="muted small perf-card-annual">${fmtSignoPerfil(crecAbs)} (${fmtSignoPctPerfil(crecPct)}) en el año</div>
-    </div>`;
-  }).join('');
-}
-
 /* --- Gráficos --- */
 function dibujarLineChartMulti(canvasId, ref, labels, datasets){
   const ctx = document.getElementById(canvasId);
@@ -5975,7 +5922,6 @@ function renderTablaPerfiles(){
 function renderPerfiles(){
   if (!document.getElementById('perfFiltroAnio')) return;
   renderCabeceraAnaliticaRed();
-  renderTarjetasPerfiles();
   renderGraficosPerfiles();
   renderTablaPerfiles();
 }
@@ -7363,7 +7309,8 @@ function renderCalendarioComunicacion(){
     const entryHtml = dayEntries.map(e=>{
       const label = `${COM_CAT_LABEL[e.cat]||e.canal||'Acción'}: ${e.titulo}`;
       const color = colorPlataformaCal(e.canal);
-      return `<div class="entry" style="background:${color.bg};color:${color.fg};" onclick="abrirModalCom('${dateStr}','${e.id}')" title="${esc(e.canal||'')} · ${esc(label)}">${esc(label)}</div>`;
+      const clase = e.hecho ? 'programada' : '';
+      return `<div class="entry ${clase}" style="background:${color.bg};color:${color.fg};" onclick="abrirModalCom('${dateStr}','${e.id}')" title="${esc(e.canal||'')} · ${esc(label)}${e.hecho?' (ya realizada)':''}">${esc(label)}</div>`;
     }).join('');
     cells += `<div class="cal-day" style="${dateStr===todayStr?'box-shadow:inset 0 0 0 2px var(--teal-500);':''}">
       <div class="cal-day-head">
