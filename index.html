@@ -318,6 +318,17 @@
   /* ---------- Cabeceras de tabla ordenables ---------- */
   th.th-sortable{cursor:pointer;user-select:none;white-space:nowrap;}
   th.th-sortable:hover{color:var(--teal-700);}
+
+  /* ---------- Publicaciones agrupadas por red social ---------- */
+  .red-block{border:1px solid var(--line-strong);border-radius:12px;margin-bottom:16px;overflow:hidden;}
+  .red-block-header{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:13px 16px;border-bottom:1px solid var(--line);}
+  .red-block-icon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;flex-shrink:0;}
+  .red-block-title{font-size:14.5px;font-weight:700;color:var(--ink-900);}
+  .red-block-meta{font-size:12.5px;color:var(--ink-500);margin-left:auto;display:flex;gap:16px;flex-wrap:wrap;}
+  .red-block-meta strong{color:var(--ink-700);}
+  .red-block .table-wrap{margin:0;}
+  .red-block table{font-size:12.5px;}
+  .red-block-empty{padding:22px 16px;text-align:center;color:var(--ink-300);}
   th.th-sortable i{margin-left:4px;font-size:9.5px;}
 
   /* ---------- Toast ---------- */
@@ -1810,7 +1821,6 @@
                   <option value="x">X</option>
                   <option value="instagram">Instagram</option>
                   <option value="youtube">YouTube</option>
-                  <option value="bluesky">Bluesky</option>
                 </select>
               </div>
               <div class="field">
@@ -1908,21 +1918,17 @@
             <div class="flex-between" style="flex-wrap:wrap;gap:14px;">
               <div>
                 <div class="panel-title" style="margin-bottom:4px;">Publicaciones registradas</div>
-                <div class="panel-subtitle" style="margin-bottom:0;">Usa los filtros de arriba para acotar por proyecto, red, año, mes o día. Haz clic en Fecha, Impresiones o Interacciones para ordenar.</div>
+                <div class="panel-subtitle" style="margin-bottom:0;">Usa los filtros de arriba para acotar por proyecto, red, año, mes o día. Las publicaciones se agrupan por red social.</div>
               </div>
               <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
                 <div class="field" style="min-width:220px;margin-bottom:0;">
                   <input type="text" id="pubBuscar" placeholder="Buscar por título..." oninput="renderTablaPublicacionesRed()">
                 </div>
+                <button class="btn btn-secondary" id="pubOrdenBtn" onclick="alternarOrdenPublicaciones()"><i class="fa-solid fa-arrow-down-wide-short"></i> Más recientes primero</button>
                 <button class="btn" onclick="abrirModalPublicacion()"><i class="fa-solid fa-plus"></i> Registrar publicación</button>
               </div>
             </div>
-            <div class="table-wrap" style="margin-top:16px;">
-              <table id="tablaPublicacionesRed">
-                <thead id="tablaPublicacionesRedHead"></thead>
-                <tbody></tbody>
-              </table>
-            </div>
+            <div id="tablaPublicacionesRedWrap" style="margin-top:16px;"></div>
           </div>
           </div>
           <!-- /Sub-pestaña: Publicaciones -->
@@ -1951,7 +1957,6 @@
                     <option value="x">X</option>
                     <option value="instagram">Instagram</option>
                     <option value="youtube">YouTube</option>
-                    <option value="bluesky">Bluesky</option>
                   </select>
                 </div>
               </div>
@@ -2011,7 +2016,6 @@
             <div class="platform-tab" data-platform="x" onclick="setPubRed('x')"><i class="fa-brands fa-x-twitter"></i> X</div>
             <div class="platform-tab" data-platform="instagram" onclick="setPubRed('instagram')"><i class="fa-brands fa-instagram"></i> Instagram</div>
             <div class="platform-tab" data-platform="youtube" onclick="setPubRed('youtube')"><i class="fa-brands fa-youtube"></i> YouTube</div>
-            <div class="platform-tab" data-platform="bluesky" onclick="setPubRed('bluesky')"><i class="fa-brands fa-bluesky"></i> Bluesky</div>
           </div>
           <div class="field-row">
             <div class="field">
@@ -2077,7 +2081,6 @@
             <div class="platform-tab" data-platform="x" onclick="setPerfRed('x')"><i class="fa-brands fa-x-twitter"></i> X</div>
             <div class="platform-tab" data-platform="instagram" onclick="setPerfRed('instagram')"><i class="fa-brands fa-instagram"></i> Instagram</div>
             <div class="platform-tab" data-platform="youtube" onclick="setPerfRed('youtube')"><i class="fa-brands fa-youtube"></i> YouTube</div>
-            <div class="platform-tab" data-platform="bluesky" onclick="setPerfRed('bluesky')"><i class="fa-brands fa-bluesky"></i> Bluesky</div>
           </div>
           <div class="field">
             <label for="perfSeguidores">Seguidores</label>
@@ -5059,24 +5062,15 @@ const REDES_CONFIG = {
     ],
     calculadas: [],
     tablaCols: ['meGusta','tiempoVisualizacionHoras']
-  },
-  bluesky: {
-    label: 'Bluesky',
-    /* Bluesky todavía no tiene métricas de rendimiento por publicación en
-       el histórico importado; se registran igualmente el título/enlace/fecha. */
-    campos: [],
-    calculadas: [],
-    tablaCols: []
   }
 };
-const COLORES_RED = { linkedin:'#0a66c2', x:'#111111', instagram:'#c1338d', youtube:'#ff0000', bluesky:'#0085ff' };
+const COLORES_RED = { linkedin:'#0a66c2', x:'#111111', instagram:'#c1338d', youtube:'#ff0000' };
 const DIAS_SEMANA = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
 const DIAS_SEMANA_ORDEN = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
 const MESES_CAP = MESES.map(m => m.charAt(0).toUpperCase()+m.slice(1));
 
 let pubRedActual = 'linkedin';
 let publicacionEditId = null;
-let pubSortCampo = 'fecha';
 let pubSortDir = 'desc';
 let chartAnaImpresionesRef=null, chartAnaInteraccionesRef=null, chartAnaPublicacionesMesRef=null, chartAnaRedesRef=null, chartAnaDiaSemanaRef=null, chartAnaHoraRef=null;
 
@@ -5456,88 +5450,97 @@ function renderGraficosAnalyticsRedes(pubs){
   chartAnaHoraRef = dibujarBarChart('chartAnaHora', chartAnaHoraRef, horas.map(h=>`${h}h`), cantidadPorHora, 'Publicaciones');
 }
 
-/* --- Tabla general de publicaciones --- */
-function ordenarTablaPublicaciones(campo){
-  if (pubSortCampo===campo){ pubSortDir = pubSortDir==='asc' ? 'desc' : 'asc'; }
-  else { pubSortCampo = campo; pubSortDir = 'desc'; }
+/* --- Publicaciones agrupadas por red social --- */
+const POST_REDES_ORDEN = ['linkedin','x','instagram','youtube'];
+
+function alternarOrdenPublicaciones(){
+  pubSortDir = pubSortDir==='asc' ? 'desc' : 'asc';
+  const btn = document.getElementById('pubOrdenBtn');
+  if (btn) btn.innerHTML = pubSortDir==='asc'
+    ? '<i class="fa-solid fa-arrow-up-wide-short"></i> Más antiguas primero'
+    : '<i class="fa-solid fa-arrow-down-wide-short"></i> Más recientes primero';
   renderTablaPublicacionesRed();
 }
 
 function renderTablaPublicacionesRed(){
-  const thead = document.getElementById('tablaPublicacionesRedHead');
-  const tbody = document.querySelector('#tablaPublicacionesRed tbody');
-  if (!thead || !tbody) return;
+  const wrap = document.getElementById('tablaPublicacionesRedWrap');
+  if (!wrap) return;
   const redFiltro = document.getElementById('anaFiltroRed').value;
   const busqueda = (document.getElementById('pubBuscar').value||'').toLowerCase().trim();
   let pubs = publicacionesFiltradasAnalytics();
   if (busqueda) pubs = pubs.filter(p=> p.titulo.toLowerCase().includes(busqueda));
 
-  const flechaOrden = campo => pubSortCampo===campo ? `<i class="fa-solid fa-arrow-${pubSortDir==='asc'?'up':'down'}"></i>` : '';
-
-  let columnas;
-  if (redFiltro && REDES_CONFIG[redFiltro]){
-    const cfg = REDES_CONFIG[redFiltro];
-    const todosCampos = cfg.campos.concat(cfg.calculadas);
-    columnas = cfg.tablaCols.map(k=>{
-      const c = todosCampos.find(x=>x.key===k);
-      return { key:k, label: c ? c.label : k };
-    });
-  } else {
-    columnas = [
-      { key:'impresiones', label:'Impresiones' },
-      { key:'interacciones', label:'Interacciones' },
-      { key:'alcance', label:'Alcance' },
-      { key:'clics', label:'Clics' }
-    ];
-  }
-
-  thead.innerHTML = `<tr>
-    <th class="th-sortable" onclick="ordenarTablaPublicaciones('fecha')">Fecha ${flechaOrden('fecha')}</th>
-    <th>Título</th>
-    <th>Proyecto</th>
-    ${!redFiltro?'<th>Red</th>':''}
-    ${columnas.map(c=>{
-      const esOrdenable = c.key==='impresiones' || c.key==='interacciones';
-      return `<th ${esOrdenable?`class="th-sortable" onclick="ordenarTablaPublicaciones('${c.key}')"`:''}>${c.label} ${esOrdenable?flechaOrden(c.key):''}</th>`;
-    }).join('')}
-    <th></th>
-  </tr>`;
-
   if (!pubs.length){
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="${4+(!redFiltro?1:0)+columnas.length}">Todavía no hay publicaciones registradas con estos filtros.</td></tr>`;
+    wrap.innerHTML = '<div class="panel" style="text-align:center;color:var(--ink-300);padding:30px 10px;">Todavía no hay publicaciones registradas con estos filtros.</div>';
     return;
   }
 
-  const filas = pubs.map(p=>({ p, n: metricasNormalizadas(p) }));
-  filas.sort((a,b)=>{
-    let va, vb;
-    if (pubSortCampo==='fecha'){ va = a.p.fecha||''; vb = b.p.fecha||''; }
-    else { va = a.n[pubSortCampo]; va = va==null?-Infinity:va; vb = b.n[pubSortCampo]; vb = vb==null?-Infinity:vb; }
-    if (va<vb) return pubSortDir==='asc' ? -1 : 1;
-    if (va>vb) return pubSortDir==='asc' ? 1 : -1;
-    return 0;
-  });
+  const redesAMostrar = (redFiltro && REDES_CONFIG[redFiltro]) ? [redFiltro] : POST_REDES_ORDEN.filter(r=>pubs.some(p=>p.red===r));
 
-  tbody.innerHTML = filas.map(({p})=>{
-    const cols = columnas.map(c=>{
-      let val;
-      if (!redFiltro){ val = metricasNormalizadas(p)[c.key]; }
-      else { val = p.metricas ? p.metricas[c.key] : null; }
-      if (val==null || val===''){ return '<td>—</td>'; }
-      if (c.key.toLowerCase().startsWith('tasa') || c.key.toLowerCase().startsWith('pct')) return `<td>${Number(val).toFixed(1)} %</td>`;
-      return `<td>${fmtNum(Number(val))}</td>`;
+  wrap.innerHTML = redesAMostrar.map(red=>{
+    const cfg = REDES_CONFIG[red];
+    if (!cfg) return '';
+    const pubsRed = pubs.filter(p=>p.red===red).slice().sort((a,b)=>{
+      const va = a.fecha||'', vb = b.fecha||'';
+      if (va===vb) return 0;
+      const mayor = va>vb;
+      return pubSortDir==='asc' ? (mayor?1:-1) : (mayor?-1:1);
+    });
+    const totales = pubsRed.reduce((acc,p)=>{
+      const n = metricasNormalizadas(p);
+      acc.impresiones += (n.impresiones||0);
+      acc.interacciones += (n.interacciones||0);
+      return acc;
+    }, { impresiones:0, interacciones:0 });
+    const todosCampos = cfg.campos.concat(cfg.calculadas);
+    const columnas = cfg.tablaCols.map(k=>{
+      const c = todosCampos.find(x=>x.key===k);
+      return { key:k, label: c ? c.label : k };
+    });
+
+    const filasHtml = pubsRed.map(p=>{
+      const cols = columnas.map(c=>{
+        const val = p.metricas ? p.metricas[c.key] : null;
+        if (val==null || val===''){ return '<td>—</td>'; }
+        if (c.key.toLowerCase().startsWith('tasa') || c.key.toLowerCase().startsWith('pct')) return `<td>${Number(val).toFixed(1)} %</td>`;
+        return `<td>${fmtNum(Number(val))}</td>`;
+      }).join('');
+      return `<tr>
+        <td style="white-space:nowrap;">${fmtFecha(p.fecha)}${p.hora?` <span class="muted small">${esc(p.hora)}</span>`:''}</td>
+        <td>${p.enlace?`<a href="${esc(p.enlace)}" target="_blank" rel="noopener">${esc(p.titulo)}</a>`:esc(p.titulo)}</td>
+        <td>${p.proyecto?esc(p.proyecto):'<span class="muted">—</span>'}</td>
+        ${cols}
+        <td style="white-space:nowrap;">
+          <span class="btn-ghost" onclick="editarPublicacionRed('${p.id}')"><i class="fa-solid fa-pen"></i></span>
+          <span class="btn-ghost" onclick="eliminarPublicacionRed('${p.id}')"><i class="fa-solid fa-trash"></i></span>
+        </td>
+      </tr>`;
     }).join('');
-    return `<tr>
-      <td>${fmtFecha(p.fecha)}${p.hora?` <span class="muted small">${esc(p.hora)}</span>`:''}</td>
-      <td>${p.enlace?`<a href="${esc(p.enlace)}" target="_blank" rel="noopener">${esc(p.titulo)}</a>`:esc(p.titulo)}</td>
-      <td>${p.proyecto?esc(p.proyecto):'<span class="muted">—</span>'}</td>
-      ${!redFiltro?`<td><span class="tag tag-teal">${REDES_CONFIG[p.red]?REDES_CONFIG[p.red].label:esc(p.red)}</span></td>`:''}
-      ${cols}
-      <td>
-        <span class="btn-ghost" onclick="editarPublicacionRed('${p.id}')"><i class="fa-solid fa-pen"></i></span>
-        <span class="btn-ghost" onclick="eliminarPublicacionRed('${p.id}')"><i class="fa-solid fa-trash"></i></span>
-      </td>
-    </tr>`;
+
+    return `
+    <div class="red-block">
+      <div class="red-block-header" style="background:${COLORES_RED[red]}14;">
+        <div class="red-block-icon" style="background:${COLORES_RED[red]};"><i class="${REDES_ICONOS[red]||''}"></i></div>
+        <div class="red-block-title">${esc(cfg.label)}</div>
+        <span class="tag" style="background:${COLORES_RED[red]}22;color:${COLORES_RED[red]};">${pubsRed.length} publicación${pubsRed.length===1?'':'es'}</span>
+        <div class="red-block-meta">
+          ${totales.impresiones?`<span><strong>${fmtNum(totales.impresiones)}</strong> impresiones</span>`:''}
+          ${totales.interacciones?`<span><strong>${fmtNum(totales.interacciones)}</strong> interacciones</span>`:''}
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Fecha</th>
+            <th>Título</th>
+            <th>Proyecto</th>
+            ${columnas.map(c=>`<th>${c.label}</th>`).join('')}
+            <th></th>
+          </tr></thead>
+          <tbody>${filasHtml || `<tr class="empty-row"><td colspan="${4+columnas.length}">Sin publicaciones de ${esc(cfg.label)} con estos filtros.</td></tr>`}</tbody>
+        </table>
+      </div>
+    </div>`;
   }).join('');
 }
 
@@ -5546,13 +5549,12 @@ function renderTablaPublicacionesRed(){
    (segunda capa del módulo Analítica de Redes Sociales, independiente
    de la estructura de datos de publicacionesRedes)
    ======================================================================= */
-const PERFIL_REDES_ORDEN = ['linkedin','x','instagram','youtube','bluesky'];
+const PERFIL_REDES_ORDEN = ['linkedin','x','instagram','youtube'];
 const REDES_ICONOS = {
   linkedin: 'fa-brands fa-linkedin',
   x: 'fa-brands fa-x-twitter',
   instagram: 'fa-brands fa-instagram',
-  youtube: 'fa-brands fa-youtube',
-  bluesky: 'fa-brands fa-bluesky'
+  youtube: 'fa-brands fa-youtube'
 };
 
 let perfRedActual = 'linkedin';
@@ -5719,7 +5721,9 @@ function editarEstadisticaPerfil(id){
 
 function cancelarEdicionEstadisticaPerfil(){
   perfilEditId = null;
-  ['perfAnio','perfMes','perfSeguidores'].forEach(id=>{ const el=document.getElementById(id); if (el) el.value=''; });
+  ['perfMes','perfSeguidores'].forEach(id=>{ const el=document.getElementById(id); if (el) el.value=''; });
+  const perfAnioEl = document.getElementById('perfAnio');
+  if (perfAnioEl) perfAnioEl.value = new Date().getFullYear();
   setPerfRed(perfRedActual);
   document.getElementById('perfFormTitulo').textContent = 'Registrar estadísticas';
   document.getElementById('cancelarEdicionPerfilBtn').style.display = 'none';
