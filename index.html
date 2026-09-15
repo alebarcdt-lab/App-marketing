@@ -1798,13 +1798,74 @@
 
         <!-- Analítica de Redes Sociales -->
         <div class="tab-pane" id="redes-analitica">
-          <div class="subtabbar">
-            <button class="subtab-btn active" data-subtab="publicaciones" onclick="switchAnaliticaSub('publicaciones')">Publicaciones</button>
-            <button class="subtab-btn" data-subtab="perfiles" onclick="switchAnaliticaSub('perfiles')">Estadísticas de perfiles</button>
+
+          <!-- Selector de red social: todo lo de abajo (seguidores + publicaciones) es de esta red -->
+          <div class="platform-tabs" id="analiticaPlatformTabs" style="margin-bottom:18px;">
+            <div class="platform-tab active" data-platform="linkedin" onclick="setAnaliticaRed('linkedin')"><i class="fa-brands fa-linkedin"></i> LinkedIn</div>
+            <div class="platform-tab" data-platform="x" onclick="setAnaliticaRed('x')"><i class="fa-brands fa-x-twitter"></i> X</div>
+            <div class="platform-tab" data-platform="instagram" onclick="setAnaliticaRed('instagram')"><i class="fa-brands fa-instagram"></i> Instagram</div>
+            <div class="platform-tab" data-platform="youtube" onclick="setAnaliticaRed('youtube')"><i class="fa-brands fa-youtube"></i> YouTube</div>
           </div>
 
-          <!-- Sub-pestaña: Publicaciones (funcionalidad existente, sin cambios) -->
-          <div class="subtab-pane active" id="analitica-publicaciones">
+          <!-- Selects ocultos: mantienen la red activa sincronizada con el resto del código (filtros, tabla) -->
+          <select id="anaFiltroRed" style="display:none;">
+            <option value="linkedin">LinkedIn</option><option value="x">X</option><option value="instagram">Instagram</option><option value="youtube">YouTube</option>
+          </select>
+          <select id="perfFiltroRed" style="display:none;">
+            <option value="linkedin">LinkedIn</option><option value="x">X</option><option value="instagram">Instagram</option><option value="youtube">YouTube</option>
+          </select>
+
+          <!-- Cabecera: resumen de la red seleccionada -->
+          <div class="panel panel-accent" id="anaRedCabecera" style="margin-bottom:22px;"></div>
+
+          <!-- ============ SEGUIDORES ============ -->
+          <div class="panel">
+            <div class="flex-between" style="flex-wrap:wrap;gap:14px;align-items:flex-end;">
+              <div>
+                <div class="panel-title">Seguidores</div>
+                <div class="panel-subtitle" style="margin-bottom:0;">Evolución mensual de seguidores. Es un valor acumulado: no se suma entre meses, se compara.</div>
+              </div>
+              <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+                <div class="field" style="margin-bottom:0;">
+                  <label for="perfFiltroAnio">Año</label>
+                  <select id="perfFiltroAnio" onchange="renderPerfiles()"></select>
+                </div>
+                <button class="btn" onclick="abrirModalEstadisticaPerfil()"><i class="fa-solid fa-plus"></i> Registrar estadísticas</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid-2 section-gap">
+            <div class="panel">
+              <div class="panel-title">Evolución de seguidores</div>
+              <canvas id="chartPerfEvolucion" height="200"></canvas>
+            </div>
+            <div class="panel">
+              <div class="panel-title">Crecimiento mensual</div>
+              <div class="panel-subtitle">Variación de seguidores respecto al mes anterior.</div>
+              <canvas id="chartPerfCrecimiento" height="200"></canvas>
+            </div>
+          </div>
+
+          <div class="panel section-gap" id="perfBlockLinkedin">
+            <div class="panel-title">Estadísticas de página</div>
+            <div class="panel-subtitle" id="perfLinkedinTotales">Evolución mensual de visualizaciones de la página y visitantes únicos.</div>
+            <canvas id="chartPerfLinkedin" height="200"></canvas>
+          </div>
+
+          <details class="panel section-gap">
+            <summary style="cursor:pointer;font-weight:700;color:var(--ink-700);font-size:13.5px;">Histórico mensual de seguidores (editar / eliminar registros)</summary>
+            <div class="table-wrap" style="margin-top:14px;">
+              <table id="tablaPerfHistorico">
+                <thead id="tablaPerfHistoricoHead"></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </details>
+
+          <!-- ============ PUBLICACIONES ============ -->
+          <div class="panel-title" style="margin:34px 2px 14px 2px;font-size:12.5px;color:var(--ink-500);text-transform:uppercase;letter-spacing:0.4px;">Publicaciones</div>
+
           <div class="panel">
             <div class="panel-title">Filtros de análisis</div>
             <div class="panel-subtitle">Estos filtros acotan el panel, los gráficos y la tabla de publicaciones de más abajo.</div>
@@ -1812,16 +1873,6 @@
               <div class="field">
                 <label for="anaFiltroProyecto">Proyecto</label>
                 <select id="anaFiltroProyecto" onchange="renderAnalyticsRedes()"><option value="">Todos los proyectos</option></select>
-              </div>
-              <div class="field">
-                <label for="anaFiltroRed">Red social</label>
-                <select id="anaFiltroRed" onchange="renderAnalyticsRedes()">
-                  <option value="">Todas las redes</option>
-                  <option value="linkedin">LinkedIn</option>
-                  <option value="x">X</option>
-                  <option value="instagram">Instagram</option>
-                  <option value="youtube">YouTube</option>
-                </select>
               </div>
               <div class="field">
                 <label for="anaFiltroAnio">Año</label>
@@ -1874,7 +1925,6 @@
             <div class="panel panel-accent"><div class="stat-block accent"><div class="stat-num" id="anaStatMediaImpresiones">0</div><div class="stat-label">Media de impresiones / publicación</div></div></div>
             <div class="panel panel-accent"><div class="stat-block accent"><div class="stat-num" id="anaStatMediaInteracciones">0</div><div class="stat-label">Media de interacciones / publicación</div></div></div>
             <div class="panel panel-accent"><div class="stat-block accent"><div class="stat-text" id="anaStatMejorPub">—</div><div class="stat-label">Publicación con mejores resultados</div></div></div>
-            <div class="panel panel-accent"><div class="stat-block accent"><div class="stat-text" id="anaStatMejorRed">—</div><div class="stat-label">Red social con mejor rendimiento</div></div></div>
           </div>
 
           <div class="panel" id="anaResumenProyecto" style="display:none;">
@@ -1898,27 +1948,20 @@
               <canvas id="chartAnaPublicacionesMes" height="200"></canvas>
             </div>
             <div class="panel">
-              <div class="panel-title">Comparativa entre redes sociales</div>
-              <div class="panel-subtitle">Interacciones totales por red, según los filtros aplicados.</div>
-              <canvas id="chartAnaRedes" height="200"></canvas>
-            </div>
-          </div>
-          <div class="grid-2 section-gap">
-            <div class="panel">
               <div class="panel-title">Publicaciones por día de la semana</div>
               <canvas id="chartAnaDiaSemana" height="200"></canvas>
             </div>
-            <div class="panel">
-              <div class="panel-title">Publicaciones por hora de publicación</div>
-              <canvas id="chartAnaHora" height="200"></canvas>
-            </div>
+          </div>
+          <div class="panel section-gap">
+            <div class="panel-title">Publicaciones por hora de publicación</div>
+            <canvas id="chartAnaHora" height="120"></canvas>
           </div>
 
           <div class="panel section-gap">
             <div class="flex-between" style="flex-wrap:wrap;gap:14px;">
               <div>
                 <div class="panel-title" style="margin-bottom:4px;">Publicaciones registradas</div>
-                <div class="panel-subtitle" style="margin-bottom:0;">Usa los filtros de arriba para acotar por proyecto, red, año, mes o día. Las publicaciones se agrupan por red social.</div>
+                <div class="panel-subtitle" style="margin-bottom:0;">Usa los filtros de arriba para acotar por proyecto, año, mes o día.</div>
               </div>
               <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
                 <div class="field" style="min-width:220px;margin-bottom:0;">
@@ -1930,73 +1973,9 @@
             </div>
             <div id="tablaPublicacionesRedWrap" style="margin-top:16px;"></div>
           </div>
-          </div>
-          <!-- /Sub-pestaña: Publicaciones -->
 
-          <!-- Sub-pestaña: Estadísticas de perfiles -->
-          <div class="subtab-pane" id="analitica-perfiles">
-
-            <div class="panel">
-              <div class="flex-between" style="align-items:flex-start;flex-wrap:wrap;gap:14px;">
-                <div>
-                  <div class="panel-title">Estadísticas de perfiles</div>
-                  <div class="panel-subtitle" style="margin-bottom:0;">Introduce y consulta la evolución mensual de seguidores de cada red social. Los seguidores son un valor acumulado: no se suman entre meses, se comparan.</div>
-                </div>
-                <button class="btn" onclick="abrirModalEstadisticaPerfil()"><i class="fa-solid fa-plus"></i> Registrar estadísticas</button>
-              </div>
-              <div class="filter-row" style="margin-top:18px;">
-                <div class="field">
-                  <label for="perfFiltroAnio">Año</label>
-                  <select id="perfFiltroAnio" onchange="renderPerfiles()"></select>
-                </div>
-                <div class="field">
-                  <label for="perfFiltroRed">Red social</label>
-                  <select id="perfFiltroRed" onchange="renderPerfiles()">
-                    <option value="">Todas</option>
-                    <option value="linkedin">LinkedIn</option>
-                    <option value="x">X</option>
-                    <option value="instagram">Instagram</option>
-                    <option value="youtube">YouTube</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div class="panel-title" style="margin:26px 2px 12px 2px;font-size:12.5px;color:var(--ink-500);text-transform:uppercase;letter-spacing:0.4px;">Resumen por red social</div>
-            <div class="grid-4" id="perfTarjetas" style="margin-bottom:8px;"></div>
-
-            <div class="panel-title" style="margin:26px 2px 12px 2px;font-size:12.5px;color:var(--ink-500);text-transform:uppercase;letter-spacing:0.4px;">Evolución</div>
-            <div class="grid-2 section-gap">
-              <div class="panel">
-                <div class="panel-title">Evolución de seguidores</div>
-                <canvas id="chartPerfEvolucion" height="200"></canvas>
-              </div>
-              <div class="panel">
-                <div class="panel-title">Crecimiento mensual</div>
-                <div class="panel-subtitle">Variación de seguidores respecto al mes anterior.</div>
-                <canvas id="chartPerfCrecimiento" height="200"></canvas>
-              </div>
-            </div>
-
-            <div class="panel section-gap" id="perfBlockLinkedin">
-              <div class="panel-title">LinkedIn — Estadísticas de página</div>
-              <div class="panel-subtitle" id="perfLinkedinTotales">Evolución mensual de visualizaciones de la página y visitantes únicos.</div>
-              <canvas id="chartPerfLinkedin" height="200"></canvas>
-            </div>
-
-            <div class="panel section-gap">
-              <div class="panel-title" style="margin-bottom:4px;">Histórico mensual</div>
-              <div class="panel-subtitle" style="margin-bottom:0;">Filtrado según el año y la red social seleccionados arriba. Edita o elimina cualquier registro.</div>
-              <div class="table-wrap" style="margin-top:16px;">
-                <table id="tablaPerfHistorico">
-                  <thead id="tablaPerfHistoricoHead"></thead>
-                  <tbody></tbody>
-                </table>
-              </div>
-            </div>
-
-          </div>
-          <!-- /Sub-pestaña: Estadísticas de perfiles -->
+        </div>
+        <!-- /Analítica de Redes Sociales -->
 
         </div>
       </section>
@@ -2801,10 +2780,8 @@ async function cargarDatosSocialSupabase(){
   _socialSupabaseListo = true;
   poblarSelectProyectoPublicacion();
   poblarFiltrosAnalyticsRedes();
-  renderAnalyticsRedes();
   poblarFiltrosPerfiles();
-  setPerfRed('linkedin');
-  renderPerfiles();
+  setAnaliticaRed(analiticaRedActual);
   updateDashboardStats();
 }
 
@@ -3022,9 +2999,7 @@ function switchTab(module, tabName){
   view.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tabName));
   view.querySelectorAll('.tab-pane').forEach(p=>p.classList.toggle('active', p.id === module+'-'+tabName));
   if (module==='redes' && tabName==='analitica'){
-    renderAnalyticsRedes();
-    const subActivo = document.querySelector('#redes-analitica .subtab-btn.active');
-    if (subActivo && subActivo.dataset.subtab==='perfiles') renderPerfiles();
+    renderAnaliticaRed();
   }
   if (module==='propios'){
     if (tabName==='resumen') renderResumenEvento();
@@ -3035,17 +3010,6 @@ function switchTab(module, tabName){
     else if (tabName==='calendario') renderCalendarioComunicacion();
     else if (tabName==='recursos') renderRecursos();
   }
-}
-
-/* Segunda capa de pestañas dentro de "Analítica de Redes Sociales":
-   Publicaciones (analítica existente) / Estadísticas de perfiles (nuevo). */
-function switchAnaliticaSub(sub){
-  const cont = document.getElementById('redes-analitica');
-  if (!cont) return;
-  cont.querySelectorAll('.subtab-btn').forEach(b=>b.classList.toggle('active', b.dataset.subtab===sub));
-  cont.querySelectorAll('.subtab-pane').forEach(p=>p.classList.toggle('active', p.id === 'analitica-'+sub));
-  if (sub==='perfiles') renderPerfiles();
-  else renderAnalyticsRedes();
 }
 
 function goTo(view, tab, evento){
@@ -5252,7 +5216,7 @@ function cancelarEdicionPublicacionRed(){
   document.getElementById('pubProyecto').value = '';
   const fc = document.getElementById('pubFechaCalculada'); if (fc) fc.textContent = '';
   onCambioProyectoPublicacion();
-  setPubRed('linkedin');
+  setPubRed(analiticaRedActual);
   document.getElementById('pubFormTitulo').textContent = 'Registrar publicación';
   document.getElementById('cancelarEdicionPubBtn').style.display = 'none';
   const modalPub = document.getElementById('pubModal'); if (modalPub) modalPub.classList.remove('active');
@@ -5287,7 +5251,7 @@ function poblarFiltrosAnalyticsRedes(){
 }
 
 function limpiarFiltrosAnalyticsRedes(){
-  ['anaFiltroProyecto','anaFiltroRed','anaFiltroAnio','anaFiltroMes','anaFiltroDiaSemana'].forEach(id=>{ const el=document.getElementById(id); if (el) el.value=''; });
+  ['anaFiltroProyecto','anaFiltroAnio','anaFiltroMes','anaFiltroDiaSemana'].forEach(id=>{ const el=document.getElementById(id); if (el) el.value=''; });
   renderAnalyticsRedes();
 }
 
@@ -5448,6 +5412,58 @@ function renderGraficosAnalyticsRedes(pubs){
   const horas = Array.from({length:24}, (_,i)=>i);
   const cantidadPorHora = horas.map(h=> pubs.filter(p=> p.hora && Number(p.hora.split(':')[0])===h).length);
   chartAnaHoraRef = dibujarBarChart('chartAnaHora', chartAnaHoraRef, horas.map(h=>`${h}h`), cantidadPorHora, 'Publicaciones');
+}
+
+/* --- Vista unificada por red social (estilo Metricool): cabecera +
+   seguidores + publicaciones, todo scopeado a la red seleccionada --- */
+let analiticaRedActual = 'linkedin';
+
+function setAnaliticaRed(red){
+  analiticaRedActual = red;
+  document.querySelectorAll('#analiticaPlatformTabs .platform-tab').forEach(t=>t.classList.toggle('active', t.dataset.platform===red));
+  const selA = document.getElementById('anaFiltroRed'); if (selA) selA.value = red;
+  const selP = document.getElementById('perfFiltroRed'); if (selP) selP.value = red;
+  renderAnaliticaRed();
+}
+
+function renderAnaliticaRed(){
+  if (!document.getElementById('analiticaPlatformTabs')) return;
+  renderCabeceraAnaliticaRed();
+  renderPerfiles();
+  renderAnalyticsRedes();
+}
+
+function renderCabeceraAnaliticaRed(){
+  const cont = document.getElementById('anaRedCabecera');
+  if (!cont) return;
+  const red = analiticaRedActual;
+  const cfg = REDES_CONFIG[red];
+  if (!cfg) return;
+  const color = COLORES_RED[red];
+  const icono = REDES_ICONOS[red];
+  cont.style.borderLeftColor = color;
+  const anioSel = perfAnioSeleccionado();
+  const resumen = calcularResumenRedPerfil(red, anioSel);
+  let statsHtml;
+  if (resumen){
+    const { ultimo, variacionMensual, variacionMensualPct, crecAbs, crecPct } = resumen;
+    statsHtml = `
+      <div class="stat-num">${fmtNum(ultimo.seguidores)}</div>
+      <div class="stat-label">seguidores · ${MESES_CAP[MESES.indexOf(ultimo.mes)]} ${ultimo.anio}</div>
+      <div class="perf-card-row">
+        <span>${fmtSignoPerfil(variacionMensual)} este mes</span>
+        <span>${fmtSignoPctPerfil(variacionMensualPct)}</span>
+      </div>
+      <div class="muted small perf-card-annual">${fmtSignoPerfil(crecAbs)} (${fmtSignoPctPerfil(crecPct)}) en el año</div>`;
+  } else {
+    statsHtml = `<div class="stat-num">N/D</div><div class="stat-label">Todavía no hay seguidores registrados${anioSel?` para ${anioSel}`:''}.</div>`;
+  }
+  cont.innerHTML = `
+    <div class="perf-card-head" style="margin-bottom:8px;">
+      <i class="${icono}" style="color:${color};font-size:22px;"></i>
+      <div class="panel-title" style="font-size:17px;margin-bottom:0;">${esc(cfg.label)}</div>
+    </div>
+    ${statsHtml}`;
 }
 
 /* --- Publicaciones agrupadas por red social --- */
@@ -5724,7 +5740,7 @@ function cancelarEdicionEstadisticaPerfil(){
   ['perfMes','perfSeguidores'].forEach(id=>{ const el=document.getElementById(id); if (el) el.value=''; });
   const perfAnioEl = document.getElementById('perfAnio');
   if (perfAnioEl) perfAnioEl.value = new Date().getFullYear();
-  setPerfRed(perfRedActual);
+  setPerfRed(analiticaRedActual);
   document.getElementById('perfFormTitulo').textContent = 'Registrar estadísticas';
   document.getElementById('cancelarEdicionPerfilBtn').style.display = 'none';
   const modalPerf = document.getElementById('perfModal'); if (modalPerf) modalPerf.classList.remove('active');
@@ -5894,6 +5910,7 @@ function renderTablaPerfiles(){
 /* --- Render general de la sub-pestaña --- */
 function renderPerfiles(){
   if (!document.getElementById('perfFiltroAnio')) return;
+  renderCabeceraAnaliticaRed();
   renderTarjetasPerfiles();
   renderGraficosPerfiles();
   renderTablaPerfiles();
