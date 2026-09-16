@@ -640,6 +640,26 @@
   <div style="color:#33454a;font-size:13.5px;font-weight:600;">Cargando datos desde Supabase…</div>
 </div>
 
+<div id="loginScreen" style="display:none;position:fixed;inset:0;background:#0a2a30;z-index:998;align-items:center;justify-content:center;font-family:'Montserrat',system-ui,sans-serif;padding:20px;">
+  <div style="background:#fff;border-radius:12px;padding:34px 30px;width:100%;max-width:360px;box-shadow:0 14px 44px rgba(0,0,0,0.3);">
+    <div style="text-align:center;margin-bottom:22px;">
+      <div style="font-weight:800;font-size:19px;color:#16262a;">CIDAUT</div>
+      <div style="font-size:12.5px;color:#5b6b6e;margin-top:2px;">Hub de Marketing</div>
+    </div>
+    <h3 id="loginTitulo" style="font-size:15px;margin-bottom:16px;text-align:center;">Inicia sesión</h3>
+    <div id="loginError" style="display:none;background:#fdecea;color:#c0392b;font-size:12px;padding:9px 11px;border-radius:6px;margin-bottom:14px;"></div>
+    <div id="loginInfo" style="display:none;background:#e3f6f3;color:#175058;font-size:12px;padding:9px 11px;border-radius:6px;margin-bottom:14px;"></div>
+    <div class="field"><label for="loginEmail">Email</label><input type="email" id="loginEmail" placeholder="nombre@cidaut.es" onkeydown="if(event.key==='Enter')enviarLogin()"></div>
+    <div class="field"><label for="loginPassword">Contraseña</label><input type="password" id="loginPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter')enviarLogin()"></div>
+    <div id="loginConfirmWrap" class="field" style="display:none;"><label for="loginPasswordConfirm">Repite la contraseña</label><input type="password" id="loginPasswordConfirm" placeholder="••••••••" onkeydown="if(event.key==='Enter')enviarLogin()"></div>
+    <button class="btn" id="loginSubmitBtn" style="width:100%;justify-content:center;margin-top:6px;" onclick="enviarLogin()">Entrar</button>
+    <div style="text-align:center;margin-top:16px;font-size:12px;color:#5b6b6e;">
+      <span id="loginToggleTexto">¿No tienes cuenta todavía?</span>
+      <span style="color:#1bb8a6;font-weight:700;cursor:pointer;" onclick="alternarModoLogin()" id="loginToggleBtn">Crea una</span>
+    </div>
+  </div>
+</div>
+
 <div class="app-shell">
 
   <!-- ============ SIDEBAR ============ -->
@@ -659,7 +679,13 @@
       <div class="nav-item" data-view="enlaces"><i class="fa-solid fa-link"></i> Enlaces</div>
       <div class="nav-item" data-view="config"><i class="fa-solid fa-gear"></i> Configuración</div>
     </div>
-    <div class="sidebar-foot">Uso interno — Comunicación y Marketing</div>
+    <div class="sidebar-foot">
+      <div id="sidebarFootUsuario" style="color:#cfe4e2;font-weight:600;margin-bottom:4px;"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+        <span>Uso interno — Comunicación y Marketing</span>
+        <span style="cursor:pointer;color:#7fb0ac;text-decoration:underline;flex-shrink:0;" onclick="cerrarSesionApp()">Salir</span>
+      </div>
+    </div>
   </nav>
 
   <!-- ============ MAIN ============ -->
@@ -826,8 +852,8 @@
         <div class="tab-pane" id="config-general">
           <div class="grid-2">
             <div class="panel panel-accent">
-              <div class="panel-title">Perfil de usuario</div>
-              <div class="panel-subtitle">Este nombre se muestra en el saludo del panel de inicio.</div>
+              <div class="panel-title">Tu cuenta</div>
+              <div class="panel-subtitle">Este nombre se muestra en el saludo del panel de Inicio. Queda asociado a tu cuenta (<span id="cfgUsuarioEmail">—</span>): cada persona ve y edita solo el suyo.</div>
               <div class="field">
                 <label for="cfgUsuarioNombre">Tu nombre</label>
                 <input type="text" id="cfgUsuarioNombre" placeholder="Ej. Alejandro">
@@ -2534,6 +2560,19 @@
         </div>
       </div>
 
+      <!-- Modal: nombre de usuario (primer inicio de sesión) -->
+      <div class="modal-overlay" id="nombreUsuarioModal">
+        <div class="modal-box">
+          <h3>¿Cómo te llamas?</h3>
+          <div class="panel-subtitle">Se usará para tu saludo personalizado en Inicio. Queda asociado a tu cuenta, solo tú lo ves.</div>
+          <div class="field"><label for="nombreUsuarioInput">Nombre</label><input type="text" id="nombreUsuarioInput" placeholder="Ej. Laura"></div>
+          <div class="btn-row">
+            <button class="btn" onclick="guardarNombreUsuario()"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+            <button class="btn btn-secondary" onclick="guardarNombreUsuario(true)">Ahora no</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Modal de responsable del evento -->
       <div class="modal-overlay" id="responsableModal">
         <div class="modal-box">
@@ -2721,14 +2760,171 @@ const LS = {
    --------------------------------------------------------------------- */
 const SUPABASE_URL = 'https://atpcakzseqrvfuiidvht.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF0cGNha3pzZXFydmZ1aWlkdmh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzNTc0MjksImV4cCI6MjEwNDkzMzQyOX0.oI747dO6KW6JHZsCttZxHaeFSHSo32m4uxOjGW2s82o';
+/* Captura el localStorage REAL del navegador antes de que más abajo se
+   eclipse con el almacén propio de la app. Supabase Auth necesita guardar
+   la sesión de inicio de sesión ahí, aparte de nuestros datos. */
+const _realLocalStorage = window.localStorage;
 let supabaseClient;
 try{
   if (!window.supabase) throw new Error('El script de Supabase no se ha cargado (revisa la conexión a internet o si algo está bloqueando cdn.jsdelivr.net).');
-  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { storage: _realLocalStorage, persistSession: true, autoRefreshToken: true }
+  });
 }catch(e){
   console.error('No se pudo inicializar Supabase:', e);
   const errorFn = async () => ({ data:null, error: e });
   supabaseClient = { from: () => ({ select: errorFn, upsert: errorFn, delete: () => ({ eq: errorFn }) }) };
+}
+
+/* ---------------------------------------------------------------------
+   AUTENTICACIÓN — email y contraseña con Supabase Auth. Cada persona
+   tiene su propia cuenta y su propio nombre (tabla "profiles"), pero
+   todas comparten los mismos datos de la app (app_data). El nombre se
+   usa solo para personalizar el saludo de Inicio.
+   --------------------------------------------------------------------- */
+let usuarioActual = null;   // { id, email }
+let usuarioNombre = '';
+let modoLoginEsRegistro = false;
+
+function mostrarLoginError(msg){
+  const el = document.getElementById('loginError');
+  const info = document.getElementById('loginInfo');
+  if (info) info.style.display = 'none';
+  if (el){ el.textContent = msg; el.style.display = 'block'; }
+}
+function mostrarLoginInfo(msg){
+  const el = document.getElementById('loginInfo');
+  const err = document.getElementById('loginError');
+  if (err) err.style.display = 'none';
+  if (el){ el.textContent = msg; el.style.display = 'block'; }
+}
+function ocultarAvisosLogin(){
+  const err = document.getElementById('loginError');
+  const info = document.getElementById('loginInfo');
+  if (err) err.style.display = 'none';
+  if (info) info.style.display = 'none';
+}
+
+function alternarModoLogin(){
+  modoLoginEsRegistro = !modoLoginEsRegistro;
+  ocultarAvisosLogin();
+  document.getElementById('loginTitulo').textContent = modoLoginEsRegistro ? 'Crea tu cuenta' : 'Inicia sesión';
+  document.getElementById('loginConfirmWrap').style.display = modoLoginEsRegistro ? '' : 'none';
+  document.getElementById('loginSubmitBtn').textContent = modoLoginEsRegistro ? 'Crear cuenta' : 'Entrar';
+  document.getElementById('loginToggleTexto').textContent = modoLoginEsRegistro ? '¿Ya tienes cuenta?' : '¿No tienes cuenta todavía?';
+  document.getElementById('loginToggleBtn').textContent = modoLoginEsRegistro ? 'Inicia sesión' : 'Crea una';
+}
+
+function mostrarPantallaLogin(){
+  const loader = document.getElementById('appLoader');
+  if (loader) loader.remove();
+  document.getElementById('loginScreen').style.display = 'flex';
+}
+function ocultarPantallaLogin(){
+  document.getElementById('loginScreen').style.display = 'none';
+}
+
+async function enviarLogin(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  if (!email || !password){ mostrarLoginError('Indica tu email y tu contraseña.'); return; }
+  ocultarAvisosLogin();
+  const btn = document.getElementById('loginSubmitBtn');
+  btn.disabled = true;
+  try{
+    if (modoLoginEsRegistro){
+      const confirmPass = document.getElementById('loginPasswordConfirm').value;
+      if (password.length < 6){ mostrarLoginError('La contraseña debe tener al menos 6 caracteres.'); return; }
+      if (password !== confirmPass){ mostrarLoginError('Las dos contraseñas no coinciden.'); return; }
+      const { data, error } = await supabaseClient.auth.signUp({ email, password });
+      if (error) throw error;
+      if (!data.session){
+        modoLoginEsRegistro = true;
+        alternarModoLogin(); // vuelve a modo login
+        mostrarLoginInfo('Cuenta creada. Revisa tu email para confirmarla y luego inicia sesión.');
+        return;
+      }
+      await entrarComoUsuario(data.session);
+    } else {
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      await entrarComoUsuario(data.session);
+    }
+  }catch(e){
+    console.error(e);
+    const msg = (e && e.message) ? e.message : String(e);
+    mostrarLoginError(
+      /invalid login credentials/i.test(msg) ? 'Email o contraseña incorrectos.' :
+      /already registered/i.test(msg) ? 'Ya existe una cuenta con ese email. Inicia sesión.' :
+      msg
+    );
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+async function entrarComoUsuario(session){
+  usuarioActual = { id: session.user.id, email: session.user.email };
+  ocultarPantallaLogin();
+  mostrarPantallaCargaSiHaceFalta();
+  await cargarPerfilUsuario();
+  await cargarAppDataDesdeSupabase();
+  const loader = document.getElementById('appLoader');
+  if (loader) loader.remove();
+  init();
+  actualizarPieSidebarUsuario();
+  if (hayDatosAntiguosSinMigrar()) mostrarAvisoRecuperacion();
+}
+
+function mostrarPantallaCargaSiHaceFalta(){
+  if (document.getElementById('appLoader')) return;
+  document.body.insertAdjacentHTML('afterbegin', `<div id="appLoader" style="position:fixed;inset:0;background:#f6f7f6;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-family:'Montserrat',system-ui,sans-serif;">
+    <i class="fa-solid fa-circle-notch fa-spin" style="font-size:28px;color:#1bb8a6;"></i>
+    <div style="color:#33454a;font-size:13.5px;font-weight:600;">Cargando datos desde Supabase…</div>
+  </div>`);
+}
+
+async function cargarPerfilUsuario(){
+  try{
+    const { data, error } = await supabaseClient.from('profiles').select('*').eq('id', usuarioActual.id).maybeSingle();
+    if (error) throw error;
+    if (data && data.nombre){
+      usuarioNombre = data.nombre;
+    } else {
+      usuarioNombre = '';
+      document.getElementById('nombreUsuarioInput').value = '';
+      document.getElementById('nombreUsuarioModal').classList.add('active');
+    }
+  }catch(e){
+    console.error('Error cargando el perfil:', e);
+    usuarioNombre = '';
+  }
+}
+
+async function guardarNombreUsuario(omitir){
+  const nombre = omitir ? '' : document.getElementById('nombreUsuarioInput').value.trim();
+  usuarioNombre = nombre || (usuarioActual.email.split('@')[0]);
+  document.getElementById('nombreUsuarioModal').classList.remove('active');
+  try{
+    const { error } = await supabaseClient.from('profiles').upsert({ id: usuarioActual.id, email: usuarioActual.email, nombre: usuarioNombre });
+    if (error) throw error;
+  }catch(e){
+    console.error('No se pudo guardar el nombre:', e);
+    showToast('No se pudo guardar el nombre. Se usará solo en esta sesión.');
+  }
+  renderSaludo();
+  actualizarPieSidebarUsuario();
+}
+
+function actualizarPieSidebarUsuario(){
+  const el = document.getElementById('sidebarFootUsuario');
+  if (el && usuarioActual) el.textContent = usuarioNombre ? `${usuarioNombre} · ${usuarioActual.email}` : usuarioActual.email;
+}
+
+async function cerrarSesionApp(){
+  if (!confirm('¿Cerrar sesión?')) return;
+  try{ await supabaseClient.auth.signOut(); }catch(e){ console.error(e); }
+  location.reload();
 }
 
 /* Caché en memoria de TODAS las claves de la app, ya cargada desde
@@ -7680,7 +7876,7 @@ function formatearFechaHoy(){
 }
 
 function getConfig(){ try{ return JSON.parse(localStorage.getItem(LS.config)) || {}; }catch(e){ return {}; } }
-function getUsuarioNombre(){ return (getConfig().usuarioNombre || '').trim(); }
+function getUsuarioNombre(){ return usuarioNombre || ''; }
 
 function renderSaludo(){
   const saludoEl = document.getElementById('heroSaludo');
@@ -7690,16 +7886,27 @@ function renderSaludo(){
   if (fechaEl) fechaEl.textContent = formatearFechaHoy();
 }
 
-/* Configuración > General: nombre del usuario para el saludo del inicio. */
-function guardarConfigGeneral(){
+/* Configuración > General: nombre del usuario (por cuenta, no compartido) para el saludo del inicio. */
+async function guardarConfigGeneral(){
   const nombre = document.getElementById('cfgUsuarioNombre').value.trim();
-  setLS(LS.config, { ...getConfig(), usuarioNombre: nombre });
+  if (!usuarioActual){ showToast('Inicia sesión primero.'); return; }
+  usuarioNombre = nombre || usuarioActual.email.split('@')[0];
+  try{
+    const { error } = await supabaseClient.from('profiles').upsert({ id: usuarioActual.id, email: usuarioActual.email, nombre: usuarioNombre });
+    if (error) throw error;
+  }catch(e){
+    console.error(e);
+    showToast('No se pudo guardar en Supabase; se usará solo en esta sesión.');
+  }
   renderSaludo();
+  actualizarPieSidebarUsuario();
   showToast('Configuración guardada.');
 }
 function renderConfigGeneral(){
   const el = document.getElementById('cfgUsuarioNombre');
   if (el) el.value = getUsuarioNombre();
+  const emailEl = document.getElementById('cfgUsuarioEmail');
+  if (emailEl) emailEl.textContent = usuarioActual ? usuarioActual.email : '—';
 }
 
 /* ---------------------------------------------------------------------
@@ -8332,11 +8539,17 @@ function init(){
    tiene sentido pintar nada (saldría todo vacío un instante). Se
    muestra una pantalla de carga mientras tanto. */
 async function arrancarApp(){
-  await cargarAppDataDesdeSupabase();
-  const loader = document.getElementById('appLoader');
-  if (loader) loader.remove();
-  init();
-  if (hayDatosAntiguosSinMigrar()) mostrarAvisoRecuperacion();
+  let session = null;
+  try{
+    const { data } = await supabaseClient.auth.getSession();
+    session = data ? data.session : null;
+  }catch(e){ console.error('Error comprobando la sesión:', e); }
+
+  if (!session){
+    mostrarPantallaLogin();
+    return;
+  }
+  await entrarComoUsuario(session);
 }
 arrancarApp();
 </script>
