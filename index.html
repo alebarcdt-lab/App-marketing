@@ -562,9 +562,6 @@
 
   /* ---------- Topbar: búsqueda global y notificaciones ---------- */
   .topbar-actions{display:flex;align-items:center;gap:12px;flex:1;justify-content:flex-end;flex-wrap:wrap;}
-  .field-icon{position:relative;}
-  .field-icon i{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--ink-300);font-size:12.5px;pointer-events:none;}
-  .field-icon input{padding-left:32px;}
   .global-search{position:relative;width:280px;max-width:100%;}
   .global-search i.fa-magnifying-glass{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--ink-300);font-size:12px;}
   .global-search input{width:100%;padding:9px 12px 9px 32px;border:1px solid var(--line-strong);border-radius:20px;font-size:12.5px;font-family:inherit;background:#fff;}
@@ -2563,9 +2560,7 @@
             <div class="field"><label for="poCargo">Cargo</label><input type="text" id="poCargo"></div>
           </div>
           <div class="field"><label for="poEmail">Email</label><input type="email" id="poEmail"></div>
-          <div class="field"><label for="poTelefono">Teléfono</label>
-            <div class="field-icon"><i class="fa-solid fa-phone"></i><input type="tel" id="poTelefono" placeholder="Ej. 600 123 456"></div>
-          </div>
+          <div class="field"><label for="poTelefono">Teléfono</label><input type="tel" id="poTelefono" placeholder="Ej. 600 123 456"></div>
           <div class="field"><label for="poBio">Biografía (opcional)</label><textarea id="poBio"></textarea></div>
           <div class="field">
             <label>Fotografía (opcional)</label>
