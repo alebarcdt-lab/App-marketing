@@ -10,6 +10,8 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.4/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root{
     --teal-950:#0a2a30;
@@ -2149,6 +2151,7 @@
             <button class="tab-btn" data-tab="programa" onclick="switchTab('propios','programa')">Programa y ponentes</button>
             <button class="tab-btn" data-tab="calendario" onclick="switchTab('propios','calendario')">Comunicación</button>
             <button class="tab-btn" data-tab="recursos" onclick="switchTab('propios','recursos')">Recursos</button>
+            <button class="tab-btn" data-tab="acreditaciones" onclick="switchTab('propios','acreditaciones')">Acreditaciones</button>
           </div>
 
           <!-- RESUMEN -->
@@ -2198,6 +2201,7 @@
                   <div class="field"><label for="insEstado">Estado</label><select id="insEstado"><option value="registrado">Registrado</option><option value="confirmado">Confirmado</option></select></div>
                 </div>
                 <div class="field"><label for="insEmail">Email</label><input type="email" id="insEmail"></div>
+                <div class="field"><label for="insTelefono">Teléfono</label><input type="tel" id="insTelefono" placeholder="Ej. 600 123 456"></div>
                 <div class="field-row">
                   <div class="field"><label for="insCargo">Cargo</label><input type="text" id="insCargo" placeholder="Ej. Directora de Innovación"></div>
                   <div class="field"><label for="insEmpresa">Empresa</label><input type="text" id="insEmpresa" placeholder="Ej. Grupo Antolin"></div>
@@ -2224,7 +2228,7 @@
                 <div class="panel-subtitle">Edita el estado de inscripción y de asistencia directamente en la tabla.</div>
                 <div class="table-wrap">
                   <table id="tablaInscritos">
-                    <thead><tr><th>Nombre</th><th>Email</th><th>Empresa</th><th>Inscripción</th><th>Asistencia</th><th>Comida</th><th>Visita</th><th>Fecha</th><th></th></tr></thead>
+                    <thead><tr><th>Nombre</th><th>Email</th><th>Teléfono</th><th>Empresa</th><th>Inscripción</th><th>Asistencia</th><th>Comida</th><th>Visita</th><th>Fecha</th><th></th></tr></thead>
                     <tbody></tbody>
                   </table>
                 </div>
@@ -2308,8 +2312,107 @@
             </div>
             <div id="recursosLista"></div>
           </div>
+
+          <!-- ACREDITACIONES -->
+          <div class="tab-pane" id="propios-acreditaciones">
+            <div class="panel-subtitle" style="margin-bottom:16px;">Genera automáticamente la acreditación de cada inscrito: plantilla + su nombre y empresa + un código QR con su ficha de contacto (vCard), listo para escanear con el móvil.</div>
+
+            <div class="kpi-grid" id="acredResumen" style="margin-bottom:18px;"></div>
+
+            <div class="btn-row" style="margin-bottom:22px;">
+              <button class="btn" onclick="generarTodasPendientesAcred()"><i class="fa-solid fa-wand-magic-sparkles"></i> Generar todas las pendientes</button>
+              <button class="btn btn-secondary" onclick="regenerarTodasAcred()"><i class="fa-solid fa-arrows-rotate"></i> Regenerar todas</button>
+              <button class="btn btn-secondary" onclick="exportarPdfAcreditaciones()"><i class="fa-solid fa-file-pdf"></i> Exportar a PDF</button>
+              <button class="btn btn-secondary" onclick="imprimirAcreditaciones()"><i class="fa-solid fa-print"></i> Imprimir</button>
+            </div>
+
+            <details class="panel" id="acredConfigDetails" style="margin-bottom:20px;">
+              <summary style="cursor:pointer;font-weight:700;color:var(--ink-700);font-size:13.5px;">Configurar plantilla y posiciones</summary>
+              <div class="grid-2" style="margin-top:18px;">
+                <div>
+                  <div class="panel-title" style="font-size:13px;">Plantilla</div>
+                  <div class="panel-subtitle">Imagen (PNG/JPG) con el diseño ya preparado, tal cual se verá de fondo en todas las acreditaciones.</div>
+                  <div class="file-drop" onclick="document.getElementById('acredPlantillaFile').click()"><i class="fa-solid fa-image"></i> Haz clic para subir la plantilla<input type="file" id="acredPlantillaFile" accept="image/png,image/jpeg" style="display:none;"></div>
+                  <div id="acredPlantillaPreviewWrap" style="margin-top:12px;"></div>
+
+                  <div class="panel-title" style="font-size:13px;margin-top:18px;">Tipografía (opcional)</div>
+                  <div class="panel-subtitle">Sube el archivo de la fuente "HK Modular" (.woff, .woff2, .ttf u .otf) si la tienes. Si no la subes, se usa una tipografía de reemplazo.</div>
+                  <div class="file-drop" onclick="document.getElementById('acredFuenteFile').click()"><i class="fa-solid fa-font"></i> Haz clic para subir la fuente<input type="file" id="acredFuenteFile" accept=".woff,.woff2,.ttf,.otf" style="display:none;"></div>
+                  <div id="acredFuenteEstado" class="cmeta" style="margin-top:8px;"></div>
+
+                  <div class="field-row" style="margin-top:18px;">
+                    <div class="field"><label for="acredAnchoMM">Ancho de la acreditación (mm)</label><input type="number" id="acredAnchoMM" min="1" step="0.01"></div>
+                    <div class="field"><label for="acredAltoMM">Alto de la acreditación (mm)</label><input type="number" id="acredAltoMM" min="1" step="0.01"></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div class="panel-title" style="font-size:13px;">Vista previa en vivo</div>
+                  <div class="panel-subtitle">Con datos de ejemplo. Se actualiza al cambiar cualquier valor de abajo.</div>
+                  <div id="acredPreviewLive" style="border:1px solid var(--line-strong);border-radius:8px;padding:10px;background:#fafbfb;text-align:center;min-height:180px;display:flex;align-items:center;justify-content:center;">
+                    <span class="muted small">Sube una plantilla para ver la vista previa.</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="grid-3" style="margin-top:22px;">
+                <div class="panel" style="background:#fbfcfc;">
+                  <div class="panel-title" style="font-size:12.5px;">Código QR</div>
+                  <div class="field"><label for="acredQrX">Posición X (mm)</label><input type="number" id="acredQrX" step="0.01" oninput="actualizarPreviewAcredEnVivo()"></div>
+                  <div class="field"><label for="acredQrY">Posición Y (mm)</label><input type="number" id="acredQrY" step="0.01" oninput="actualizarPreviewAcredEnVivo()"></div>
+                  <div class="field-row">
+                    <div class="field"><label for="acredQrW">Ancho (mm)</label><input type="number" id="acredQrW" step="0.01" oninput="actualizarPreviewAcredEnVivo()"></div>
+                    <div class="field"><label for="acredQrH">Alto (mm)</label><input type="number" id="acredQrH" step="0.01" oninput="actualizarPreviewAcredEnVivo()"></div>
+                  </div>
+                  <div class="field"><label for="acredQrRadio">Redondez de esquinas</label><input type="number" id="acredQrRadio" step="1" min="0" oninput="actualizarPreviewAcredEnVivo()"></div>
+                </div>
+
+                <div class="panel" style="background:#fbfcfc;">
+                  <div class="panel-title" style="font-size:12.5px;">Nombre</div>
+                  <div class="field"><label for="acredNombreX">Posición X (mm)</label><input type="number" id="acredNombreX" step="0.01" oninput="actualizarPreviewAcredEnVivo()"></div>
+                  <div class="field"><label for="acredNombreY">Posición Y (mm)</label><input type="number" id="acredNombreY" step="0.01" oninput="actualizarPreviewAcredEnVivo()"></div>
+                  <div class="field"><label for="acredNombreAlto">Alto de la caja (mm)</label><input type="number" id="acredNombreAlto" step="0.01" oninput="actualizarPreviewAcredEnVivo()"></div>
+                  <div class="field-row">
+                    <div class="field"><label for="acredNombreTam">Tamaño de letra</label><input type="number" id="acredNombreTam" step="0.1" oninput="actualizarPreviewAcredEnVivo()"></div>
+                    <div class="field"><label for="acredNombreColor">Color</label><input type="text" id="acredNombreColor" placeholder="#FFFFFF" oninput="actualizarPreviewAcredEnVivo()"></div>
+                  </div>
+                </div>
+
+                <div class="panel" style="background:#fbfcfc;">
+                  <div class="panel-title" style="font-size:12.5px;">Empresa</div>
+                  <div class="field"><label for="acredEmpresaX">Posición X (mm)</label><input type="number" id="acredEmpresaX" step="0.01" oninput="actualizarPreviewAcredEnVivo()"></div>
+                  <div class="field"><label for="acredEmpresaY">Posición Y (mm)</label><input type="number" id="acredEmpresaY" step="0.01" oninput="actualizarPreviewAcredEnVivo()"></div>
+                  <div class="field"><label for="acredEmpresaAlto">Alto de la caja (mm)</label><input type="number" id="acredEmpresaAlto" step="0.01" oninput="actualizarPreviewAcredEnVivo()"></div>
+                  <div class="field-row">
+                    <div class="field"><label for="acredEmpresaTam">Tamaño de letra</label><input type="number" id="acredEmpresaTam" step="0.1" oninput="actualizarPreviewAcredEnVivo()"></div>
+                    <div class="field"><label for="acredEmpresaColor">Color</label><input type="text" id="acredEmpresaColor" placeholder="#00B2B7" oninput="actualizarPreviewAcredEnVivo()"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="btn-row" style="margin-top:16px;">
+                <button class="btn" onclick="guardarConfigAcreditacion()"><i class="fa-solid fa-floppy-disk"></i> Guardar configuración</button>
+              </div>
+            </details>
+
+            <div class="table-wrap">
+              <table id="tablaAcreditaciones">
+                <thead><tr><th>Nombre</th><th>Empresa</th><th>Cargo</th><th>Email</th><th>Estado</th><th></th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </section>
+
+      <!-- Modal: previsualización de acreditación -->
+      <div class="modal-overlay" id="acredPreviewModal">
+        <div class="modal-box">
+          <span class="modal-close" onclick="document.getElementById('acredPreviewModal').classList.remove('active')"><i class="fa-solid fa-xmark"></i></span>
+          <h3 id="acredPreviewModalTitulo">Acreditación</h3>
+          <div id="acredPreviewModalBody" style="text-align:center;"></div>
+        </div>
+      </div>
 
       <!-- Modal de creación / edición de evento propio -->
       <div class="modal-overlay" id="eventoPropioModal">
@@ -2604,6 +2707,29 @@
           <div class="btn-row">
             <button class="btn" onclick="guardarPonente()"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
             <button class="btn btn-danger" id="poDeleteBtn" style="display:none;" onclick="eliminarPonente()">Eliminar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal de edición de inscrito -->
+      <div class="modal-overlay" id="editarInscritoModal">
+        <div class="modal-box">
+          <span class="modal-close" onclick="document.getElementById('editarInscritoModal').classList.remove('active')"><i class="fa-solid fa-xmark"></i></span>
+          <h3>Editar inscrito</h3>
+          <div class="field-row">
+            <div class="field" style="flex:2;"><label for="eiNombre">Nombre</label><input type="text" id="eiNombre"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label for="eiEmail">Email</label><input type="email" id="eiEmail"></div>
+            <div class="field"><label for="eiTelefono">Teléfono</label><input type="tel" id="eiTelefono"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label for="eiCargo">Cargo</label><input type="text" id="eiCargo"></div>
+            <div class="field"><label for="eiEmpresa">Empresa</label><input type="text" id="eiEmpresa"></div>
+          </div>
+          <div class="field"><label for="eiSector">Sector</label><select id="eiSector"><option value="">Sin especificar</option></select></div>
+          <div class="btn-row">
+            <button class="btn" onclick="guardarEdicionInscrito()"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
           </div>
         </div>
       </div>
@@ -3260,6 +3386,7 @@ function switchTab(module, tabName){
     else if (tabName==='programa') renderPrograma();
     else if (tabName==='calendario') renderCalendarioComunicacion();
     else if (tabName==='recursos') renderRecursos();
+    else if (tabName==='acreditaciones') renderAcreditaciones();
   }
 }
 
@@ -3503,12 +3630,14 @@ function renderSectores(){
 }
 
 function poblarSelectSectorInscrito(){
-  const sel = document.getElementById('insSector');
-  if (!sel) return;
   const sectores = getSectores();
-  const prev = sel.value;
-  sel.innerHTML = '<option value="">Sin especificar</option>' + sectores.map(s=>`<option>${esc(s.nombre)}</option>`).join('');
-  if (sectores.some(s=>s.nombre===prev)) sel.value = prev;
+  ['insSector','eiSector'].forEach(id=>{
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const prev = sel.value;
+    sel.innerHTML = '<option value="">Sin especificar</option>' + sectores.map(s=>`<option>${esc(s.nombre)}</option>`).join('');
+    if (sectores.some(s=>s.nombre===prev)) sel.value = prev;
+  });
 }
 
 /* =======================================================================
@@ -6230,6 +6359,7 @@ const LS_EV_PLAN = 'cidautHub_evPlan';
 const LS_EV_PROGRAMA = 'cidautHub_evPrograma';
 const LS_EV_PONENTES = 'cidautHub_evPonentes';
 const LS_EV_RECURSOS = 'cidautHub_evRecursos';
+const LS_EV_ACRED = 'cidautHub_evAcreditaciones';
 
 function getEvObj(key){
   const raw = localStorage.getItem(key);
@@ -6482,7 +6612,7 @@ function renombrarEventoPropioEnDatos(nombreAnterior, nombreNuevo){
   }
   setLS(LS.inscritos, getLS(LS.inscritos).map(i=> i.evento===nombreAnterior ? {...i, evento:nombreNuevo} : i));
   setLS(LS.comunicacionEventos, getLS(LS.comunicacionEventos).map(c=> c.evento===nombreAnterior ? {...c, evento:nombreNuevo} : c));
-  [LS_EV_PLAN, LS_EV_PROGRAMA, LS_EV_PONENTES, LS_EV_RECURSOS].forEach(key=>{
+  [LS_EV_PLAN, LS_EV_PROGRAMA, LS_EV_PONENTES, LS_EV_RECURSOS, LS_EV_ACRED].forEach(key=>{
     const o = getEvObj(key);
     if (o[nombreAnterior] !== undefined){
       o[nombreNuevo] = o[nombreAnterior];
@@ -6503,7 +6633,7 @@ function eliminarEventoPropio(nombreParam){
   localStorage.setItem(LS.logistica, JSON.stringify(logistica));
   setLS(LS.inscritos, getLS(LS.inscritos).filter(i=>i.evento!==nombre));
   setLS(LS.comunicacionEventos, getLS(LS.comunicacionEventos).filter(c=>c.evento!==nombre));
-  [LS_EV_PLAN, LS_EV_PROGRAMA, LS_EV_PONENTES, LS_EV_RECURSOS].forEach(key=>{
+  [LS_EV_PLAN, LS_EV_PROGRAMA, LS_EV_PONENTES, LS_EV_RECURSOS, LS_EV_ACRED].forEach(key=>{
     const o = getEvObj(key);
     if (o[nombre] !== undefined){ delete o[nombre]; localStorage.setItem(key, JSON.stringify(o)); }
   });
@@ -6991,6 +7121,7 @@ function añadirInscrito(){
   inscritos.push({
     id: uid(), evento, nombre,
     email: document.getElementById('insEmail').value.trim(),
+    telefono: document.getElementById('insTelefono').value.trim(),
     cargo: document.getElementById('insCargo').value.trim(),
     empresa: document.getElementById('insEmpresa').value.trim(),
     sector: document.getElementById('insSector').value,
@@ -7002,13 +7133,51 @@ function añadirInscrito(){
   });
   setLS(LS.inscritos, inscritos);
 
-  ['insNombre','insEmail','insCargo','insEmpresa','insFecha'].forEach(id=>document.getElementById(id).value='');
+  ['insNombre','insEmail','insTelefono','insCargo','insEmpresa','insFecha'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('insSector').value = '';
   document.getElementById('insComida').checked = false;
   document.getElementById('insVisita').checked = false;
   renderInscritos();
   updateDashboardStats();
   showToast('Inscrito añadido.');
+}
+
+let editarInscritoId = null;
+function abrirModalEditarInscrito(id){
+  const i = getLS(LS.inscritos).find(x=>x.id===id);
+  if (!i) return;
+  editarInscritoId = id;
+  poblarSelectSectorInscrito();
+  document.getElementById('eiNombre').value = i.nombre||'';
+  document.getElementById('eiEmail').value = i.email||'';
+  document.getElementById('eiTelefono').value = i.telefono||'';
+  document.getElementById('eiCargo').value = i.cargo||'';
+  document.getElementById('eiEmpresa').value = i.empresa||'';
+  document.getElementById('eiSector').value = i.sector||'';
+  document.getElementById('editarInscritoModal').classList.add('active');
+}
+function guardarEdicionInscrito(){
+  if (!editarInscritoId) return;
+  const nombre = document.getElementById('eiNombre').value.trim();
+  if (!nombre){ showToast('Indica el nombre.'); return; }
+  const inscritos = getLS(LS.inscritos);
+  const idx = inscritos.findIndex(x=>x.id===editarInscritoId);
+  if (idx>-1){
+    inscritos[idx] = {
+      ...inscritos[idx],
+      nombre,
+      email: document.getElementById('eiEmail').value.trim(),
+      telefono: document.getElementById('eiTelefono').value.trim(),
+      cargo: document.getElementById('eiCargo').value.trim(),
+      empresa: document.getElementById('eiEmpresa').value.trim(),
+      sector: document.getElementById('eiSector').value
+    };
+    setLS(LS.inscritos, inscritos);
+  }
+  document.getElementById('editarInscritoModal').classList.remove('active');
+  renderInscritos();
+  if (document.getElementById('propios-acreditaciones')) renderAcreditaciones();
+  showToast('Inscrito actualizado.');
 }
 
 function eliminarInscrito(id){
@@ -7086,14 +7255,15 @@ function renderInscritos(){
   const tbody = document.querySelector('#tablaInscritos tbody');
   if (tbody){
     if (!evento){
-      tbody.innerHTML = '<tr class="empty-row"><td colspan="9">Abre un evento propio desde el hub.</td></tr>';
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="10">Abre un evento propio desde el hub.</td></tr>';
     } else if (!todos.length){
-      tbody.innerHTML = '<tr class="empty-row"><td colspan="9">Todavía no hay inscritos para este evento.</td></tr>';
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="10">Todavía no hay inscritos para este evento.</td></tr>';
     } else {
       tbody.innerHTML = todos.slice().sort((a,b)=>a.fecha.localeCompare(b.fecha)).map(i=>`
         <tr style="${i.estInscripcion==='cancelado'?'opacity:0.5;':''}">
           <td>${esc(i.nombre)}</td>
           <td>${esc(i.email)||'—'}</td>
+          <td>${esc(i.telefono)||'—'}</td>
           <td>${esc(i.empresa)||'—'}</td>
           <td>
             <select onchange="actualizarEstadoInscrito('${i.id}','estInscripcion',this.value)" style="padding:4px 6px;font-size:11.5px;">
@@ -7108,7 +7278,10 @@ function renderInscritos(){
           <td style="text-align:center;"><input type="checkbox" style="width:auto;accent-color:var(--teal-500);" ${i.comida?'checked':''} onchange="actualizarEstadoInscrito('${i.id}','comida',this.checked)"></td>
           <td style="text-align:center;"><input type="checkbox" style="width:auto;accent-color:var(--teal-500);" ${i.visita?'checked':''} onchange="actualizarEstadoInscrito('${i.id}','visita',this.checked)"></td>
           <td>${fmtFecha(i.fecha)}</td>
-          <td><span class="btn-ghost" onclick="eliminarInscrito('${i.id}')"><i class="fa-solid fa-trash"></i></span></td>
+          <td style="white-space:nowrap;">
+            <span class="btn-ghost" onclick="abrirModalEditarInscrito('${i.id}')" title="Editar"><i class="fa-solid fa-pen"></i></span>
+            <span class="btn-ghost" onclick="eliminarInscrito('${i.id}')" title="Eliminar"><i class="fa-solid fa-trash"></i></span>
+          </td>
         </tr>`).join('');
     }
   }
@@ -7814,6 +7987,523 @@ function eliminarRecurso(id){
   renderRecursos();
   showToast('Recurso eliminado.');
 }
+
+/* =======================================================================
+   ACREDITACIONES — plantilla + QR (vCard) + nombre/empresa, generados
+   automáticamente a partir de los inscritos ya existentes del evento.
+   Todo se trabaja internamente en milímetros para que la posición sea
+   consistente en pantalla, al descargar y al imprimir/exportar a PDF.
+   ======================================================================= */
+
+/* "20" / "29.8" tal como se especificaron son valores de referencia estilo
+   diseño (px a 96dpi), no milímetros. Se convierten a mm con este factor
+   antes de escalarlos al lienzo, igual que las medidas que sí van en mm. */
+const ACRED_PX_REF_A_MM = 1/3.7795275591;
+
+function configAcredPorDefecto(){
+  return {
+    plantilla: null,           // dataURL de la imagen de plantilla
+    plantillaNombre: '',
+    fuenteDataUrl: null,       // dataURL del archivo de fuente subido (opcional)
+    fuenteNombre: '',
+    anchoMM: 95,
+    altoMM: 220,
+    version: 1,                // se incrementa al guardar; sirve para detectar acreditaciones desactualizadas
+    qr:      { x:72.68,  y:114.67, w:64.64, h:64.64, radius:20 },
+    nombre:  { x:13.38,  y:188.14, alto:12.54, tam:29.8, color:'#FFFFFF' },
+    empresa: { x:13.38,  y:202.68, alto:12.54, tam:29.8, color:'#00B2B7' }
+  };
+}
+function getConfigAcred(evento){
+  const guardado = getEvObj(LS_EV_ACRED)[evento];
+  const base = configAcredPorDefecto();
+  if (!guardado) return base;
+  return {
+    ...base, ...guardado,
+    qr: { ...base.qr, ...(guardado.qr||{}) },
+    nombre: { ...base.nombre, ...(guardado.nombre||{}) },
+    empresa: { ...base.empresa, ...(guardado.empresa||{}) }
+  };
+}
+function saveConfigAcred(evento, cfg){
+  const o = getEvObj(LS_EV_ACRED);
+  o[evento] = cfg;
+  localStorage.setItem(LS_EV_ACRED, JSON.stringify(o));
+}
+
+/* --- vCard --- */
+function escaparVCard(v){
+  return String(v==null?'':v).replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');
+}
+function construirVCardInscrito(i){
+  return [
+    'BEGIN:VCARD',
+    'VERSION:3.0',
+    `FN:${escaparVCard(i.nombre)}`,
+    i.empresa ? `ORG:${escaparVCard(i.empresa)}` : null,
+    i.cargo ? `TITLE:${escaparVCard(i.cargo)}` : null,
+    i.telefono ? `TEL:${escaparVCard(i.telefono)}` : null,
+    i.email ? `EMAIL:${escaparVCard(i.email)}` : null,
+    i.sector ? `NOTE:${escaparVCard(i.sector)}` : null,
+    'END:VCARD'
+  ].filter(Boolean).join('\r\n');
+}
+
+/* --- Detección de datos/config desactualizados (secciones 13 y 14) --- */
+function hashDatosAcredInscrito(i){
+  return JSON.stringify([i.nombre,i.email,i.telefono,i.cargo,i.empresa,i.sector]);
+}
+function estadoAcredInscrito(i, cfg){
+  if (i.acredError) return 'error';
+  if (!i.acredImagen) return 'pendiente';
+  if (i.acredHash !== hashDatosAcredInscrito(i)) return 'desactualizada';
+  if (i.acredConfigVersion !== cfg.version) return 'desactualizada';
+  return 'generada';
+}
+
+/* --- Utilidades de imagen / lienzo --- */
+function cargarImagen(src){
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    img.onload = ()=>resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+function leerArchivoComoDataURL(file){
+  return new Promise((resolve, reject)=>{
+    const r = new FileReader();
+    r.onload = ()=>resolve(r.result);
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+function dibujarRectRedondeado(ctx, x, y, w, h, r){
+  const radio = Math.max(0, Math.min(r, w/2, h/2));
+  ctx.beginPath();
+  ctx.moveTo(x+radio, y);
+  ctx.arcTo(x+w, y, x+w, y+h, radio);
+  ctx.arcTo(x+w, y+h, x, y+h, radio);
+  ctx.arcTo(x, y+h, x, y, radio);
+  ctx.arcTo(x, y, x+w, y, radio);
+  ctx.closePath();
+}
+function nombreFuenteAcred(cfg){ return cfg.fuenteDataUrl ? 'HK Modular' : 'Arial, Helvetica, sans-serif'; }
+let _fuenteAcredCargada = null;
+async function asegurarFuenteAcredCargada(cfg){
+  if (!cfg.fuenteDataUrl){ return; }
+  if (_fuenteAcredCargada === cfg.fuenteDataUrl) return;
+  try{
+    const fuente = new FontFace('HK Modular', `url(${cfg.fuenteDataUrl})`);
+    await fuente.load();
+    document.fonts.add(fuente);
+    _fuenteAcredCargada = cfg.fuenteDataUrl;
+  }catch(e){
+    console.error('No se pudo cargar la tipografía HK Modular, se usará una de reemplazo.', e);
+  }
+}
+
+/* Dibuja un texto centrado horizontalmente dentro de la caja definida por
+   campoCfg, reduciendo el tamaño de letra automáticamente si no cabe, sin
+   tocar nunca su posición Y ni su tamaño de caja. */
+function dibujarTextoCentradoAcred(ctx, texto, campoCfg, anchoTotalMM, pxPerMM, fuenteFamily){
+  const margenMM = campoCfg.x;
+  const cajaAnchoPx = Math.max(1, (anchoTotalMM - margenMM*2) * pxPerMM);
+  const cajaCentroXpx = margenMM*pxPerMM + cajaAnchoPx/2;
+  const cajaCentroYpx = (campoCfg.y + campoCfg.alto/2) * pxPerMM;
+
+  let tamPx = (campoCfg.tam * ACRED_PX_REF_A_MM) * pxPerMM;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = campoCfg.color || '#000000';
+  ctx.font = `700 ${tamPx}px "${fuenteFamily}"`;
+  let ancho = ctx.measureText(texto).width;
+  while (ancho > cajaAnchoPx && tamPx > 5){
+    tamPx -= 0.5;
+    ctx.font = `700 ${tamPx}px "${fuenteFamily}"`;
+    ancho = ctx.measureText(texto).width;
+  }
+  ctx.fillText(texto, cajaCentroXpx, cajaCentroYpx, cajaAnchoPx);
+}
+
+/* Genera la acreditación completa de un inscrito y devuelve un dataURL PNG. */
+async function generarImagenAcreditacion(inscrito, cfg, plantillaImg){
+  await asegurarFuenteAcredCargada(cfg);
+  const fuenteFamily = nombreFuenteAcred(cfg);
+
+  // Limita la resolución de trabajo a un tamaño de calidad de impresión
+  // (~300dpi para el ancho configurado) sin depender de que la imagen
+  // subida sea enorme, para no disparar el tamaño de los datos guardados.
+  const pxPerMMobjetivo = Math.min(
+    plantillaImg.naturalWidth / cfg.anchoMM,
+    300/25.4
+  );
+  const canvasW = Math.round(cfg.anchoMM * pxPerMMobjetivo);
+  const canvasH = Math.round(cfg.altoMM * pxPerMMobjetivo);
+  const pxPerMM = canvasW / cfg.anchoMM;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = canvasW;
+  canvas.height = canvasH;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(plantillaImg, 0, 0, canvasW, canvasH);
+
+  const vcard = construirVCardInscrito(inscrito);
+  const qrWpx = Math.max(32, Math.round(cfg.qr.w * pxPerMM));
+  const qrDataUrl = await QRCode.toDataURL(vcard, { errorCorrectionLevel:'M', margin:0, width: qrWpx });
+  const qrImg = await cargarImagen(qrDataUrl);
+  const qx = cfg.qr.x*pxPerMM, qy = cfg.qr.y*pxPerMM, qw = cfg.qr.w*pxPerMM, qh = cfg.qr.h*pxPerMM;
+  const radioPx = (cfg.qr.radius * ACRED_PX_REF_A_MM) * pxPerMM;
+  ctx.save();
+  dibujarRectRedondeado(ctx, qx, qy, qw, qh, radioPx);
+  ctx.clip();
+  ctx.drawImage(qrImg, qx, qy, qw, qh);
+  ctx.restore();
+
+  dibujarTextoCentradoAcred(ctx, (inscrito.nombre||'').toUpperCase(), cfg.nombre, cfg.anchoMM, pxPerMM, fuenteFamily);
+  dibujarTextoCentradoAcred(ctx, (inscrito.empresa||'').toUpperCase(), cfg.empresa, cfg.anchoMM, pxPerMM, fuenteFamily);
+
+  return canvas.toDataURL('image/png');
+}
+
+/* --- Generación individual / masiva --- */
+async function generarAcreditacionInscritoUI(id){
+  const ev = eventoDetalleActual;
+  if (!ev) return;
+  const inscritos = getLS(LS.inscritos);
+  const idx = inscritos.findIndex(x=>x.id===id);
+  if (idx<0) return;
+  const cfg = getConfigAcred(ev);
+  if (!cfg.plantilla){ showToast('Sube antes una plantilla en "Configurar plantilla y posiciones".'); return; }
+  try{
+    const plantillaImg = await cargarImagen(cfg.plantilla);
+    const dataUrl = await generarImagenAcreditacion(inscritos[idx], cfg, plantillaImg);
+    inscritos[idx] = {
+      ...inscritos[idx],
+      acredImagen: dataUrl,
+      acredHash: hashDatosAcredInscrito(inscritos[idx]),
+      acredConfigVersion: cfg.version,
+      acredFecha: new Date().toISOString(),
+      acredError: null
+    };
+    setLS(LS.inscritos, inscritos);
+  }catch(e){
+    console.error('Error generando acreditación:', e);
+    inscritos[idx] = { ...inscritos[idx], acredError: (e&&e.message)?e.message:'Error desconocido' };
+    setLS(LS.inscritos, inscritos);
+  }
+  renderAcreditaciones();
+}
+
+async function generarTodasPendientesAcred(){
+  const ev = eventoDetalleActual;
+  if (!ev){ showToast('Abre primero un evento.'); return; }
+  const cfg = getConfigAcred(ev);
+  if (!cfg.plantilla){ showToast('Sube antes una plantilla en "Configurar plantilla y posiciones".'); return; }
+  const inscritos = getLS(LS.inscritos).filter(i=>i.evento===ev);
+  const pendientes = inscritos.filter(i=> estadoAcredInscrito(i, cfg)==='pendiente' || estadoAcredInscrito(i, cfg)==='error');
+  if (!pendientes.length){ showToast('No hay acreditaciones pendientes de generar.'); return; }
+  showToast(`Generando ${pendientes.length} acreditación${pendientes.length===1?'':'es'}…`);
+  for (const i of pendientes){ await generarAcreditacionInscritoUI(i.id); }
+  showToast('Generación completada.');
+}
+
+async function regenerarTodasAcred(){
+  const ev = eventoDetalleActual;
+  if (!ev){ showToast('Abre primero un evento.'); return; }
+  const cfg = getConfigAcred(ev);
+  if (!cfg.plantilla){ showToast('Sube antes una plantilla en "Configurar plantilla y posiciones".'); return; }
+  const inscritos = getLS(LS.inscritos).filter(i=>i.evento===ev);
+  if (!inscritos.length){ showToast('No hay inscritos en este evento.'); return; }
+  if (!confirm(`¿Regenerar las ${inscritos.length} acreditaciones de este evento? Se sustituirán todas las ya generadas.`)) return;
+  showToast('Regenerando todas las acreditaciones…');
+  for (const i of inscritos){ await generarAcreditacionInscritoUI(i.id); }
+  showToast('Regeneración completada.');
+}
+
+/* --- Previsualización --- */
+async function previsualizarAcreditacion(id){
+  const ev = eventoDetalleActual;
+  if (!ev) return;
+  const inscrito = getLS(LS.inscritos).find(x=>x.id===id);
+  if (!inscrito) return;
+  const cfg = getConfigAcred(ev);
+  if (!cfg.plantilla){ showToast('Sube antes una plantilla.'); return; }
+  document.getElementById('acredPreviewModalTitulo').textContent = `Acreditación — ${inscrito.nombre}`;
+  document.getElementById('acredPreviewModalBody').innerHTML = '<p class="muted small">Generando previsualización…</p>';
+  document.getElementById('acredPreviewModal').classList.add('active');
+  try{
+    const plantillaImg = await cargarImagen(cfg.plantilla);
+    const dataUrl = inscrito.acredImagen && estadoAcredInscrito(inscrito,cfg)==='generada'
+      ? inscrito.acredImagen
+      : await generarImagenAcreditacion(inscrito, cfg, plantillaImg);
+    document.getElementById('acredPreviewModalBody').innerHTML = `<img src="${dataUrl}" style="max-width:100%;max-height:70vh;border:1px solid var(--line-strong);border-radius:6px;">`;
+  }catch(e){
+    console.error(e);
+    document.getElementById('acredPreviewModalBody').innerHTML = '<p class="muted small">No se pudo generar la previsualización.</p>';
+  }
+}
+
+/* --- Descarga individual --- */
+function nombreArchivoAcred(inscrito){
+  const limpio = (inscrito.nombre||'acreditacion')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-zA-Z0-9]+/g,'_').replace(/^_+|_+$/g,'');
+  return `Acreditacion_${limpio||'inscrito'}.png`;
+}
+function descargarAcreditacionInscrito(id){
+  const inscrito = getLS(LS.inscritos).find(x=>x.id===id);
+  if (!inscrito || !inscrito.acredImagen){ showToast('Genera primero la acreditación.'); return; }
+  const a = document.createElement('a');
+  a.href = inscrito.acredImagen;
+  a.download = nombreArchivoAcred(inscrito);
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* --- Exportación a PDF / impresión (sección 10) --- */
+async function construirPdfAcreditaciones(ev, cfg){
+  const inscritos = getLS(LS.inscritos).filter(i=>i.evento===ev && i.acredImagen);
+  if (!inscritos.length) return null;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'mm', format:'a4' });
+  const pageW = 210, pageH = 297;
+  const margen = 10, gap = 6;
+  const cols = Math.max(1, Math.floor((pageW - margen*2 + gap) / (cfg.anchoMM + gap)));
+  const rows = Math.max(1, Math.floor((pageH - margen*2 + gap) / (cfg.altoMM + gap)));
+  const porPagina = cols*rows;
+
+  for (let idx=0; idx<inscritos.length; idx++){
+    const enPagina = idx % porPagina;
+    if (idx>0 && enPagina===0) doc.addPage();
+    const col = enPagina % cols;
+    const row = Math.floor(enPagina / cols);
+    const x = margen + col*(cfg.anchoMM+gap);
+    const y = margen + row*(cfg.altoMM+gap);
+    doc.addImage(inscritos[idx].acredImagen, 'PNG', x, y, cfg.anchoMM, cfg.altoMM, undefined, 'FAST');
+  }
+  return doc;
+}
+async function exportarPdfAcreditaciones(){
+  const ev = eventoDetalleActual;
+  if (!ev){ showToast('Abre primero un evento.'); return; }
+  const cfg = getConfigAcred(ev);
+  const generadas = getLS(LS.inscritos).filter(i=>i.evento===ev && i.acredImagen).length;
+  if (!generadas){ showToast('Todavía no hay acreditaciones generadas.'); return; }
+  const doc = await construirPdfAcreditaciones(ev, cfg);
+  if (!doc){ showToast('No hay acreditaciones generadas.'); return; }
+  doc.save(`Acreditaciones_${(ev||'evento').replace(/[^a-zA-Z0-9]+/g,'_')}.pdf`);
+}
+async function imprimirAcreditaciones(){
+  const ev = eventoDetalleActual;
+  if (!ev){ showToast('Abre primero un evento.'); return; }
+  const cfg = getConfigAcred(ev);
+  const doc = await construirPdfAcreditaciones(ev, cfg);
+  if (!doc){ showToast('Todavía no hay acreditaciones generadas.'); return; }
+  const url = doc.output('bloburl');
+  window.open(url, '_blank');
+  showToast('Se abre el PDF en una pestaña nueva. Desde ahí puedes imprimirlo (Ctrl+P).');
+}
+
+/* --- Configuración de plantilla / posiciones --- */
+async function subirPlantillaAcred(file){
+  const ev = eventoDetalleActual;
+  if (!ev || !file) return;
+  try{
+    const dataUrl = await leerArchivoComoDataURL(file);
+    const cfg = getConfigAcred(ev);
+    cfg.plantilla = dataUrl;
+    cfg.plantillaNombre = file.name;
+    saveConfigAcred(ev, cfg);
+    renderConfigAcredUI(cfg);
+    actualizarPreviewAcredEnVivo();
+    showToast('Plantilla actualizada.');
+  }catch(e){
+    console.error(e);
+    showToast('No se pudo leer la imagen.');
+  }
+}
+async function subirFuenteAcred(file){
+  const ev = eventoDetalleActual;
+  if (!ev || !file) return;
+  try{
+    const dataUrl = await leerArchivoComoDataURL(file);
+    const cfg = getConfigAcred(ev);
+    cfg.fuenteDataUrl = dataUrl;
+    cfg.fuenteNombre = file.name;
+    saveConfigAcred(ev, cfg);
+    _fuenteAcredCargada = null;
+    document.getElementById('acredFuenteEstado').textContent = `Tipografía cargada: ${file.name}`;
+    actualizarPreviewAcredEnVivo();
+    showToast('Tipografía guardada.');
+  }catch(e){
+    console.error(e);
+    showToast('No se pudo leer el archivo de fuente.');
+  }
+}
+
+function leerCamposConfigAcredDesdeUI(){
+  const cfg = getConfigAcred(eventoDetalleActual);
+  cfg.anchoMM = Number(document.getElementById('acredAnchoMM').value)||cfg.anchoMM;
+  cfg.altoMM = Number(document.getElementById('acredAltoMM').value)||cfg.altoMM;
+  cfg.qr = {
+    x: Number(document.getElementById('acredQrX').value)||0,
+    y: Number(document.getElementById('acredQrY').value)||0,
+    w: Number(document.getElementById('acredQrW').value)||1,
+    h: Number(document.getElementById('acredQrH').value)||1,
+    radius: Number(document.getElementById('acredQrRadio').value)||0
+  };
+  cfg.nombre = {
+    x: Number(document.getElementById('acredNombreX').value)||0,
+    y: Number(document.getElementById('acredNombreY').value)||0,
+    alto: Number(document.getElementById('acredNombreAlto').value)||1,
+    tam: Number(document.getElementById('acredNombreTam').value)||1,
+    color: document.getElementById('acredNombreColor').value.trim()||'#FFFFFF'
+  };
+  cfg.empresa = {
+    x: Number(document.getElementById('acredEmpresaX').value)||0,
+    y: Number(document.getElementById('acredEmpresaY').value)||0,
+    alto: Number(document.getElementById('acredEmpresaAlto').value)||1,
+    tam: Number(document.getElementById('acredEmpresaTam').value)||1,
+    color: document.getElementById('acredEmpresaColor').value.trim()||'#00B2B7'
+  };
+  return cfg;
+}
+
+function guardarConfigAcreditacion(){
+  const ev = eventoDetalleActual;
+  if (!ev){ showToast('Abre primero un evento.'); return; }
+  const cfg = leerCamposConfigAcredDesdeUI();
+  cfg.version = (getConfigAcred(ev).version||1) + 1;
+  saveConfigAcred(ev, cfg);
+  showToast('Configuración guardada. Las acreditaciones ya generadas quedarán marcadas para regenerar.');
+  renderAcreditaciones();
+}
+
+let _acredPreviewTimeout = null;
+function actualizarPreviewAcredEnVivo(){
+  clearTimeout(_acredPreviewTimeout);
+  _acredPreviewTimeout = setTimeout(async ()=>{
+    const ev = eventoDetalleActual;
+    const wrap = document.getElementById('acredPreviewLive');
+    if (!ev || !wrap) return;
+    const cfg = leerCamposConfigAcredDesdeUI();
+    if (!cfg.plantilla){ wrap.innerHTML = '<span class="muted small">Sube una plantilla para ver la vista previa.</span>'; return; }
+    try{
+      const plantillaImg = await cargarImagen(cfg.plantilla);
+      const dataUrl = await generarImagenAcreditacion(
+        { nombre:'Nombre Apellido', empresa:'Empresa de ejemplo', email:'ejemplo@cidaut.es', telefono:'600000000', cargo:'Cargo', sector:'Sector' },
+        cfg, plantillaImg
+      );
+      wrap.innerHTML = `<img src="${dataUrl}" style="max-width:100%;max-height:340px;">`;
+    }catch(e){
+      console.error(e);
+      wrap.innerHTML = '<span class="muted small">No se pudo generar la vista previa.</span>';
+    }
+  }, 250);
+}
+
+function renderConfigAcredUI(cfg){
+  document.getElementById('acredAnchoMM').value = cfg.anchoMM;
+  document.getElementById('acredAltoMM').value = cfg.altoMM;
+  document.getElementById('acredQrX').value = cfg.qr.x;
+  document.getElementById('acredQrY').value = cfg.qr.y;
+  document.getElementById('acredQrW').value = cfg.qr.w;
+  document.getElementById('acredQrH').value = cfg.qr.h;
+  document.getElementById('acredQrRadio').value = cfg.qr.radius;
+  document.getElementById('acredNombreX').value = cfg.nombre.x;
+  document.getElementById('acredNombreY').value = cfg.nombre.y;
+  document.getElementById('acredNombreAlto').value = cfg.nombre.alto;
+  document.getElementById('acredNombreTam').value = cfg.nombre.tam;
+  document.getElementById('acredNombreColor').value = cfg.nombre.color;
+  document.getElementById('acredEmpresaX').value = cfg.empresa.x;
+  document.getElementById('acredEmpresaY').value = cfg.empresa.y;
+  document.getElementById('acredEmpresaAlto').value = cfg.empresa.alto;
+  document.getElementById('acredEmpresaTam').value = cfg.empresa.tam;
+  document.getElementById('acredEmpresaColor').value = cfg.empresa.color;
+
+  const prevWrap = document.getElementById('acredPlantillaPreviewWrap');
+  prevWrap.innerHTML = cfg.plantilla
+    ? `<img src="${cfg.plantilla}" style="max-width:100%;max-height:160px;border:1px solid var(--line-strong);border-radius:6px;"><div class="cmeta" style="margin-top:4px;">${esc(cfg.plantillaNombre||'')}</div>`
+    : '<p class="muted small">Todavía no has subido ninguna plantilla.</p>';
+
+  document.getElementById('acredFuenteEstado').textContent = cfg.fuenteDataUrl
+    ? `Tipografía cargada: ${cfg.fuenteNombre||'archivo subido'}`
+    : 'Sin tipografía propia subida — se usará una de reemplazo (Arial).';
+}
+
+const ACRED_ESTADO_INFO = {
+  pendiente:    { icon:'○', texto:'Pendiente',   clase:'tag-grey'   },
+  generada:     { icon:'✓', texto:'Generada',    clase:'tag-teal'   },
+  desactualizada:{ icon:'⚠', texto:'Actualizar', clase:'tag-orange' },
+  error:        { icon:'⚠', texto:'Error',       clase:'tag-orange' }
+};
+
+function renderAcreditaciones(){
+  const ev = eventoDetalleActual;
+  const resumenWrap = document.getElementById('acredResumen');
+  const tbody = document.querySelector('#tablaAcreditaciones tbody');
+  if (!resumenWrap || !tbody) return;
+  if (!ev){
+    resumenWrap.innerHTML = '';
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Abre un evento propio desde el hub.</td></tr>';
+    return;
+  }
+
+  const cfg = getConfigAcred(ev);
+  renderConfigAcredUI(cfg);
+  actualizarPreviewAcredEnVivo();
+
+  const inscritos = getLS(LS.inscritos).filter(i=>i.evento===ev);
+  const estados = inscritos.map(i=>estadoAcredInscrito(i, cfg));
+  const generadas = estados.filter(e=>e==='generada').length;
+  const pendientes = estados.filter(e=>e==='pendiente').length;
+  const actualizar = estados.filter(e=>e==='desactualizada').length;
+  const errores = estados.filter(e=>e==='error').length;
+
+  resumenWrap.innerHTML = `
+    <div class="panel panel-accent"><div class="stat-block accent"><div class="stat-num">${inscritos.length}</div><div class="stat-label">Inscritos</div></div></div>
+    <div class="panel panel-accent"><div class="stat-block accent"><div class="stat-num">${generadas}</div><div class="stat-label">Generadas</div></div></div>
+    <div class="panel panel-accent"><div class="stat-block accent"><div class="stat-num">${pendientes}</div><div class="stat-label">Pendientes</div></div></div>
+    ${actualizar ? `<div class="panel panel-accent"><div class="stat-block accent"><div class="stat-num">${actualizar}</div><div class="stat-label">Para actualizar</div></div></div>` : ''}
+    ${errores ? `<div class="panel panel-accent"><div class="stat-block accent"><div class="stat-num">${errores}</div><div class="stat-label">Errores</div></div></div>` : ''}
+  `;
+
+  if (!inscritos.length){
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Todavía no hay inscritos en este evento. Añádelos desde la pestaña "Inscritos".</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = inscritos.map(i=>{
+    const estado = estadoAcredInscrito(i, cfg);
+    const info = ACRED_ESTADO_INFO[estado];
+    let acciones;
+    if (estado==='pendiente'){
+      acciones = `<button class="btn btn-secondary" style="padding:5px 10px;font-size:11.5px;" onclick="generarAcreditacionInscritoUI('${i.id}')"><i class="fa-solid fa-wand-magic-sparkles"></i> Generar</button>`;
+    } else if (estado==='error'){
+      acciones = `<button class="btn btn-secondary" style="padding:5px 10px;font-size:11.5px;" onclick="generarAcreditacionInscritoUI('${i.id}')" title="${esc(i.acredError||'')}"><i class="fa-solid fa-rotate-right"></i> Reintentar</button>`;
+    } else {
+      acciones = `
+        <span class="btn-ghost" onclick="previsualizarAcreditacion('${i.id}')" title="Ver"><i class="fa-solid fa-eye"></i></span>
+        <span class="btn-ghost" onclick="descargarAcreditacionInscrito('${i.id}')" title="Descargar"><i class="fa-solid fa-download"></i></span>
+        <span class="btn-ghost" onclick="generarAcreditacionInscritoUI('${i.id}')" title="Regenerar"><i class="fa-solid fa-rotate-right"></i></span>`;
+    }
+    return `<tr>
+      <td>${esc(i.nombre)}</td>
+      <td>${esc(i.empresa)||'—'}</td>
+      <td>${esc(i.cargo)||'—'}</td>
+      <td>${esc(i.email)||'—'}</td>
+      <td><span class="tag ${info.clase}">${info.icon} ${info.texto}</span></td>
+      <td style="white-space:nowrap;">${acciones}</td>
+    </tr>`;
+  }).join('');
+}
+
+document.getElementById('acredPlantillaFile').addEventListener('change', function(){
+  if (this.files[0]) subirPlantillaAcred(this.files[0]);
+});
+document.getElementById('acredFuenteFile').addEventListener('change', function(){
+  if (this.files[0]) subirFuenteAcred(this.files[0]);
+});
 
 /* =======================================================================
    DASHBOARD (INICIO)
