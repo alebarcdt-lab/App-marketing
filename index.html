@@ -2490,14 +2490,18 @@
           <div class="field"><label for="pgTitulo">Título</label><input type="text" id="pgTitulo" placeholder="Ej. Ponencia: cubiertas vegetales"></div>
           <div class="field">
             <label for="pgTipo">Tipo de actividad</label>
-            <select id="pgTipo">
+            <select id="pgTipo" onchange="actualizarVisibilidadModerador()">
               <option>Registro</option><option>Bienvenida</option><option>Ponencia</option><option>Mesa redonda</option>
               <option>Demostración</option><option>Pausa</option><option>Networking</option><option>Clausura</option><option>Otro</option>
             </select>
           </div>
           <div class="field">
             <label>Ponentes (opcional)</label>
-            <div id="pgPonentes" class="checklist"></div>
+            <div id="pgPonentes" class="checklist" onchange="actualizarVisibilidadModerador()"></div>
+          </div>
+          <div class="field" id="pgModeradorWrap" style="display:none;">
+            <label for="pgModerador">Moderador/a de la mesa</label>
+            <select id="pgModerador"><option value="">Sin moderador</option></select>
           </div>
           <div class="field-row">
             <div class="field"><label for="pgSala">Sala / ubicación</label><input type="text" id="pgSala" placeholder="Ej. Auditorio principal"></div>
@@ -7112,7 +7116,8 @@ function renderPrograma(){
           </div>
           ${datosPonentes.length?`<div style="margin-top:4px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;font-size:11.5px;color:var(--ink-500);">${datosPonentes.map(p=>{
             const cargoEmpresa = [p.cargo, p.empresa].filter(Boolean).join(', ');
-            return `<span><i class="fa-solid fa-user"></i> <strong style="color:var(--ink-700);">${esc(p.nombre)}</strong>${cargoEmpresa?' — '+esc(cargoEmpresa):''}</span>`;
+            const esModerador = b.moderadorId && p.id===b.moderadorId;
+            return `<span><i class="fa-solid fa-user"></i> <strong style="color:var(--ink-700);">${esc(p.nombre)}</strong>${cargoEmpresa?' — '+esc(cargoEmpresa):''}${esModerador?' <span class="tag tag-orange" style="margin-left:2px;">Moderador/a</span>':''}</span>`;
           }).join('')}</div>`:''}
           ${b.notas?`<div class="cmeta" style="margin-top:3px;">${esc(b.notas)}</div>`:''}
         </div>
@@ -7150,6 +7155,21 @@ function switchProgramaSub(sub){
   cont.querySelectorAll('.subtab-pane').forEach(p=>p.classList.toggle('active', p.id === 'programa-sub-'+sub));
 }
 
+function actualizarVisibilidadModerador(){
+  const esMesaRedonda = document.getElementById('pgTipo').value === 'Mesa redonda';
+  const wrap = document.getElementById('pgModeradorWrap');
+  const sel = document.getElementById('pgModerador');
+  const prev = sel.value;
+  wrap.style.display = esMesaRedonda ? '' : 'none';
+  if (!esMesaRedonda) return;
+  const ev = eventoDetalleActual;
+  const ponentes = ev ? getEvLista(LS_EV_PONENTES, ev) : [];
+  const idsSeleccionados = [...document.querySelectorAll('#pgPonentes input[type="checkbox"]:checked')].map(el=>el.value);
+  const seleccionados = idsSeleccionados.map(id=>ponentes.find(p=>p.id===id)).filter(Boolean);
+  sel.innerHTML = '<option value="">Sin moderador</option>' + seleccionados.map(p=>`<option value="${p.id}">${esc(p.nombre)}</option>`).join('');
+  sel.value = seleccionados.some(p=>p.id===prev) ? prev : '';
+}
+
 function abrirModalPrograma(id){
   const ev = eventoDetalleActual;
   if (!ev){ showToast('Abre primero un evento propio desde el hub.'); return; }
@@ -7169,6 +7189,8 @@ function abrirModalPrograma(id){
   document.getElementById('pgOrden').value = b ? (b.orden||'') : (getEvLista(LS_EV_PROGRAMA, ev).length + 1);
   document.getElementById('pgNotas').value = b ? (b.notas||'') : '';
   document.getElementById('pgDeleteBtn').style.display = b ? 'inline-flex' : 'none';
+  actualizarVisibilidadModerador();
+  if (b && b.moderadorId) document.getElementById('pgModerador').value = b.moderadorId;
   document.getElementById('programaModal').classList.add('active');
 }
 
@@ -7183,12 +7205,14 @@ function guardarPrograma(){
   const titulo = document.getElementById('pgTitulo').value.trim();
   if (!titulo){ showToast('Indica el título del bloque.'); return; }
   const lista = getEvLista(LS_EV_PROGRAMA, ev);
+  const tipo = document.getElementById('pgTipo').value;
   const data = {
     horaInicio: document.getElementById('pgHoraInicio').value,
     horaFin: document.getElementById('pgHoraFin').value,
     titulo,
-    tipo: document.getElementById('pgTipo').value,
+    tipo,
     ponenteIds: [...document.querySelectorAll('#pgPonentes input[type="checkbox"]:checked')].map(el=>el.value),
+    moderadorId: tipo==='Mesa redonda' ? document.getElementById('pgModerador').value : '',
     sala: document.getElementById('pgSala').value.trim(),
     orden: Number(document.getElementById('pgOrden').value)||lista.length+1,
     notas: document.getElementById('pgNotas').value.trim()
