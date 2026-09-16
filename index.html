@@ -498,6 +498,7 @@
   .agenda-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);align-items:flex-start;}
   .agenda-item:last-child{border-bottom:none;}
   .agenda-hora{width:105px;flex-shrink:0;font-size:11px;font-weight:700;color:var(--teal-700);font-family:var(--mono);padding-top:2px;}
+  .agenda-hora-inline{font-size:11px;font-weight:700;color:var(--teal-700);font-family:var(--mono);flex-shrink:0;}
   .agenda-body{flex:1;min-width:0;}
   .ponente-card{border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start;background:#fbfcfc;}
   .ponente-foto{width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0;border:1px solid var(--line);}
@@ -2265,7 +2266,7 @@
               <div class="panel-subtitle" style="margin-bottom:0;">Biblioteca documental del evento: enlaces a cartelería, presentaciones, carpetas, contratos, etc.</div>
               <button class="btn" onclick="abrirModalRecurso()"><i class="fa-solid fa-plus"></i> Añadir recurso</button>
             </div>
-            <div class="grid-3" id="recursosLista"></div>
+            <div id="recursosLista"></div>
           </div>
         </div>
       </section>
@@ -7103,14 +7104,13 @@ function renderPrograma(){
       const nombresPonentes = idsPonentes.map(id=>ponentes.find(x=>x.id===id)).filter(Boolean).map(p=>p.nombre);
       return `
       <div class="agenda-item">
-        <div class="agenda-hora">${esc(b.horaInicio||'—')}${b.horaFin?'<br>– '+esc(b.horaFin):''}</div>
         <div class="agenda-body">
-          <div style="font-size:12.5px;font-weight:600;color:var(--ink-900);">${esc(b.titulo)}</div>
-          <div class="ai-meta" style="margin-top:3px;">
+          <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">
+            <span class="agenda-hora-inline">${esc(b.horaInicio||'—')}${b.horaFin?'–'+esc(b.horaFin):''}</span>
+            <span style="font-size:12.5px;font-weight:600;color:var(--ink-900);">${esc(b.titulo)}</span>
             <span class="tag tag-teal">${esc(b.tipo||'Otro')}</span>
-            ${nombresPonentes.length?`<span><i class="fa-solid fa-user"></i> ${esc(nombresPonentes.join(', '))}</span>`:''}
-            ${b.sala?`<span><i class="fa-solid fa-location-dot"></i> ${esc(b.sala)}</span>`:''}
           </div>
+          ${nombresPonentes.length?`<div style="margin-top:4px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;font-size:11.5px;color:var(--ink-500);">${nombresPonentes.map(n=>`<span><i class="fa-solid fa-user"></i> ${esc(n)}</span>`).join('')}</div>`:''}
           ${b.notas?`<div class="cmeta" style="margin-top:3px;">${esc(b.notas)}</div>`:''}
         </div>
         <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0;">
@@ -7537,16 +7537,15 @@ function renderRecursos(){
     return;
   }
   wrap.innerHTML = recursos.map(r=>`
-    <div class="panel" style="margin-bottom:12px;">
-      <div class="snippet-head">
-        <div>
-          <h4>${esc(r.nombre)}</h4>
-          <div style="margin-top:6px;">
-            <span class="tag tag-grey">${esc(r.tipo)}</span>
-            <span class="tag ${r.estado==='disponible'?'tag-teal':'tag-orange'}" style="margin-left:4px;">${r.estado==='disponible'?'Disponible':'Pendiente'}</span>
-          </div>
+    <div class="panel" style="margin-bottom:10px;padding:14px 16px;">
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:220px;">
+          <strong style="font-size:13px;color:var(--ink-900);">${esc(r.nombre)}</strong>
+          <span class="tag tag-grey" style="margin-left:6px;">${esc(r.tipo)}</span>
+          <span class="tag ${r.estado==='disponible'?'tag-teal':'tag-orange'}" style="margin-left:4px;">${r.estado==='disponible'?'Disponible':'Pendiente'}</span>
         </div>
-        <div class="btn-row" style="margin-top:0;">
+        <div class="cmeta" style="white-space:nowrap;flex-shrink:0;">${r.fecha?fmtFecha(r.fecha):''}${r.responsable?' · '+esc(r.responsable):''}</div>
+        <div class="btn-row" style="margin-top:0;flex-shrink:0;">
           ${r.url ? (esRutaOrdenador(r.url)
             ? `<span class="btn btn-secondary" onclick="copiarRecurso('${r.id}')" title="Copiar ruta"><i class="fa-solid fa-copy"></i></span>`
             : `<a class="btn btn-secondary" href="${esc(r.url.match(/^https?:\/\//i)?r.url:'https://'+r.url)}" target="_blank" rel="noopener" title="Abrir"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>`
@@ -7555,8 +7554,7 @@ function renderRecursos(){
           <span class="btn-ghost" onclick="eliminarRecurso('${r.id}')"><i class="fa-solid fa-trash"></i></span>
         </div>
       </div>
-      ${r.descripcion?`<p style="font-size:12px;color:var(--ink-500);margin-top:8px;">${esc(r.descripcion)}</p>`:''}
-      <div class="cmeta" style="margin-top:6px;">${r.fecha?fmtFecha(r.fecha):''}${r.responsable?' · '+esc(r.responsable):''}</div>
+      ${r.descripcion?`<p style="font-size:12px;color:var(--ink-500);margin-top:6px;">${esc(r.descripcion)}</p>`:''}
       ${r.notas?`<div class="cmeta" style="margin-top:4px;">${esc(r.notas)}</div>`:''}
     </div>`).join('');
 }
