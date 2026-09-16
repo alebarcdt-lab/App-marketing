@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.4/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root{
@@ -8062,6 +8062,34 @@ function estadoAcredInscrito(i, cfg){
 }
 
 /* --- Utilidades de imagen / lienzo --- */
+/* qrcodejs (davidshimjs) dibuja el QR dentro de un contenedor del DOM
+   (usa <canvas> si el navegador lo soporta), en vez de devolver
+   directamente una imagen. Esta función lo envuelve en una Promise que
+   sí devuelve un dataURL, para poder usarlo igual que cualquier otra
+   fuente de imagen al componer la acreditación. */
+function generarQRDataURL(texto, tamanoPx){
+  return new Promise((resolve, reject)=>{
+    try{
+      const contenedor = document.createElement('div');
+      contenedor.style.cssText = 'position:fixed;left:-9999px;top:-9999px;';
+      document.body.appendChild(contenedor);
+      new QRCode(contenedor, {
+        text: texto,
+        width: tamanoPx,
+        height: tamanoPx,
+        correctLevel: QRCode.CorrectLevel.M
+      });
+      setTimeout(()=>{
+        const canvas = contenedor.querySelector('canvas');
+        const img = contenedor.querySelector('img');
+        const dataUrl = canvas ? canvas.toDataURL('image/png') : (img ? img.src : null);
+        document.body.removeChild(contenedor);
+        if (dataUrl) resolve(dataUrl); else reject(new Error('No se pudo generar el código QR.'));
+      }, 60);
+    }catch(e){ reject(e); }
+  });
+}
+
 function cargarImagen(src){
   return new Promise((resolve, reject)=>{
     const img = new Image();
@@ -8150,7 +8178,7 @@ async function generarImagenAcreditacion(inscrito, cfg, plantillaImg){
 
   const vcard = construirVCardInscrito(inscrito);
   const qrWpx = Math.max(32, Math.round(cfg.qr.w * pxPerMM));
-  const qrDataUrl = await QRCode.toDataURL(vcard, { errorCorrectionLevel:'M', margin:0, width: qrWpx });
+  const qrDataUrl = await generarQRDataURL(vcard, qrWpx);
   const qrImg = await cargarImagen(qrDataUrl);
   const qx = cfg.qr.x*pxPerMM, qy = cfg.qr.y*pxPerMM, qw = cfg.qr.w*pxPerMM, qh = cfg.qr.h*pxPerMM;
   const radioPx = (cfg.qr.radius * ACRED_PX_REF_A_MM) * pxPerMM;
