@@ -8035,16 +8035,36 @@ function saveConfigAcred(evento, cfg){
 function escaparVCard(v){
   return String(v==null?'':v).replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');
 }
+/* Recorta un campo a una longitud razonable: evita QR con demasiada
+   densidad de datos (difíciles de escanear, o directamente rechazados
+   por la librería si el texto es muy largo). */
+function recortarCampoVCard(v, maxLen){
+  const s = String(v||'').trim();
+  return s.length > maxLen ? s.slice(0, maxLen-1)+'…' : s;
+}
 function construirVCardInscrito(i){
   return [
     'BEGIN:VCARD',
     'VERSION:3.0',
-    `FN:${escaparVCard(i.nombre)}`,
-    i.empresa ? `ORG:${escaparVCard(i.empresa)}` : null,
-    i.cargo ? `TITLE:${escaparVCard(i.cargo)}` : null,
-    i.telefono ? `TEL:${escaparVCard(i.telefono)}` : null,
-    i.email ? `EMAIL:${escaparVCard(i.email)}` : null,
-    i.sector ? `NOTE:${escaparVCard(i.sector)}` : null,
+    `FN:${escaparVCard(recortarCampoVCard(i.nombre, 60))}`,
+    i.empresa ? `ORG:${escaparVCard(recortarCampoVCard(i.empresa, 60))}` : null,
+    i.cargo ? `TITLE:${escaparVCard(recortarCampoVCard(i.cargo, 60))}` : null,
+    i.telefono ? `TEL:${escaparVCard(recortarCampoVCard(i.telefono, 25))}` : null,
+    i.email ? `EMAIL:${escaparVCard(recortarCampoVCard(i.email, 60))}` : null,
+    i.sector ? `NOTE:${escaparVCard(recortarCampoVCard(i.sector, 40))}` : null,
+    'END:VCARD'
+  ].filter(Boolean).join('\r\n');
+}
+/* Versión mínima de emergencia, por si incluso el vCard recortado sigue
+   siendo demasiado largo para la librería de QR (nunca debería fallar
+   la generación solo por el tamaño del texto). */
+function construirVCardMinimo(i){
+  return [
+    'BEGIN:VCARD',
+    'VERSION:3.0',
+    `FN:${escaparVCard(recortarCampoVCard(i.nombre, 40))}`,
+    i.telefono ? `TEL:${escaparVCard(recortarCampoVCard(i.telefono, 25))}` : null,
+    i.email ? `EMAIL:${escaparVCard(recortarCampoVCard(i.email, 40))}` : null,
     'END:VCARD'
   ].filter(Boolean).join('\r\n');
 }
@@ -8077,7 +8097,7 @@ function generarQRDataURL(texto, tamanoPx){
         text: texto,
         width: tamanoPx,
         height: tamanoPx,
-        correctLevel: QRCode.CorrectLevel.M
+        correctLevel: QRCode.CorrectLevel.L
       });
       setTimeout(()=>{
         const canvas = contenedor.querySelector('canvas');
@@ -8178,7 +8198,13 @@ async function generarImagenAcreditacion(inscrito, cfg, plantillaImg){
 
   const vcard = construirVCardInscrito(inscrito);
   const qrWpx = Math.max(32, Math.round(cfg.qr.w * pxPerMM));
-  const qrDataUrl = await generarQRDataURL(vcard, qrWpx);
+  let qrDataUrl;
+  try{
+    qrDataUrl = await generarQRDataURL(vcard, qrWpx);
+  }catch(e){
+    console.error('El QR con todos los datos no cupo, se reintenta con una vCard más corta:', e);
+    qrDataUrl = await generarQRDataURL(construirVCardMinimo(inscrito), qrWpx);
+  }
   const qrImg = await cargarImagen(qrDataUrl);
   const qx = cfg.qr.x*pxPerMM, qy = cfg.qr.y*pxPerMM, qw = cfg.qr.w*pxPerMM, qh = cfg.qr.h*pxPerMM;
   const radioPx = (cfg.qr.radius * ACRED_PX_REF_A_MM) * pxPerMM;
