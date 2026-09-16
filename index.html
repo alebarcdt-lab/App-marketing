@@ -7101,7 +7101,7 @@ function renderPrograma(){
   } else {
     wrapP.innerHTML = bloques.map(b=>{
       const idsPonentes = Array.isArray(b.ponenteIds) ? b.ponenteIds : (b.ponenteId ? [b.ponenteId] : []);
-      const nombresPonentes = idsPonentes.map(id=>ponentes.find(x=>x.id===id)).filter(Boolean).map(p=>p.nombre);
+      const datosPonentes = idsPonentes.map(id=>ponentes.find(x=>x.id===id)).filter(Boolean);
       return `
       <div class="agenda-item">
         <div class="agenda-body">
@@ -7110,7 +7110,10 @@ function renderPrograma(){
             <span style="font-size:12.5px;font-weight:600;color:var(--ink-900);">${esc(b.titulo)}</span>
             <span class="tag tag-teal">${esc(b.tipo||'Otro')}</span>
           </div>
-          ${nombresPonentes.length?`<div style="margin-top:4px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;font-size:11.5px;color:var(--ink-500);">${nombresPonentes.map(n=>`<span><i class="fa-solid fa-user"></i> ${esc(n)}</span>`).join('')}</div>`:''}
+          ${datosPonentes.length?`<div style="margin-top:4px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;font-size:11.5px;color:var(--ink-500);">${datosPonentes.map(p=>{
+            const cargoEmpresa = [p.cargo, p.empresa].filter(Boolean).join(', ');
+            return `<span><i class="fa-solid fa-user"></i> <strong style="color:var(--ink-700);">${esc(p.nombre)}</strong>${cargoEmpresa?' — '+esc(cargoEmpresa):''}</span>`;
+          }).join('')}</div>`:''}
           ${b.notas?`<div class="cmeta" style="margin-top:3px;">${esc(b.notas)}</div>`:''}
         </div>
         <div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0;">
