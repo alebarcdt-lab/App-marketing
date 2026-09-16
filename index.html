@@ -213,6 +213,9 @@
   .field input[type=time],
   .field input[type=url],
   .field input[type=number],
+  .field input[type=tel],
+  .field input[type=password],
+  .field input[type=search],
   .field select,
   .field textarea{
     width:100%;
@@ -559,6 +562,9 @@
 
   /* ---------- Topbar: búsqueda global y notificaciones ---------- */
   .topbar-actions{display:flex;align-items:center;gap:12px;flex:1;justify-content:flex-end;flex-wrap:wrap;}
+  .field-icon{position:relative;}
+  .field-icon i{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--ink-300);font-size:12.5px;pointer-events:none;}
+  .field-icon input{padding-left:32px;}
   .global-search{position:relative;width:280px;max-width:100%;}
   .global-search i.fa-magnifying-glass{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--ink-300);font-size:12px;}
   .global-search input{width:100%;padding:9px 12px 9px 32px;border:1px solid var(--line-strong);border-radius:20px;font-size:12.5px;font-family:inherit;background:#fff;}
@@ -2182,6 +2188,14 @@
                   <div class="field"><label for="insSector">Sector</label><select id="insSector"><option value="">Sin especificar</option></select></div>
                   <div class="field"><label for="insFecha">Fecha de inscripción</label><input type="date" id="insFecha"></div>
                 </div>
+                <div class="field-row">
+                  <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:0;">
+                    <input type="checkbox" id="insComida" style="width:auto;margin:0;accent-color:var(--teal-500);"> Asiste a la comida
+                  </label>
+                  <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:0;">
+                    <input type="checkbox" id="insVisita" style="width:auto;margin:0;accent-color:var(--teal-500);"> Asiste a la visita
+                  </label>
+                </div>
                 <button class="btn" onclick="añadirInscrito()"><i class="fa-solid fa-plus"></i> Añadir inscrito</button>
                 <div class="divider"></div>
                 <div class="panel-title" style="font-size:13px;">Evolución de inscritos</div>
@@ -2192,7 +2206,7 @@
                 <div class="panel-subtitle">Edita el estado de inscripción y de asistencia directamente en la tabla.</div>
                 <div class="table-wrap">
                   <table id="tablaInscritos">
-                    <thead><tr><th>Nombre</th><th>Email</th><th>Empresa</th><th>Inscripción</th><th>Asistencia</th><th>Fecha</th><th></th></tr></thead>
+                    <thead><tr><th>Nombre</th><th>Email</th><th>Empresa</th><th>Inscripción</th><th>Asistencia</th><th>Comida</th><th>Visita</th><th>Fecha</th><th></th></tr></thead>
                     <tbody></tbody>
                   </table>
                 </div>
@@ -2528,11 +2542,7 @@
         <div class="modal-box">
           <span class="modal-close" onclick="cerrarModalResponsable()"><i class="fa-solid fa-xmark"></i></span>
           <h3>Añadir responsable</h3>
-          <div class="field-row">
-            <div class="field" style="flex:2;"><label for="respNombre">Nombre</label><input type="text" id="respNombre" placeholder="Nombre y apellidos"></div>
-            <div class="field"><label for="respRol">Rol / función</label><input type="text" id="respRol" placeholder="Ej. Coordinación"></div>
-          </div>
-          <div class="field"><label for="respEmail">Email (opcional)</label><input type="email" id="respEmail" placeholder="nombre@cidaut.es"></div>
+          <div class="field"><label for="respNombre">Nombre</label><input type="text" id="respNombre" placeholder="Nombre y apellidos"></div>
           <div class="btn-row">
             <button class="btn" onclick="añadirResponsableEvento()"><i class="fa-solid fa-plus"></i> Añadir</button>
           </div>
@@ -2553,7 +2563,9 @@
             <div class="field"><label for="poCargo">Cargo</label><input type="text" id="poCargo"></div>
           </div>
           <div class="field"><label for="poEmail">Email</label><input type="email" id="poEmail"></div>
-          <div class="field"><label for="poTelefono">Teléfono</label><input type="tel" id="poTelefono" placeholder="Ej. 600 123 456"></div>
+          <div class="field"><label for="poTelefono">Teléfono</label>
+            <div class="field-icon"><i class="fa-solid fa-phone"></i><input type="tel" id="poTelefono" placeholder="Ej. 600 123 456"></div>
+          </div>
           <div class="field"><label for="poBio">Biografía (opcional)</label><textarea id="poBio"></textarea></div>
           <div class="field">
             <label>Fotografía (opcional)</label>
@@ -6585,7 +6597,7 @@ function renderPlanificacionEvento(){
 function abrirModalResponsable(){
   const ev = eventoDetalleActual;
   if (!ev){ showToast('Abre primero un evento.'); return; }
-  ['respNombre','respRol','respEmail'].forEach(id=>document.getElementById(id).value='');
+  ['respNombre'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('responsableModal').classList.add('active');
 }
 function cerrarModalResponsable(){
@@ -6605,8 +6617,6 @@ function renderResponsablesEvento(){
     <div class="check-item">
       <div class="ctext">
         <span class="responsable-tag"><i class="fa-solid fa-user" style="color:var(--teal-500);"></i> <strong>${esc(r.nombre)}</strong></span>
-        ${r.rol?`<span class="tag tag-teal" style="margin-left:6px;">${esc(r.rol)}</span>`:''}
-        <div class="cmeta">${r.email?esc(r.email):''}</div>
       </div>
       <span class="btn-ghost" onclick="eliminarResponsableEvento('${r.id}')"><i class="fa-solid fa-xmark"></i></span>
     </div>`).join('');
@@ -6618,7 +6628,7 @@ function añadirResponsableEvento(){
   const nombre = document.getElementById('respNombre').value.trim();
   if (!nombre){ showToast('Indica al menos el nombre del responsable.'); return; }
   const plan = getPlanificacion(ev);
-  plan.responsables.push({ id: uid(), nombre, rol: document.getElementById('respRol').value.trim(), email: document.getElementById('respEmail').value.trim() });
+  plan.responsables.push({ id: uid(), nombre });
   savePlanificacion(ev, plan);
   cerrarModalResponsable();
   renderResponsablesEvento();
@@ -6840,12 +6850,16 @@ function añadirInscrito(){
     sector: document.getElementById('insSector').value,
     estInscripcion: document.getElementById('insEstado').value || 'registrado',
     estAsistencia: 'pendiente',
+    comida: document.getElementById('insComida').checked,
+    visita: document.getElementById('insVisita').checked,
     fecha
   });
   setLS(LS.inscritos, inscritos);
 
   ['insNombre','insEmail','insCargo','insEmpresa','insFecha'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('insSector').value = '';
+  document.getElementById('insComida').checked = false;
+  document.getElementById('insVisita').checked = false;
   renderInscritos();
   updateDashboardStats();
   showToast('Inscrito añadido.');
@@ -6926,9 +6940,9 @@ function renderInscritos(){
   const tbody = document.querySelector('#tablaInscritos tbody');
   if (tbody){
     if (!evento){
-      tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Abre un evento propio desde el hub.</td></tr>';
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="9">Abre un evento propio desde el hub.</td></tr>';
     } else if (!todos.length){
-      tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Todavía no hay inscritos para este evento.</td></tr>';
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="9">Todavía no hay inscritos para este evento.</td></tr>';
     } else {
       tbody.innerHTML = todos.slice().sort((a,b)=>a.fecha.localeCompare(b.fecha)).map(i=>`
         <tr style="${i.estInscripcion==='cancelado'?'opacity:0.5;':''}">
@@ -6945,6 +6959,8 @@ function renderInscritos(){
               ${Object.keys(EST_ASIS_LABEL).map(k=>`<option value="${k}" ${i.estAsistencia===k?'selected':''}>${EST_ASIS_LABEL[k]}</option>`).join('')}
             </select>
           </td>
+          <td style="text-align:center;"><input type="checkbox" style="width:auto;accent-color:var(--teal-500);" ${i.comida?'checked':''} onchange="actualizarEstadoInscrito('${i.id}','comida',this.checked)"></td>
+          <td style="text-align:center;"><input type="checkbox" style="width:auto;accent-color:var(--teal-500);" ${i.visita?'checked':''} onchange="actualizarEstadoInscrito('${i.id}','visita',this.checked)"></td>
           <td>${fmtFecha(i.fecha)}</td>
           <td><span class="btn-ghost" onclick="eliminarInscrito('${i.id}')"><i class="fa-solid fa-trash"></i></span></td>
         </tr>`).join('');
