@@ -2365,6 +2365,7 @@
                     <div class="field"><label for="acredQrH">Alto (mm)</label><input type="number" id="acredQrH" step="0.01" oninput="actualizarPreviewAcredEnVivo()"></div>
                   </div>
                   <div class="field"><label for="acredQrRadio">Redondez de esquinas</label><input type="number" id="acredQrRadio" step="1" min="0" oninput="actualizarPreviewAcredEnVivo()"></div>
+                  <div class="field"><label for="acredQrBorde">Borde blanco (mm)</label><input type="number" id="acredQrBorde" step="0.1" min="0" oninput="actualizarPreviewAcredEnVivo()"></div>
                 </div>
 
                 <div class="panel" style="background:#fbfcfc;">
@@ -8009,7 +8010,7 @@ function configAcredPorDefecto(){
     anchoMM: 95,
     altoMM: 220,
     version: 1,                // se incrementa al guardar; sirve para detectar acreditaciones desactualizadas
-    qr:      { x:72.68,  y:114.67, w:64.64, h:64.64, radius:20 },
+    qr:      { x:72.68,  y:114.67, w:64.64, h:64.64, radius:20, borde:3 },
     nombre:  { x:13.38,  y:188.14, alto:12.54, tam:29.8, color:'#FFFFFF' },
     empresa: { x:13.38,  y:202.68, alto:12.54, tam:29.8, color:'#00B2B7' }
   };
@@ -8208,11 +8209,25 @@ async function generarImagenAcreditacion(inscrito, cfg, plantillaImg){
   const qrImg = await cargarImagen(qrDataUrl);
   const qx = cfg.qr.x*pxPerMM, qy = cfg.qr.y*pxPerMM, qw = cfg.qr.w*pxPerMM, qh = cfg.qr.h*pxPerMM;
   const radioPx = (cfg.qr.radius * ACRED_PX_REF_A_MM) * pxPerMM;
-  ctx.save();
-  dibujarRectRedondeado(ctx, qx, qy, qw, qh, radioPx);
-  ctx.clip();
-  ctx.drawImage(qrImg, qx, qy, qw, qh);
-  ctx.restore();
+  const bordePx = (cfg.qr.borde||0) * pxPerMM;
+
+  if (bordePx > 0){
+    // Marco blanco redondeado, algo más grande que el QR, dibujado ANTES
+    // para que quede como borde alrededor; el QR va encima, sin recortar
+    // sus propias esquinas (así no se pierde ni un módulo del código).
+    ctx.save();
+    ctx.fillStyle = '#FFFFFF';
+    dibujarRectRedondeado(ctx, qx-bordePx, qy-bordePx, qw+bordePx*2, qh+bordePx*2, radioPx+bordePx);
+    ctx.fill();
+    ctx.restore();
+    ctx.drawImage(qrImg, qx, qy, qw, qh);
+  } else {
+    ctx.save();
+    dibujarRectRedondeado(ctx, qx, qy, qw, qh, radioPx);
+    ctx.clip();
+    ctx.drawImage(qrImg, qx, qy, qw, qh);
+    ctx.restore();
+  }
 
   dibujarTextoCentradoAcred(ctx, (inscrito.nombre||'').toUpperCase(), cfg.nombre, cfg.anchoMM, pxPerMM, fuenteFamily);
   dibujarTextoCentradoAcred(ctx, (inscrito.empresa||'').toUpperCase(), cfg.empresa, cfg.anchoMM, pxPerMM, fuenteFamily);
@@ -8410,7 +8425,8 @@ function leerCamposConfigAcredDesdeUI(){
     y: Number(document.getElementById('acredQrY').value)||0,
     w: Number(document.getElementById('acredQrW').value)||1,
     h: Number(document.getElementById('acredQrH').value)||1,
-    radius: Number(document.getElementById('acredQrRadio').value)||0
+    radius: Number(document.getElementById('acredQrRadio').value)||0,
+    borde: Number(document.getElementById('acredQrBorde').value)||0
   };
   cfg.nombre = {
     x: Number(document.getElementById('acredNombreX').value)||0,
@@ -8470,6 +8486,7 @@ function renderConfigAcredUI(cfg){
   document.getElementById('acredQrW').value = cfg.qr.w;
   document.getElementById('acredQrH').value = cfg.qr.h;
   document.getElementById('acredQrRadio').value = cfg.qr.radius;
+  document.getElementById('acredQrBorde').value = cfg.qr.borde!=null ? cfg.qr.borde : 3;
   document.getElementById('acredNombreX').value = cfg.nombre.x;
   document.getElementById('acredNombreY').value = cfg.nombre.y;
   document.getElementById('acredNombreAlto').value = cfg.nombre.alto;
