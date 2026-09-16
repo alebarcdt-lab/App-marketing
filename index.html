@@ -2124,64 +2124,23 @@
           </div>
 
           <!-- PLANIFICACIÓN -->
-          <!-- PLANIFICACIÓN (antes "Logística"; incluye también el briefing, metas/aforo,
-               responsables y plantilla que antes vivían en su propia pestaña) -->
+          <!-- PLANIFICACIÓN (antes "Logística") -->
           <div class="tab-pane" id="propios-logistica">
-            <details class="panel" style="margin-bottom:16px;">
-              <summary style="cursor:pointer;font-weight:700;color:var(--ink-700);font-size:13.5px;">Briefing, metas, responsables y plantilla</summary>
-              <div class="grid-2" style="margin-top:16px;">
-                <div class="panel">
-                  <div class="panel-title">Briefing del evento</div>
-                  <div class="panel-subtitle">La información estratégica del evento, editable en cualquier momento.</div>
-                  <div class="field"><label for="plObjetivo">Objetivo principal</label><textarea id="plObjetivo" placeholder="¿Qué queremos conseguir con este evento?"></textarea></div>
-                  <div class="field-row">
-                    <div class="field"><label for="plPublico">Público objetivo</label><input type="text" id="plPublico" placeholder="Ej. Empresas del sector agroalimentario"></div>
-                    <div class="field"><label for="plCta">CTA / llamada a la acción</label><input type="text" id="plCta" placeholder="Ej. Inscríbete antes del día 15"></div>
-                  </div>
-                  <div class="field"><label for="plMensajes">Mensajes clave</label><textarea id="plMensajes" placeholder="Los 2-3 mensajes que debe recordar la audiencia"></textarea></div>
-                  <div class="field"><label for="plKpis">KPIs / indicadores a conseguir</label><textarea id="plKpis" placeholder="Ej. 100 inscritos, 70 asistentes, 15 citas de prensa"></textarea></div>
-                  <div class="field"><label for="plObservaciones">Observaciones generales</label><textarea id="plObservaciones" placeholder="Cualquier otra información relevante"></textarea></div>
-                  <button class="btn" onclick="guardarPlanificacionEvento()"><i class="fa-solid fa-floppy-disk"></i> Guardar planificación</button>
-                </div>
-                <div>
-                  <div class="panel">
-                    <div class="panel-title">Metas y aforo</div>
-                    <div class="panel-subtitle">Se usan para calcular la ocupación en el resumen y en el control de inscritos.</div>
-                    <div class="field-row">
-                      <div class="field"><label for="plObjetivoAsistentes">Objetivo de asistentes</label><input type="number" id="plObjetivoAsistentes" min="0" placeholder="Ej. 100"></div>
-                      <div class="field"><label for="plAforo">Aforo máximo</label><input type="number" id="plAforo" min="0" placeholder="Ej. 120"></div>
-                    </div>
-                    <button class="btn" onclick="guardarPlanificacionEvento()"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
-                  </div>
-
-                  <div class="panel">
-                    <div class="panel-title">Responsables del evento</div>
-                    <div class="panel-subtitle">Equipo interno de organización. Podrán asignarse a tareas, comunicaciones y recursos.</div>
-                    <div class="field-row">
-                      <div class="field" style="flex:2;"><label for="respNombre">Nombre</label><input type="text" id="respNombre" placeholder="Nombre y apellidos"></div>
-                      <div class="field"><label for="respRol">Rol / función</label><input type="text" id="respRol" placeholder="Ej. Coordinación"></div>
-                    </div>
-                    <div class="field"><label for="respEmail">Email (opcional)</label><input type="email" id="respEmail" placeholder="nombre@cidaut.es"></div>
-                    <button class="btn btn-secondary" onclick="añadirResponsableEvento()"><i class="fa-solid fa-plus"></i> Añadir responsable</button>
-                    <div id="listaResponsablesEvento" style="margin-top:14px;"></div>
-                  </div>
-
-                  <div class="panel">
-                    <div class="panel-title">Cargar plantilla de logística</div>
-                    <div class="panel-subtitle">Añade las tareas de una plantilla según el tipo de evento (no borra las tareas actuales).</div>
-                    <div class="field"><label for="plantillaSelect">Tipo de plantilla</label><select id="plantillaSelect"></select></div>
-                    <button class="btn btn-secondary" onclick="cargarPlantillaLogistica()"><i class="fa-solid fa-download"></i> Cargar plantilla</button>
-                  </div>
-                </div>
-              </div>
-            </details>
-
             <div class="flex-between" style="margin-bottom:16px;">
               <div class="panel-subtitle" style="margin-bottom:0;">Tareas por fases, con responsable, prioridad, fecha límite y estado. Haz clic en una tarea para editarla.</div>
               <button class="btn" onclick="abrirModalTareaLogistica()"><i class="fa-solid fa-plus"></i> Añadir tarea</button>
             </div>
             <div id="logisticaProgresoGlobal"></div>
             <div class="grid-3" id="logisticaFases"></div>
+
+            <div class="panel section-gap">
+              <div class="flex-between">
+                <div class="panel-title" style="margin-bottom:0;">Responsables del evento</div>
+                <button class="btn" onclick="abrirModalResponsable()"><i class="fa-solid fa-plus"></i> Añadir responsable</button>
+              </div>
+              <div class="panel-subtitle" style="margin-top:6px;">Equipo interno de organización. Podrán asignarse a tareas, comunicaciones y recursos.</div>
+              <div id="listaResponsablesEvento" style="margin-top:10px;"></div>
+            </div>
           </div>
 
           <!-- INSCRITOS -->
@@ -2547,6 +2506,22 @@
           <div class="btn-row">
             <button class="btn" onclick="guardarPrograma()"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
             <button class="btn btn-danger" id="pgDeleteBtn" style="display:none;" onclick="eliminarPrograma()">Eliminar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal de responsable del evento -->
+      <div class="modal-overlay" id="responsableModal">
+        <div class="modal-box">
+          <span class="modal-close" onclick="cerrarModalResponsable()"><i class="fa-solid fa-xmark"></i></span>
+          <h3>Añadir responsable</h3>
+          <div class="field-row">
+            <div class="field" style="flex:2;"><label for="respNombre">Nombre</label><input type="text" id="respNombre" placeholder="Nombre y apellidos"></div>
+            <div class="field"><label for="respRol">Rol / función</label><input type="text" id="respRol" placeholder="Ej. Coordinación"></div>
+          </div>
+          <div class="field"><label for="respEmail">Email (opcional)</label><input type="email" id="respEmail" placeholder="nombre@cidaut.es"></div>
+          <div class="btn-row">
+            <button class="btn" onclick="añadirResponsableEvento()"><i class="fa-solid fa-plus"></i> Añadir</button>
           </div>
         </div>
       </div>
@@ -6226,10 +6201,6 @@ function poblarSelectProyectoEventoPropio(){
   if (selTipo && !selTipo.options.length){
     selTipo.innerHTML = Object.keys(TIPOS_EVENTO).map(k=>`<option value="${k}">${TIPOS_EVENTO[k]}</option>`).join('');
   }
-  const selPlant = document.getElementById('plantillaSelect');
-  if (selPlant && !selPlant.options.length){
-    selPlant.innerHTML = Object.keys(PLANTILLAS_LOGISTICA).map(k=>`<option value="${k}">${TIPOS_EVENTO[k]||k}</option>`).join('');
-  }
 }
 
 function poblarSelectsResponsables(seleccionado){
@@ -6574,22 +6545,13 @@ function renderResumenEvento(){
 
     <div class="panel section-gap">
       <div class="panel-title">Información básica del evento</div>
-      <div class="grid-2" style="gap:24px;">
-        <div style="font-size:12.5px;color:var(--ink-700);line-height:1.9;">
-          <div><strong>Objetivo:</strong> ${plan.objetivo ? esc(plan.objetivo) : '<span class="muted">Sin definir — complétalo en Planificación</span>'}</div>
-          <div><strong>Público objetivo:</strong> ${plan.publico ? esc(plan.publico) : '<span class="muted">—</span>'}</div>
-          <div><strong>Mensajes clave:</strong> ${plan.mensajes ? esc(plan.mensajes) : '<span class="muted">—</span>'}</div>
-          <div><strong>KPIs:</strong> ${plan.kpis ? esc(plan.kpis) : '<span class="muted">—</span>'}</div>
-        </div>
-        <div style="font-size:12.5px;color:var(--ink-700);line-height:1.9;">
-          <div><strong>Fechas:</strong> ${fmtRangoEventoPropio(ev)}</div>
-          <div><strong>Lugar:</strong> ${ev.lugar ? esc(ev.lugar) : '<span class="muted">—</span>'}</div>
-          <div><strong>Proyecto:</strong> ${ev.proyecto ? esc(ev.proyecto) : '<span class="muted">—</span>'}</div>
-          <div><strong>Notas:</strong> ${ev.descripcion ? esc(ev.descripcion) : '<span class="muted">—</span>'}</div>
-        </div>
+      <div style="font-size:12.5px;color:var(--ink-700);line-height:1.9;">
+        <div><strong>Fechas:</strong> ${fmtRangoEventoPropio(ev)}</div>
+        <div><strong>Lugar:</strong> ${ev.lugar ? esc(ev.lugar) : '<span class="muted">—</span>'}</div>
+        <div><strong>Proyecto:</strong> ${ev.proyecto ? esc(ev.proyecto) : '<span class="muted">—</span>'}</div>
+        <div><strong>Notas:</strong> ${ev.descripcion ? esc(ev.descripcion) : '<span class="muted">—</span>'}</div>
       </div>
       <div class="btn-row" style="margin-top:14px;">
-        <button class="btn btn-secondary" onclick="switchTab('propios','logistica')"><i class="fa-solid fa-bullseye"></i> Completar planificación</button>
         <button class="btn btn-secondary" onclick="switchTab('propios','inscritos')"><i class="fa-solid fa-users"></i> Ver inscritos</button>
         <button class="btn btn-secondary" onclick="switchTab('propios','programa')"><i class="fa-solid fa-clock"></i> Ver programa</button>
         <button class="btn btn-secondary" onclick="switchTab('propios','recursos')"><i class="fa-solid fa-folder-open"></i> Ver recursos</button>
@@ -6603,30 +6565,17 @@ function renderResumenEvento(){
 function renderPlanificacionEvento(){
   const ev = eventoDetalleActual;
   if (!ev) return;
-  const plan = getPlanificacion(ev);
-  ['plObjetivo','plPublico','plCta','plMensajes','plKpis','plObservaciones','plObjetivoAsistentes','plAforo'].forEach(id=>{
-    const el = document.getElementById(id);
-    if (el) el.value = plan[id] || '';
-  });
   renderResponsablesEvento();
 }
 
-function guardarPlanificacionEvento(){
+function abrirModalResponsable(){
   const ev = eventoDetalleActual;
   if (!ev){ showToast('Abre primero un evento.'); return; }
-  const previo = getPlanificacion(ev);
-  savePlanificacion(ev, {
-    ...previo,
-    objetivo: document.getElementById('plObjetivo').value.trim(),
-    publico: document.getElementById('plPublico').value.trim(),
-    cta: document.getElementById('plCta').value.trim(),
-    mensajes: document.getElementById('plMensajes').value.trim(),
-    kpis: document.getElementById('plKpis').value.trim(),
-    observaciones: document.getElementById('plObservaciones').value.trim(),
-    objetivoAsistentes: document.getElementById('plObjetivoAsistentes').value,
-    aforo: document.getElementById('plAforo').value
-  });
-  showToast('Planificación guardada.');
+  ['respNombre','respRol','respEmail'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('responsableModal').classList.add('active');
+}
+function cerrarModalResponsable(){
+  document.getElementById('responsableModal').classList.remove('active');
 }
 
 function renderResponsablesEvento(){
@@ -6657,7 +6606,7 @@ function añadirResponsableEvento(){
   const plan = getPlanificacion(ev);
   plan.responsables.push({ id: uid(), nombre, rol: document.getElementById('respRol').value.trim(), email: document.getElementById('respEmail').value.trim() });
   savePlanificacion(ev, plan);
-  ['respNombre','respRol','respEmail'].forEach(id=>document.getElementById(id).value='');
+  cerrarModalResponsable();
   renderResponsablesEvento();
   poblarSelectsResponsables();
   showToast('Responsable añadido.');
@@ -6676,25 +6625,6 @@ function eliminarResponsableEvento(id){
   showToast('Responsable eliminado.');
 }
 
-function cargarPlantillaLogistica(){
-  const ev = eventoDetalleActual;
-  if (!ev){ showToast('Abre primero un evento.'); return; }
-  const tipo = document.getElementById('plantillaSelect').value;
-  if (!confirm(`Se añadirán las tareas de la plantilla "${TIPOS_EVENTO[tipo]||tipo}" al evento (las tareas actuales se conservan). ¿Continuar?`)) return;
-  const plantilla = PLANTILLAS_LOGISTICA[tipo];
-  if (!plantilla){ showToast('Plantilla no encontrada.'); return; }
-  const logistica = getLogisticaObj();
-  if (!logistica[ev]) logistica[ev] = { pre:[], durante:[], post:[] };
-  Object.keys(FASE_LABEL).forEach(fase=>{
-    if (!logistica[ev][fase]) logistica[ev][fase] = [];
-    (plantilla[fase]||[]).forEach(texto=>{
-      logistica[ev][fase].push({ id: uid(), texto, done:false, estado:'pendiente', prioridad:'media', responsable:'', fechaLimite:'', notas:'', dependencia:'' });
-    });
-  });
-  localStorage.setItem(LS.logistica, JSON.stringify(logistica));
-  renderLogistica();
-  showToast('Plantilla cargada.');
-}
 /* =======================================================================
    LOGÍSTICA
    ======================================================================= */
@@ -6842,7 +6772,7 @@ function renderLogistica(){
           <span class="btn-ghost" onclick="abrirModalTareaLogistica('${t.id}')" style="flex-shrink:0;"><i class="fa-solid fa-pen"></i></span>
         </div>
       </div>`;
-    }).join('') || '<p class="muted small">Sin tareas. Añade una con el botón de arriba o carga una plantilla desde Planificación.</p>';
+    }).join('') || '<p class="muted small">Sin tareas. Añade una con el botón de arriba.</p>';
     return `
       <div class="panel">
         <div class="panel-title">${FASE_LABEL[fase]}</div>
@@ -6959,7 +6889,7 @@ function renderInscritos(){
       const aforo = Number(plan.aforo)||0;
       if (!aforo){
         aforoWrap.innerHTML = `
-          <div class="small muted">No hay aforo máximo definido. Establécelo en la pestaña <strong>Planificación</strong> para activar el control de ocupación.</div>
+          <div class="small muted">Este evento no tiene aforo máximo definido.</div>
           <div class="aforo-num" style="margin-top:8px;">${s.activos} inscritos activos</div>`;
       } else {
         const ocupacion = Math.min(100, Math.round(s.activos/aforo*100));
