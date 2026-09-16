@@ -2111,8 +2111,7 @@
 
           <div class="tabbar">
             <button class="tab-btn active" data-tab="resumen" onclick="switchTab('propios','resumen')">Resumen</button>
-            <button class="tab-btn" data-tab="planificacion" onclick="switchTab('propios','planificacion')">Planificación</button>
-            <button class="tab-btn" data-tab="logistica" onclick="switchTab('propios','logistica')">Logística</button>
+            <button class="tab-btn" data-tab="logistica" onclick="switchTab('propios','logistica')">Planificación</button>
             <button class="tab-btn" data-tab="inscritos" onclick="switchTab('propios','inscritos')">Inscritos</button>
             <button class="tab-btn" data-tab="programa" onclick="switchTab('propios','programa')">Programa y ponentes</button>
             <button class="tab-btn" data-tab="calendario" onclick="switchTab('propios','calendario')">Comunicación</button>
@@ -2125,56 +2124,58 @@
           </div>
 
           <!-- PLANIFICACIÓN -->
-          <div class="tab-pane" id="propios-planificacion">
-            <div class="grid-2">
-              <div class="panel">
-                <div class="panel-title">Briefing del evento</div>
-                <div class="panel-subtitle">La información estratégica del evento, editable en cualquier momento.</div>
-                <div class="field"><label for="plObjetivo">Objetivo principal</label><textarea id="plObjetivo" placeholder="¿Qué queremos conseguir con este evento?"></textarea></div>
-                <div class="field-row">
-                  <div class="field"><label for="plPublico">Público objetivo</label><input type="text" id="plPublico" placeholder="Ej. Empresas del sector agroalimentario"></div>
-                  <div class="field"><label for="plCta">CTA / llamada a la acción</label><input type="text" id="plCta" placeholder="Ej. Inscríbete antes del día 15"></div>
-                </div>
-                <div class="field"><label for="plMensajes">Mensajes clave</label><textarea id="plMensajes" placeholder="Los 2-3 mensajes que debe recordar la audiencia"></textarea></div>
-                <div class="field"><label for="plKpis">KPIs / indicadores a conseguir</label><textarea id="plKpis" placeholder="Ej. 100 inscritos, 70 asistentes, 15 citas de prensa"></textarea></div>
-                <div class="field"><label for="plObservaciones">Observaciones generales</label><textarea id="plObservaciones" placeholder="Cualquier otra información relevante"></textarea></div>
-                <button class="btn" onclick="guardarPlanificacionEvento()"><i class="fa-solid fa-floppy-disk"></i> Guardar planificación</button>
-              </div>
-              <div>
-                <div class="panel">
-                  <div class="panel-title">Metas y aforo</div>
-                  <div class="panel-subtitle">Se usan para calcular la ocupación en el resumen y en el control de inscritos.</div>
-                  <div class="field-row">
-                    <div class="field"><label for="plObjetivoAsistentes">Objetivo de asistentes</label><input type="number" id="plObjetivoAsistentes" min="0" placeholder="Ej. 100"></div>
-                    <div class="field"><label for="plAforo">Aforo máximo</label><input type="number" id="plAforo" min="0" placeholder="Ej. 120"></div>
-                  </div>
-                  <button class="btn" onclick="guardarPlanificacionEvento()"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
-                </div>
-
-                <div class="panel">
-                  <div class="panel-title">Responsables del evento</div>
-                  <div class="panel-subtitle">Equipo interno de organización. Podrán asignarse a tareas, comunicaciones y recursos.</div>
-                  <div class="field-row">
-                    <div class="field" style="flex:2;"><label for="respNombre">Nombre</label><input type="text" id="respNombre" placeholder="Nombre y apellidos"></div>
-                    <div class="field"><label for="respRol">Rol / función</label><input type="text" id="respRol" placeholder="Ej. Coordinación"></div>
-                  </div>
-                  <div class="field"><label for="respEmail">Email (opcional)</label><input type="email" id="respEmail" placeholder="nombre@cidaut.es"></div>
-                  <button class="btn btn-secondary" onclick="añadirResponsableEvento()"><i class="fa-solid fa-plus"></i> Añadir responsable</button>
-                  <div id="listaResponsablesEvento" style="margin-top:14px;"></div>
-                </div>
-
-                <div class="panel">
-                  <div class="panel-title">Cargar plantilla de logística</div>
-                  <div class="panel-subtitle">Añade las tareas de una plantilla según el tipo de evento (no borra las tareas actuales).</div>
-                  <div class="field"><label for="plantillaSelect">Tipo de plantilla</label><select id="plantillaSelect"></select></div>
-                  <button class="btn btn-secondary" onclick="cargarPlantillaLogistica()"><i class="fa-solid fa-download"></i> Cargar plantilla</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- LOGÍSTICA -->
+          <!-- PLANIFICACIÓN (antes "Logística"; incluye también el briefing, metas/aforo,
+               responsables y plantilla que antes vivían en su propia pestaña) -->
           <div class="tab-pane" id="propios-logistica">
+            <details class="panel" style="margin-bottom:16px;">
+              <summary style="cursor:pointer;font-weight:700;color:var(--ink-700);font-size:13.5px;">Briefing, metas, responsables y plantilla</summary>
+              <div class="grid-2" style="margin-top:16px;">
+                <div class="panel">
+                  <div class="panel-title">Briefing del evento</div>
+                  <div class="panel-subtitle">La información estratégica del evento, editable en cualquier momento.</div>
+                  <div class="field"><label for="plObjetivo">Objetivo principal</label><textarea id="plObjetivo" placeholder="¿Qué queremos conseguir con este evento?"></textarea></div>
+                  <div class="field-row">
+                    <div class="field"><label for="plPublico">Público objetivo</label><input type="text" id="plPublico" placeholder="Ej. Empresas del sector agroalimentario"></div>
+                    <div class="field"><label for="plCta">CTA / llamada a la acción</label><input type="text" id="plCta" placeholder="Ej. Inscríbete antes del día 15"></div>
+                  </div>
+                  <div class="field"><label for="plMensajes">Mensajes clave</label><textarea id="plMensajes" placeholder="Los 2-3 mensajes que debe recordar la audiencia"></textarea></div>
+                  <div class="field"><label for="plKpis">KPIs / indicadores a conseguir</label><textarea id="plKpis" placeholder="Ej. 100 inscritos, 70 asistentes, 15 citas de prensa"></textarea></div>
+                  <div class="field"><label for="plObservaciones">Observaciones generales</label><textarea id="plObservaciones" placeholder="Cualquier otra información relevante"></textarea></div>
+                  <button class="btn" onclick="guardarPlanificacionEvento()"><i class="fa-solid fa-floppy-disk"></i> Guardar planificación</button>
+                </div>
+                <div>
+                  <div class="panel">
+                    <div class="panel-title">Metas y aforo</div>
+                    <div class="panel-subtitle">Se usan para calcular la ocupación en el resumen y en el control de inscritos.</div>
+                    <div class="field-row">
+                      <div class="field"><label for="plObjetivoAsistentes">Objetivo de asistentes</label><input type="number" id="plObjetivoAsistentes" min="0" placeholder="Ej. 100"></div>
+                      <div class="field"><label for="plAforo">Aforo máximo</label><input type="number" id="plAforo" min="0" placeholder="Ej. 120"></div>
+                    </div>
+                    <button class="btn" onclick="guardarPlanificacionEvento()"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+                  </div>
+
+                  <div class="panel">
+                    <div class="panel-title">Responsables del evento</div>
+                    <div class="panel-subtitle">Equipo interno de organización. Podrán asignarse a tareas, comunicaciones y recursos.</div>
+                    <div class="field-row">
+                      <div class="field" style="flex:2;"><label for="respNombre">Nombre</label><input type="text" id="respNombre" placeholder="Nombre y apellidos"></div>
+                      <div class="field"><label for="respRol">Rol / función</label><input type="text" id="respRol" placeholder="Ej. Coordinación"></div>
+                    </div>
+                    <div class="field"><label for="respEmail">Email (opcional)</label><input type="email" id="respEmail" placeholder="nombre@cidaut.es"></div>
+                    <button class="btn btn-secondary" onclick="añadirResponsableEvento()"><i class="fa-solid fa-plus"></i> Añadir responsable</button>
+                    <div id="listaResponsablesEvento" style="margin-top:14px;"></div>
+                  </div>
+
+                  <div class="panel">
+                    <div class="panel-title">Cargar plantilla de logística</div>
+                    <div class="panel-subtitle">Añade las tareas de una plantilla según el tipo de evento (no borra las tareas actuales).</div>
+                    <div class="field"><label for="plantillaSelect">Tipo de plantilla</label><select id="plantillaSelect"></select></div>
+                    <button class="btn btn-secondary" onclick="cargarPlantillaLogistica()"><i class="fa-solid fa-download"></i> Cargar plantilla</button>
+                  </div>
+                </div>
+              </div>
+            </details>
+
             <div class="flex-between" style="margin-bottom:16px;">
               <div class="panel-subtitle" style="margin-bottom:0;">Tareas por fases, con responsable, prioridad, fecha límite y estado. Haz clic en una tarea para editarla.</div>
               <button class="btn" onclick="abrirModalTareaLogistica()"><i class="fa-solid fa-plus"></i> Añadir tarea</button>
@@ -2234,7 +2235,12 @@
 
           <!-- PROGRAMA Y PONENTES -->
           <div class="tab-pane" id="propios-programa">
-            <div class="grid-2">
+            <div class="subtabbar">
+              <button class="subtab-btn active" data-subtab="agenda" onclick="switchProgramaSub('agenda')">Agenda</button>
+              <button class="subtab-btn" data-subtab="ponentes" onclick="switchProgramaSub('ponentes')">Ponentes</button>
+            </div>
+
+            <div class="subtab-pane active" id="programa-sub-agenda">
               <div class="panel">
                 <div class="flex-between">
                   <div class="panel-title" style="margin-bottom:0;">Agenda del evento</div>
@@ -2243,6 +2249,9 @@
                 <div class="panel-subtitle" style="margin-top:6px;">Ordena cronológicamente la jornada. Usa las flechas para reordenar.</div>
                 <div id="programaLista"></div>
               </div>
+            </div>
+
+            <div class="subtab-pane" id="programa-sub-ponentes">
               <div class="panel">
                 <div class="flex-between">
                   <div class="panel-title" style="margin-bottom:0;">Ponentes</div>
@@ -3099,8 +3108,7 @@ function switchTab(module, tabName){
   }
   if (module==='propios'){
     if (tabName==='resumen') renderResumenEvento();
-    else if (tabName==='planificacion') renderPlanificacionEvento();
-    else if (tabName==='logistica') renderLogistica();
+    else if (tabName==='logistica'){ renderPlanificacionEvento(); renderLogistica(); }
     else if (tabName==='inscritos') renderInscritos();
     else if (tabName==='programa') renderPrograma();
     else if (tabName==='calendario') renderCalendarioComunicacion();
@@ -6581,7 +6589,7 @@ function renderResumenEvento(){
         </div>
       </div>
       <div class="btn-row" style="margin-top:14px;">
-        <button class="btn btn-secondary" onclick="switchTab('propios','planificacion')"><i class="fa-solid fa-bullseye"></i> Completar planificación</button>
+        <button class="btn btn-secondary" onclick="switchTab('propios','logistica')"><i class="fa-solid fa-bullseye"></i> Completar planificación</button>
         <button class="btn btn-secondary" onclick="switchTab('propios','inscritos')"><i class="fa-solid fa-users"></i> Ver inscritos</button>
         <button class="btn btn-secondary" onclick="switchTab('propios','programa')"><i class="fa-solid fa-clock"></i> Ver programa</button>
         <button class="btn btn-secondary" onclick="switchTab('propios','recursos')"><i class="fa-solid fa-folder-open"></i> Ver recursos</button>
@@ -7200,6 +7208,13 @@ function renderPrograma(){
         </div>
       </div>`).join('');
   }
+}
+
+function switchProgramaSub(sub){
+  const cont = document.getElementById('propios-programa');
+  if (!cont) return;
+  cont.querySelectorAll('.subtab-btn').forEach(b=>b.classList.toggle('active', b.dataset.subtab===sub));
+  cont.querySelectorAll('.subtab-pane').forEach(p=>p.classList.toggle('active', p.id === 'programa-sub-'+sub));
 }
 
 function abrirModalPrograma(id){
