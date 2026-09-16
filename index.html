@@ -8175,6 +8175,10 @@ async function generarAcreditacionInscritoUI(id){
   if (idx<0) return;
   const cfg = getConfigAcred(ev);
   if (!cfg.plantilla){ showToast('Sube antes una plantilla en "Configurar plantilla y posiciones".'); return; }
+  if (typeof QRCode === 'undefined'){
+    showToast('No se pudo cargar la librería de generación de QR (revisa tu conexión a internet).');
+    return;
+  }
   try{
     const plantillaImg = await cargarImagen(cfg.plantilla);
     const dataUrl = await generarImagenAcreditacion(inscritos[idx], cfg, plantillaImg);
@@ -8188,9 +8192,11 @@ async function generarAcreditacionInscritoUI(id){
     };
     setLS(LS.inscritos, inscritos);
   }catch(e){
-    console.error('Error generando acreditación:', e);
-    inscritos[idx] = { ...inscritos[idx], acredError: (e&&e.message)?e.message:'Error desconocido' };
+    console.error('Error generando acreditación para', inscritos[idx] && inscritos[idx].nombre, ':', e);
+    const msg = (e && e.message) ? e.message : String(e);
+    inscritos[idx] = { ...inscritos[idx], acredError: msg };
     setLS(LS.inscritos, inscritos);
+    showToast(`Error al generar la acreditación de ${inscritos[idx].nombre}: ${msg}`);
   }
   renderAcreditaciones();
 }
@@ -8492,7 +8498,10 @@ function renderAcreditaciones(){
       <td>${esc(i.empresa)||'—'}</td>
       <td>${esc(i.cargo)||'—'}</td>
       <td>${esc(i.email)||'—'}</td>
-      <td><span class="tag ${info.clase}">${info.icon} ${info.texto}</span></td>
+      <td>
+        <span class="tag ${info.clase}">${info.icon} ${info.texto}</span>
+        ${estado==='error' && i.acredError ? `<div class="cmeta" style="color:var(--danger);margin-top:3px;max-width:220px;">${esc(i.acredError)}</div>` : ''}
+      </td>
       <td style="white-space:nowrap;">${acciones}</td>
     </tr>`;
   }).join('');
